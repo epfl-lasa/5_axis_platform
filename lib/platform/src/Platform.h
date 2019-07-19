@@ -64,6 +64,7 @@ class Platform
     // Other variables
     uint32_t _timestamp;
     static Platform *me;
+    float _epson;
 
   public:
 

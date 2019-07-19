@@ -1,5 +1,4 @@
 #include "Platform.h"
-
 Platform *Platform::me = NULL;
 
 Platform::Platform()
@@ -27,6 +26,8 @@ Platform::Platform()
     _pidPose[k] = new PID(&_pose[k], &_commands[k], &_poseD[k], _kpPose[k], _kiPose[k], _kdPose[k], DIRECT);
     _pidTwist[k] = new PID(&_twist[k], &_commands[k], &_twistD[k], _kpTwist[k], _kiTwist[k], _kdTwist[k], DIRECT);
   }
+
+  _state = HOMING;
 
   _cs[X] = D6;  //! CS1 -> Lateral
   _cs[Y] = D9;  //! CS2  -> Dorsi/Plantar Flexion
@@ -68,6 +69,7 @@ void Platform::init()
   for(int k = 0; k <NB_AXIS; k++)
   {
     pinMode(_limitSwitchesPins[k],INPUT);
+    pinMode(_motorsPins[k],OUTPUT);
     if(k<2)
     {
       _pidPose[k]->SetOutputLimits(-25.0, 25.0);
@@ -91,7 +93,8 @@ void Platform::init()
   _encoders[X]->QEC_init(X, ENCODERSCALE1, ENCODERSIGN1);
   _encoders[Y]->QEC_init(Y, ENCODERSCALE2, ENCODERSIGN2);
   _encoders[PITCH]->QEC_init(PITCH, ENCODERSCALE3, ENCODERSIGN3);
-
+  _encoders[ROLL]->QEC_init(ROLL, ENCODERSCALE4, ENCODERSIGN4);
+  _encoders[YAW]->QEC_init(YAW, ENCODERSCALE5, ENCODERSIGN5);
 
 #if (PLATFORM_ID == LEFT_PLATFORM)
   _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg>("/FI_Input/Left", updateFootInput);
@@ -105,8 +108,8 @@ void Platform::init()
   _nh.advertise(*_pubFootOutput);
   _nh.subscribe(*_subFootInput);
 
-  analogWriteResolution(12);
-  analogReadResolution(12);
+  analogWriteResolution(16);
+  analogReadResolution(16);
 }
 
 
@@ -210,6 +213,11 @@ void Platform::getPose()
     _pose[k] = _encoders[k]->outDimension + _poseOffsets[k];
     _pose[k] = _poseFilters[k]->Update(_pose[k]);
   }
+  // Adapt roll and yaw angles due to differential mechanism
+  float enc1 = _pose[ROLL];
+  float enc2 = _pose[YAW];
+  _pose[ROLL]= (enc1-enc2)/2.0f;
+  _pose[YAW] = (enc1+enc2)/2.0f;
 }
 
 
@@ -250,23 +258,26 @@ void Platform::twistControl()
 
 void Platform::setWrenches()
 {
-  for(int k = 0; k <NB_AXIS; k++)
+  for(int k = 0; k <2; k++)
   {
     if(k<2)
     {
       setForce(_commands[k], _motorsPins[k], 1, k);
-    }
-    else
-    {
-      setTorque(_commands[k], _motorsPins[k], 1, k);
     }  
   }
+  setTorque(_commands[PITCH],_motorsPins[PITCH],1,(int)PITCH);
+  // Adapt roll and yaw commands due to differential mechanism
+  setTorque((_commands[YAW]+_commands[ROLL])/2.0f, _motorsPins[ROLL], 1, (int)ROLL);
+  setTorque((_commands[YAW]-_commands[ROLL])/2.0f, _motorsPins[YAW], 1, (int)YAW);
 }
 
 
 void Platform::setForce(float force, int pin, int sign, int axis)
 {
-  force /= cos(PI/3.0f);
+  if(axis==(int)X)
+  {
+    force /= cos(PI/3.0f);
+  }
   float escon_torque = force * BELT_PULLEY_R; //! Convert from torque to force
   setTorque(escon_torque, pin, sign, axis);
 }
@@ -274,36 +285,50 @@ void Platform::setForce(float force, int pin, int sign, int axis)
 
 void Platform::setTorque(float torque, int pin, int sign, int axis)
 {
-  float ki = 0.0f, iMax = 0.0f, reduction = 0.0;
+  float kTau = 0.0f, iMax = 0.0f, reduction = 0.0;
 
   switch (axis)
   {
-    case PITCH:
-    {
-      ki = CURRENT_K_P;
-      iMax = C_CURRENT_MAX_P;
-      reduction = PITCH_REDUCTION_R;
-      break;
-    }
     case X:
     {
-      ki = CURRENT_K_XY;
-      iMax = C_CURRENT_MAX_XY;
+      kTau = TORQUE_CONSTANT_X;
+      iMax = MAX_CURRENT_X;
       reduction = 1.0f;
       break;
     }
     case Y:
     {
-      ki = CURRENT_K_XY;
-      iMax = C_CURRENT_MAX_XY;
+      kTau = TORQUE_CONSTANT_Y;
+      iMax = MAX_CURRENT_Y;
       reduction = 1.0f;
+      break;
+    }
+    case PITCH:
+    {
+      kTau = TORQUE_CONSTANT_PITCH_ROLL_YAW;
+      iMax = MAX_CURRENT_PITCH_ROLL_YAW;
+      reduction = PITCH_REDUCTION_R;
+      break;
+    }
+    case ROLL:
+    {
+      kTau = TORQUE_CONSTANT_PITCH_ROLL_YAW;
+      iMax = MAX_CURRENT_PITCH_ROLL_YAW;
+      reduction = ROLL_YAW_REDUCTION_R;
+      break;
+    }
+    case YAW:
+    {
+      kTau = TORQUE_CONSTANT_PITCH_ROLL_YAW;
+      iMax = MAX_CURRENT_PITCH_ROLL_YAW;
+      reduction = ROLL_YAW_REDUCTION_R;
       break;
     }
   }
 
-  double escon_current = (torque * 1000 / ki) / reduction;
+  double escon_current = (torque * 1000 / kTau) / reduction;
   escon_current = (escon_current > iMax ? iMax : (escon_current < -iMax ? -iMax : escon_current)); 
-  int escon_current_PWM = map(escon_current, -iMax, iMax, 410, 3685);
+  int escon_current_PWM = map(escon_current, -iMax, iMax, 6554, 58982);
   escon_current_PWM *= sign;
   analogWrite(pin, escon_current_PWM);
 }

@@ -1,8 +1,8 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-#define X_LIMIT 0.195F //! [m] -> TO UPDATE FOR SECOND VERSION
-#define Y_LIMIT 0.213F //! [m] -> TO UPDATE FOR SECOND VERSION
+#define X_LIMIT 0.325F //! [m] -> TO UPDATE FOR SECOND VERSION
+#define Y_LIMIT 0.240F //! [m] -> TO UPDATE FOR SECOND VERSION
 #define P_LIMIT 90.0F  //! [deg]
 
 #define RIGHT_PLATFORM 1
@@ -10,6 +10,7 @@
 #define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
 
 #define PITCH_REDUCTION_R 12.0F //! Pulley Big [mm] / Pulley Belt [mm]
+#define ROLL_YAW_REDUCTION_R 12.96f  //! Pulley Big [mm] / Pulley Belt [mm]
 
 #define BELT_PULLEY_R 0.00915F //! Torque/Force
 
@@ -49,7 +50,7 @@
 #else
 
 #define HOMING_FORCE_X 10.0F //! Right
-#define HOMING_FORCE_Y 10.0F
+#define HOMING_FORCE_Y 12.0F
 #define HOMING_TORQUE_P -0.5F
 
 /*#define HOMING_SPEED_X 0.5 //! [m/s]
@@ -63,12 +64,24 @@
 #define ENCODERSIGN1 -1 //! RIGHT
 #define ENCODERSIGN2 -1 //! RIGHT
 #define ENCODERSIGN3 -1 //! RIGHT
+#define ENCODERSIGN4 1 //! RIGHT
+#define ENCODERSIGN5 1 //! RIGHT
 
-#define ENCODERSCALE1 (X_LIMIT / 7360.0F) * 0.93129358228F
-#define ENCODERSCALE2 (Y_LIMIT / 7560.0F) * (0.1465 / 0.147585198283)
+// #define ENCODERSCALE1 (X_LIMIT / 7360.0F) * 0.93129358228F
+// #define ENCODERSCALE2 (Y_LIMIT / 7560.0F) * (0.1465 / 0.147585198283)
+#define ENCODERSCALE1 (X_LIMIT / 7310.0f)
+#define ENCODERSCALE2 (Y_LIMIT / 12400.0f)
 #define ENCODERSCALE3 360.F / PITCH_REDUCTION_R / (4 * 4095.0F)
+#define ENCODERSCALE4 90.0f/53000.0f
+#define ENCODERSCALE5 90.0f/53000.0f
 
-#define CURRENT_K_1 30.2F //! K_i Maxon Motor RE40mm 148867 [mNm/A]
+#define CURRENT_K_1 30.2F             //! K_i Maxon Motor RE40mm 148867 [mNm/A]
+#define TORQUE_CONSTANT_X 30.2F       //! Torque constant RE40mm 148867 [mNm/A]
+#define MAX_CURRENT_X 6.0F            //! Max current RE40mm 148867 [A]
+#define TORQUE_CONSTANT_Y 42.3F       //! Torque constant Faulhaber 3890H024C R2016 [mNm/A]
+#define MAX_CURRENT_Y 5.0F           //! Max current Faulhaber 3890H024C R2016 [A]
+#define TORQUE_CONSTANT_PITCH_ROLL_YAW 231 //! Torque constant EC 90 V1 607931 [mNm/A]
+#define MAX_CURRENT_PITCH_ROLL_YAW 4.96f //! Max current EC 90 V1 607931 [A]
 
 #define C_CURRENT_MAX_XY 7 //! A
 
