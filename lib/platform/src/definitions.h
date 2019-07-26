@@ -19,6 +19,10 @@
 #define VELOCITY_PID_SAMPLE_P 5 * LOOP_P             //!  [us]*/
 #define POSE_PID_SAMPLE_P 10 * VELOCITY_PID_SAMPLE_P //! [us]
 
+#define MY_PWM_RESOLUTION 16 // Bits
+#define MY_PWM_FREQUENCY 5000 //Hz
+#define MY_ADC_RESOLUTION 12 //Bits
+
 #define CURRENT_K_XY 30.2F //! Maxon Motor RE40mm 148867 [mNm/A]
 #define CURRENT_K_P 80.7F
 

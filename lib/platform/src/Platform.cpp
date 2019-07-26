@@ -29,23 +29,23 @@ Platform::Platform()
 
   _state = HOMING;
 
-  _cs[X] = D6;  //! CS1 -> Lateral
-  _cs[Y] = D9;  //! CS2  -> Dorsi/Plantar Flexion
-  _cs[PITCH] = D10; //! CS3 -> Flexion/Extension of the Leg
-  _cs[ROLL] = A1;  //! CS4 -> roll and yaw encoder 1
-  _cs[YAW] = A2;  //! CS5 -> roll and yaw encoder 2
+  _cs[X] = D6;  //! CS1 -> Lateral NOT as PWMX/XN
+  _cs[Y] = D5;  //! CS2  -> Dorsi/Plantar Flexion NOT as PWMX/XN
+  _cs[PITCH] = D4; //! CS3 -> Flexion/Extension of the Leg NOT as PWM/XN
+  _cs[ROLL] = A1;  //! CS4 -> roll and yaw encoder 1 NOT as PWMX/XN
+  _cs[YAW] = A2;  //! CS5 -> roll and yaw encoder 2  NOT as PWMX/X
   for(int k = 0; k < NB_AXIS; k++)
   {
     _encoders[k] = new QEC_1X(_cs[k]);
   }
-  _motorsPins[X] = D3;
-  _motorsPins[Y] = D4;
-  _motorsPins[PITCH] = D5;
-  _motorsPins[ROLL] = D0;
-  _motorsPins[YAW] = D1;
-  _limitSwitchesPins[X] = D8;
-  _limitSwitchesPins[Y] = D7;
-  _limitSwitchesPins[PITCH] = D2;
+  _motorsPins[X] = D9; // PA_8 PWM1/1
+  _motorsPins[Y] = D10; // PA_11 PWM1/4
+  _motorsPins[PITCH] = D1; // PA_9 PWM1/2 
+  _motorsPins[ROLL] = D0; // PA_10 PWM1/3
+  _motorsPins[YAW] = D2; // PA_12 PWM16/1
+  _limitSwitchesPins[X] = D8; // NO PWM
+  _limitSwitchesPins[Y] = D7; // NOT as PWMX/XN
+  _limitSwitchesPins[PITCH] = D3; // NOT as PWMX/XN
 
   _timestamp = micros();
 }
@@ -69,7 +69,7 @@ void Platform::init()
   for(int k = 0; k <NB_AXIS; k++)
   {
     pinMode(_limitSwitchesPins[k],INPUT);
-    pinMode(_motorsPins[k],OUTPUT);
+    pinMode(_motorsPins[k],OUTPUT); 
     if(k<2)
     {
       _pidPose[k]->SetOutputLimits(-25.0, 25.0);
@@ -108,10 +108,10 @@ void Platform::init()
   _nh.advertise(*_pubFootOutput);
   _nh.subscribe(*_subFootInput);
 
-  analogWriteResolution(16);
-  analogReadResolution(16);
+  analogWriteResolution(MY_PWM_RESOLUTION);
+  analogWriteFrequency(MY_PWM_FREQUENCY);
+  analogReadResolution(MY_ADC_RESOLUTION);
 }
-
 
 void Platform::step()
 {
@@ -328,9 +328,11 @@ void Platform::setTorque(float torque, int pin, int sign, int axis)
 
   double escon_current = (torque * 1000 / kTau) / reduction;
   escon_current = (escon_current > iMax ? iMax : (escon_current < -iMax ? -iMax : escon_current)); 
+  //int escon_current_PWM = map(escon_current, -iMax, iMax, 410, 3686);
   int escon_current_PWM = map(escon_current, -iMax, iMax, 6554, 58982);
   escon_current_PWM *= sign;
   analogWrite(pin, escon_current_PWM);
+  
 }
 
 
