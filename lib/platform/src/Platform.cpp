@@ -179,7 +179,7 @@ void Platform::init()
 void Platform::step()
 {
   // Get the pose of the platform.
-  getMotion();
+  //getMotion(); // Since it uses SPI I will make it public and run it out of the interruption
 
   switch (_state)
   {
@@ -519,7 +519,7 @@ void Platform::allReset()
   {
     for(int k = 0; k <NB_AXIS; k++)
     {
-     _encoders[k]->QEC_offset(_spi);
+     _encoders[k]->QEC_offset();
     }
 
     _poseOffsets[X] = HOMING_OFFSET_X;

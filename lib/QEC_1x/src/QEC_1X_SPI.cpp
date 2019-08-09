@@ -37,7 +37,7 @@ void QEC_1X::QEC_getPose(SPI *spi)
 
 {
   QEC_read(spi);
-  outDimension = (float) _sign * _encoderCount * _encoderScale;
+  outDimension = (float) _sign * (_encoderCount-_encoderOffset) * _encoderScale;
 }
 
 void QEC_1X::QEC_config(SPI *spi)
@@ -54,11 +54,12 @@ void QEC_1X::QEC_config(SPI *spi)
   *_cs=1;
 }
 
-void QEC_1X::QEC_offset(SPI *spi) //To restart the counter.
+//void QEC_1X::QEC_offset(SPI *spi) //To restart the counter.
+void QEC_1X::QEC_offset()
 
 {
- //_encoderOffset=_encoderCount; 
- *_cs=0;
- spi->write(0x20); /// Clear Counter
- *_cs=1;
+ _encoderOffset=_encoderCount; 
+//  *_cs=0;
+//  spi->write(0x20); /// Clear Counter
+//  *_cs=1;
 }

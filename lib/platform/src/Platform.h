@@ -94,10 +94,12 @@ class Platform
     void communicateToRos();
 
     void setWrenches();
+    
+    void getMotion();
 
   private:
 
-    void getMotion();
+    // void getMotion();
 
     void getPose();
 
