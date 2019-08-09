@@ -1,23 +1,33 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
+#define BAUDRATE 230400  //! For the serial communication
+
+#define NUCLEO32 1
+#define NUCLEO64 2
+#define BOARD NUCLEO64//! Nucleo 32 or Nucleo 64
+
+
 #define X_LIMIT 0.325F //! [m] -> TO UPDATE FOR SECOND VERSION
 #define Y_LIMIT 0.240F //! [m] -> TO UPDATE FOR SECOND VERSION
 #define P_LIMIT 90.0F  //! [deg]
 
+#define PI 3.14159265359F
+
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
 #define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
+
 
 #define PITCH_REDUCTION_R 12.0F //! Pulley Big [mm] / Pulley Belt [mm]
 #define ROLL_YAW_REDUCTION_R 12.96f  //! Pulley Big [mm] / Pulley Belt [mm]
 
 #define BELT_PULLEY_R 0.00915F //! Torque/Force
 
-
-#define LOOP_P 200
-#define VELOCITY_PID_SAMPLE_P 5 * LOOP_P             //!  [us]*/
-#define POSE_PID_SAMPLE_P 10 * VELOCITY_PID_SAMPLE_P //! [us]
+#define COMM_LOOP 2000 //! [us] -> 2ms = 500Hz
+#define CTRL_LOOP 1000 //! [us] -> 1000us = 1KHz
+#define VELOCITY_PID_SAMPLE_P 10 * CTRL_LOOP             //!  [us]
+#define POSE_PID_SAMPLE_P 20 * VELOCITY_PID_SAMPLE_P //! [us]
 
 #define MY_PWM_RESOLUTION 16 // Bits
 #define MY_PWM_FREQUENCY 5000 //Hz

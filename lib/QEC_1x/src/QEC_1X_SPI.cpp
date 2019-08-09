@@ -1,58 +1,64 @@
 #include "QEC_1X_SPI.h"
 
-QEC_1X::QEC_1X(int CS)
+QEC_1X *QEC_1X::me = NULL;
+
+QEC_1X::QEC_1X(PinName CS)
 {
-    _cs=CS;
+    me=this;
+    _cs = new DigitalOut(CS);
 }
 
+QEC_1X::~QEC_1X()
+{
+    delete(_cs);
+}
 
-void QEC_1X::QEC_init(int id_, float scale_, int sign_) {
+void QEC_1X::QEC_init(int id_, float scale_, int sign_, SPI *spi) {
   _id = id_; _encoderScale = scale_ ; _sign = sign_;
   _encoderCount=0; _encoderOffset=0;
   outDimension=0.0f;
-  pinMode(_cs, OUTPUT);
-  digitalWrite(_cs, HIGH);
-  this->QEC_config();
+  *_cs = 1 ;
+  QEC_config(spi);
 }
 
-void QEC_1X::QEC_read(){
+void QEC_1X::QEC_read(SPI *spi){
   long buff[4];
-  digitalWrite(_cs,LOW);
-  SPI.transfer(0x60); // Request count , Read Counter
-  buff[0] = SPI.transfer(0x00); // most significant byte - 4 byte mode (32 bits)
-  buff[1] = SPI.transfer(0x00);
-  buff[2] = SPI.transfer(0x00);
-  buff[3] = SPI.transfer(0x00); // least significant byte
-  digitalWrite(_cs,HIGH); 
+  *_cs=0;
+  spi->write(0x60); // Request count , Read Counter
+  buff[0] = spi->write(0x00); // most significant byte - 4 byte mode (32 bits)
+  buff[1] = spi->write(0x00);
+  buff[2] = spi->write(0x00);
+  buff[3] = spi->write(0x00); // least significant byte
+  *_cs=1;
   _encoderCount = (long)(buff[0]<<24) + (long)(buff[1]<<16) + (long)(buff[2]<<8) + (long)buff[3] - _encoderOffset;
 }
 
-void QEC_1X::QEC_getPose()
+void QEC_1X::QEC_getPose(SPI *spi)
 
 {
-  this->QEC_read();
+  QEC_read(spi);
   outDimension = (float) _sign * _encoderCount * _encoderScale;
 }
 
-void QEC_1X::QEC_config()
+void QEC_1X::QEC_config(SPI *spi)
 {
-  SPI.begin();
-  delay(10);
-  digitalWrite(_cs,LOW);
-  SPI.transfer(0x88); //! WRITE_MDR0 
-  SPI.transfer(0x03); //! X4 quadrature mode
-  digitalWrite(_cs,HIGH);
-  delay(10);
-  digitalWrite(_cs,LOW);
-  SPI.transfer(0x20); //! CLR_COUNTER
-  digitalWrite(_cs,HIGH);
+  //spi.begin();
+  wait_ms(10);
+  *_cs=0;
+  spi->write(0x88); //! WRITE_MDR0 
+  spi->write(0x03); //! X4 quadrature mode
+  *_cs=1;
+  wait_ms(10);
+  *_cs=0;
+  spi->write(0x20); //! CLR_COUNTER
+  *_cs=1;
 }
 
-void QEC_1X::QEC_offset() //To restart the counter.
+void QEC_1X::QEC_offset(SPI *spi) //To restart the counter.
 
 {
- //!_encoderOffset=_encoderCount; 
- digitalWrite(_cs,LOW);
- SPI.transfer(0x20); /// Clear Counter
- digitalWrite(_cs,HIGH);
+ //_encoderOffset=_encoderCount; 
+ *_cs=0;
+ spi->write(0x20); /// Clear Counter
+ *_cs=1;
 }

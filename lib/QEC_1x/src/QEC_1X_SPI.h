@@ -2,25 +2,30 @@
 #define __QEC_1X_SPI_H__
 
 #include <SPI.h>
+#include <mbed.h>
+
 
 class QEC_1X
 {
 	public:
-		QEC_1X(int CS); 
-		void QEC_init(int id_, float scale_, int sign_);
+		QEC_1X(PinName CS);
+		~QEC_1X(); 
+		 
+		void QEC_init(int id_, float scale_, int sign_, SPI* spi);
 		float outDimension;  
-		void QEC_read(void);
-		void QEC_getPose(void);
-		void QEC_config(void);
-		void QEC_offset(void);
+		void QEC_read(SPI* spi);
+		void QEC_getPose(SPI* spi);
+		void QEC_config(SPI* spi);
+		void QEC_offset(SPI* spi);
 		
 	private:
 		long _encoderCount;
-		int _cs;
+		DigitalOut* _cs;
 		int _id;
 		float _encoderScale;
 		int _sign;
 		long _encoderOffset;
+		static QEC_1X *me;
 };
 
 #endif /*__QEC_1X_SPI_H__*/
