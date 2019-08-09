@@ -1,7 +1,11 @@
 #include <mbed.h>
 #include <Platform.h>
 #include <definitions.h>
-#include <rtos.h>
+
+#if (BOARD==NUCLEO64)
+  #include <rtos.h>
+#endif
+
 
 #define INTERRUPTS 1
 #define THREADS 2
