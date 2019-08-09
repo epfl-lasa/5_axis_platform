@@ -7,11 +7,12 @@
 #endif
 
 
-#define INTERRUPTS 1
+#define INTERRUPTS 0
+#define INTERRUPTS2 1
 #define THREADS 2
 #define ALL_IN_MAIN 3
 
-#define METHOD ALL_IN_MAIN
+#define METHOD INTERRUPTS2
 
 Platform platform;
 
@@ -57,6 +58,33 @@ int main()
   
   while(1) {   
       platform.getMotion(); //! SPI
+      platform.communicateToRos(); //! This one publishes the message to ROS
+      platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption
+  }
+  return 0;
+}
+
+#elif (METHOD==INTERRUPTS2) //! Better using a flag
+Ticker t_Control;
+volatile bool flagControl = false;
+
+void doControl() {
+    flagControl=true;
+  }
+
+int main() 
+{
+  platform.init();
+  t_Control.attach_us(&doControl,CTRL_LOOP);
+  
+  while(1) {   
+      if (flagControl){ 
+        platform._spi->lock(); //! Locks the SPI... just in case someday we need to move this part of the code to a thread
+          platform.getMotion(); //! SPI
+          platform.step(); //! Does the Control, Platform::SetWrenches() of the motors. It doesn't include Platform::getMotion() anymore due to method macros
+          flagControl=false;
+        platform._spi->unlock();
+      }
       platform.communicateToRos(); //! This one publishes the message to ROS
       platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption
   }
