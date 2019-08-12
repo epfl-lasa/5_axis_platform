@@ -9,10 +9,11 @@
 
 #define INTERRUPTS 0
 #define INTERRUPTS2 1
-#define THREADS 2
-#define ALL_IN_MAIN 3
+#define INTERRUPT_THREAD 2
+#define THREADS 3
+#define ALL_IN_MAIN 4
 
-#define METHOD INTERRUPTS2
+#define METHOD ALL_IN_MAIN
 
 Platform platform;
 
@@ -91,6 +92,38 @@ int main()
   return 0;
 }
 
+#elif (METHOD==INTERRUPT_THREAD) //! Better using a flag
+Ticker t_Control;
+Thread th_Comm;
+volatile bool flagControl = false;
+
+void doControlCB() {
+    flagControl=true;
+  }
+//! Thread for Communication
+void doCommTH(){
+    while(1){
+      platform.communicateToRos(); //! This one publishes the message to ROS
+      platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption
+    }
+
+}
+
+int main() 
+{
+  platform.init();
+  t_Control.attach_us(&doControlCB,CTRL_LOOP);
+  th_Comm.start(doCommTH);
+  while(1) {   
+      if (flagControl){ 
+          platform.getMotion(); //! SPI
+          platform.step(); //! Does the Control, Platform::SetWrenches() of the motors. It doesn't include Platform::getMotion() anymore due to method macros
+        flagControl=false;
+      }
+  }
+  return 0;
+}
+
 #elif (METHOD==ALL_IN_MAIN) //! FASTER FOR THE ROSTOPIC HZ e.g. 224 Hz
 
 int main() 
@@ -102,6 +135,7 @@ int main()
       platform.step();
       platform.communicateToRos(); //! This one publishes the message to ROS
       platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption
+      
   }
   return 0;
 }

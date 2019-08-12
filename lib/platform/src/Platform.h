@@ -14,13 +14,9 @@
 
 #define NB_AXIS 5
 #define NB_SWITCHES 3
-
 class Platform
 {
-  public:
-    // SPI for Encoders
-    SPI* _spi;
-    
+  public:    
     // ROS variables
     ros::NodeHandle _nh;
 
@@ -63,8 +59,8 @@ class Platform
     PinName _motorPins[NB_AXIS];
     PwmOut* _motors[NB_AXIS];
     PinName _limitSwitchesPins[NB_AXIS];
-    InterruptIn* _limitSwitches[NB_SWITCHES]; 
-    
+    InterruptIn* _limitSwitches[NB_AXIS]; 
+    SPI* _spi;
 
     // PID variabless
     double _kpPose[NB_AXIS];

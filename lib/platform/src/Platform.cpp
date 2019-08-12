@@ -46,7 +46,7 @@ Platform::Platform()
   _csPins[Y] = D6;  //! CS2  -> Dorsi/Plantar Flexion NOT as PWMX/XN
   _csPins[PITCH] = D8; //! CS3 -> Flexion/Extension of the Leg NOT as PWM/XN
   _csPins[ROLL] = D10;  //! CS4 -> roll and yaw encoder 1 NOT as PWMX/XN
-  _csPins[YAW] = A2;  //! CS5 -> roll and yaw encoder 2  NOT as PWMX/X
+  _csPins[YAW] = PB_2;  //! CS5 -> roll and yaw encoder 2  NOT as PWMX/X
   
   _motorPins[X] = PC_7_ALT0; // D9 PWM8/2
   _motorPins[Y] = PB_3; // D3  PWM2/2
@@ -54,11 +54,14 @@ Platform::Platform()
   _motorPins[ROLL] = PB_4; // D5  PWM3/1
   _motorPins[YAW] = PA_8; // D7 PWM1/1
 
-  _limitSwitchesPins[X] = PA_13; // NO PWM
-  _limitSwitchesPins[Y] = PA_14; // NOT as PWMX/XN
-  _limitSwitchesPins[PITCH] = PA_15; // NOT as PWMX/XN
+  _limitSwitchesPins[X] = PC_8; // PC_13 NO PWM
+  _limitSwitchesPins[Y] = PC_6; // NOT as PWMX/XN
+  _limitSwitchesPins[PITCH] = PC_5; // NOT as PWMX/XN
+
+
   _spi = new SPI(PA_7, PA_6, PA_5); // mosi, miso, sclk https://os.mbed.com/platforms/ST-Nucleo-L476RG/
-  
+  // _spi->format(8,0); // Default
+  // _spi->frequency(1000000); // Default
   /************************************************************* */
 #elif (BOARD==NUCLEO32)
 
@@ -89,11 +92,13 @@ Platform::Platform()
   {
     _encoders[k] = new QEC_1X(_csPins[k]);
     _motors[k] = new PwmOut(_motorPins[k]);
-   }
-
-   for(int j = 0; j < NB_SWITCHES; j++)
-   {
-     _limitSwitches[j] = new InterruptIn(_limitSwitchesPins[j]);
+    if (k<NB_SWITCHES)
+      {_limitSwitches[k] = new InterruptIn(_limitSwitchesPins[k]);}
+    else
+    {
+      _limitSwitches[k]=NULL;
+    }
+      
    }
 _timestamp=0;
 }
@@ -104,30 +109,23 @@ Platform::~Platform()
   _innerTimer.~Timer();
   for(int k = 0; k <NB_AXIS; k++)
   {
-    
     delete (_poseFilters[k]);
     delete (_twistFilters[k]);
     delete (_pidPose[k]);
     delete (_pidTwist[k]);
     delete (_encoders[k]);
     delete (_motors[k]);
-    delete (_spi);
+    delete (_limitSwitches[k]);
   }
-  for(int j = 0; j <NB_SWITCHES; j++)
-  {
-  delete (_limitSwitches[j]);
-  }
+  delete (_spi);  
 }
 
 
 void Platform::init()
 {
-  _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
+  
   // Setup the spi for 8 bit data, high steady state clock,
   // second edge capture, with a 1MHz clock rate
-  _spi->format(8,0);
-  _spi->frequency(1000000);
-
     for(int k = 0; k <NB_AXIS; k++)
     {
 
@@ -150,15 +148,17 @@ void Platform::init()
     }
 
   //! Attach interruptions to callbacks on rising edge 
-  _limitSwitches[X]->rise(&switchCallbackX);
-  _limitSwitches[Y]->rise(&switchCallbackY);
-  _limitSwitches[PITCH]->rise(&switchCallbackPitch);
-    
-    _encoders[X]->QEC_init(X, ENCODERSCALE1, ENCODERSIGN1,_spi);
+  _limitSwitches[X]->fall(&switchCallbackX);
+  _limitSwitches[Y]->fall(&switchCallbackY);
+  _limitSwitches[PITCH]->fall(&switchCallbackPitch);
+  
+  _spi->lock();
+  _encoders[X]->QEC_init(X, ENCODERSCALE1, ENCODERSIGN1,_spi);
     _encoders[Y]->QEC_init(Y, ENCODERSCALE2, ENCODERSIGN2,_spi);
     _encoders[PITCH]->QEC_init(PITCH, ENCODERSCALE3, ENCODERSIGN3,_spi);
     _encoders[ROLL]->QEC_init(ROLL, ENCODERSCALE4, ENCODERSIGN4,_spi);
     _encoders[YAW]->QEC_init(YAW, ENCODERSCALE5, ENCODERSIGN5,_spi);
+  _spi->unlock(); 
 
 #if (PLATFORM_ID == LEFT_PLATFORM)
   _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg>("/FI_Input/Left", updateFootInput);
@@ -173,6 +173,7 @@ void Platform::init()
   _nh.advertise(*_pubFootOutput);
   _nh.subscribe(*_subFootInput);
   wait_ms(10);
+  _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _timestamp = _innerTimer.read_us();
 }
 
@@ -272,12 +273,14 @@ void Platform::communicateToRos()
 
 void Platform::getPose()
 {
+  _spi->lock(); 
   for (int k = 0; k < NB_AXIS; k++)
   {
     _encoders[k]->QEC_getPose(_spi);
     _pose[k] = _encoders[k]->outDimension + _poseOffsets[k];
     _pose[k] = _poseFilters[k]->update(_pose[k]);
   }
+  _spi->unlock(); 
   // Adapt roll and yaw angles due to differential mechanism
   float enc1 = _pose[ROLL];
   float enc2 = _pose[YAW];
@@ -303,105 +306,58 @@ void Platform::getTwist()
 
 void Platform::poseControl()
 {
-
-  switch(_controllerType){
-    case TORQUE_ONLY:{ break; }   
-    case POSE_ONLY:{ break; }
-    case TWIST_ONLY:{ break; }
-    case POSE_TWIST_CASCADE:{ break; }   
-    case TWIST_POSE_CASCADE:
-    {
-      for (int k= 0; k<NB_AXIS; k++)
-        {
-          _poseD[k]=_twistCtrlOut[k];
-        }
-      break;
-    } 
-  }
+  //Compute the PID
 
   for (int k = 0; k < NB_AXIS; k++)
-  {
+  {  
+    if (k<2&&(_controllerType==POSE_ONLY||_controllerType==TWIST_POSE_CASCADE)){
+      _pidPose[k]->setOutputLimits(-25,25); //!N
+    }
+
+    if (k>=2&&(_controllerType==POSE_ONLY||_controllerType==TWIST_POSE_CASCADE)){
+      _pidPose[k]->setOutputLimits(-12,12); //!Nm
+    }
+
+    if (_controllerType==TWIST_POSE_CASCADE){
+      _poseD[k]=_twistCtrlOut[k];
+    }
+
      _pidPose[k]->setTunings(_kpPose[k], _tiPose[k], _tdPose[k]);
      _pidPose[k]->setProcessValue(_pose[k]);
      _pidPose[k]->setSetPoint(_poseD[k]);
      _poseCtrlOut[k]=_pidPose[k]->compute();
-    
-  }
 
-    switch(_controllerType){
-    
-    case TORQUE_ONLY:{ break; }   
-    case TWIST_ONLY:{ break; }
-    case POSE_TWIST_CASCADE:{ break; }  
-    
-    case TWIST_POSE_CASCADE:
-    {
-      for (int k= 0; k<NB_AXIS; k++)
-        {
-          _wrenchD[k]=_poseCtrlOut[k];
-        }
-      break;
-    }
-    case POSE_ONLY:
-    {
-      for (int k= 0; k<NB_AXIS; k++)
-        {
-          _wrenchD[k]=_poseCtrlOut[k];
-        }
-      break;
+    if (_controllerType==POSE_ONLY||_controllerType==TWIST_POSE_CASCADE){
+      _wrenchD[k]=_poseCtrlOut[k];
     }
   }
-  
 }
 
 
 void Platform::twistControl()
 {
-  switch(_controllerType){
-    case TORQUE_ONLY:{ break; }   
-    case POSE_ONLY:{ break; }
-    case TWIST_ONLY:{ break; }
-    case TWIST_POSE_CASCADE: {break; }
-
-    case POSE_TWIST_CASCADE:
-    {
-      for (int k= 0; k<NB_AXIS; k++)
-        {
-          _twistD[k]=_poseCtrlOut[k];
-        }
-      break;
-    } 
-  }
 
   for (int k = 0; k < NB_AXIS; k++)
-  {
-     _pidTwist[k]->setTunings(_kpTwist[k], _tiTwist[k], _tdTwist[k]);
-     _pidTwist[k]->setProcessValue(_twist[k]);
-     _pidTwist[k]->setSetPoint(_twistD[k]);
-     _twistCtrlOut[k]=_pidTwist[k]->compute();
-    
-  }
-
-  switch(_controllerType){
-    case TORQUE_ONLY:{ break; }   
-    case POSE_ONLY:{ break; }  
-    case TWIST_POSE_CASCADE: {break; }
-    
-    case POSE_TWIST_CASCADE:
-    {
-      for (int k= 0; k<NB_AXIS; k++)
-        {
-          _wrenchD[k]=_twistCtrlOut[k];
-        }
-      break;
+  {  
+    if (k<2&&(_controllerType==TWIST_ONLY||_controllerType==POSE_TWIST_CASCADE)){
+      _pidTwist[k]->setOutputLimits(-25,25); //!N
     }
-    case TWIST_ONLY:
-    {
-      for (int k= 0; k<NB_AXIS; k++)
-        {
-          _wrenchD[k]=_twistCtrlOut[k];
-        }
-      break;
+
+    if (k>=2&&(_controllerType==TWIST_ONLY||_controllerType==POSE_TWIST_CASCADE)){
+      _pidTwist[k]->setOutputLimits(-12,12); //!Nm
+    }
+
+    if (_controllerType==POSE_TWIST_CASCADE){
+      _poseD[k]=_twistCtrlOut[k];
+    }
+
+     _pidTwist[k]->setTunings(_kpPose[k], _tiPose[k], _tdPose[k]);
+     _pidTwist[k]->setProcessValue(_pose[k]);
+     _pidTwist[k]->setSetPoint(_poseD[k]);
+     _twistCtrlOut[k]=_pidTwist[k]->compute();
+
+    if (_controllerType==TWIST_ONLY||_controllerType==POSE_TWIST_CASCADE){
+      _wrenchD[k]=_twistCtrlOut[k];
     }
   }
 }
@@ -547,8 +503,11 @@ void Platform::pubFootOutput()
   _msgFootOutput.id = PLATFORM_ID;
   _msgFootOutput.stamp = _nh.now();
   _msgFootOutput.x = _pose[X];
+  //_msgFootOutput.x = (float)_switchesState[0];
   _msgFootOutput.y = _pose[Y];
+  //_msgFootOutput.y = (float)_switchesState[1];
   _msgFootOutput.phi = _pose[PITCH];
+  //_msgFootOutput.phi = (float)_switchesState[2];
   _msgFootOutput.theta = _pose[ROLL];
   _msgFootOutput.psi = _pose[YAW];
   _msgFootOutput.Fx = _wrenchD[X];
