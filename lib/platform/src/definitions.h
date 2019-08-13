@@ -5,7 +5,7 @@
 
 #define NUCLEO32 1
 #define NUCLEO64 2
-#define BOARD NUCLEO64//! Nucleo 32 or Nucleo 64
+#define BOARD NUCLEO32//! Nucleo 32 or Nucleo 64
 
 
 #define X_LIMIT 0.325F //! [m] -> TO UPDATE FOR SECOND VERSION

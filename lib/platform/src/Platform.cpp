@@ -73,10 +73,10 @@ Platform::Platform()
   _csPins[YAW] = A2;  //! CS5 -> roll and yaw encoder 2  NOT as PWMX/X
 
   _motorPins[X] = PA_8; // D9 PA_8 PWM1/1
-  //_motorPins[Y] = PA_11_ALT0; // D10 PA_11_ALT0 PWM1/4   ***UNCOMMENT THIS IF USING NUCLEO32***
+  _motorPins[Y] = PA_11_ALT0; // D10 PA_11_ALT0 PWM1/4   ***UNCOMMENT THIS IF USING NUCLEO32***
   _motorPins[PITCH] = PA_9; // D1 PA_9 PWM1/2 
   _motorPins[ROLL] = PA_10; // D0 PA_10 PWM1/3
-  //_motorPins[YAW] = PA_12_ALT0; // D2 PA_12_ALT0 PWM16/1 ***UNCOMMENT THIS IF USING NUCLEO32***
+  _motorPins[YAW] = PA_12_ALT0; // D2 PA_12_ALT0 PWM16/1 ***UNCOMMENT THIS IF USING NUCLEO32***
 
   _limitSwitchesPins[X] = D8; // NO PWM
   _limitSwitchesPins[Y] = D7; // NOT as PWMX/XN
