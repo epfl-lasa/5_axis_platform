@@ -54,12 +54,12 @@ void QEC_1X::QEC_config(SPI *spi)
   *_cs=1;
 }
 
-//void QEC_1X::QEC_offset(SPI *spi) //To restart the counter.
-void QEC_1X::QEC_offset()
+void QEC_1X::QEC_offset(SPI *spi) //To restart the counter.
+//void QEC_1X::QEC_offset()
 
 {
- _encoderOffset=_encoderCount; 
-//  *_cs=0;
-//  spi->write(0x20); /// Clear Counter
-//  *_cs=1;
+ //_encoderOffset=_encoderCount; 
+ *_cs=0;
+  spi->write(0x20); /// Clear Counter
+ *_cs=1;
 }

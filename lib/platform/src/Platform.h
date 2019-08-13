@@ -117,7 +117,7 @@ class Platform
 
     static void switchCallbackPitch();
 
-    void allReset();
+    void poseAllReset();
 
     static void updateFootInput(const custom_msgs::FootInputMsg &msg);
 

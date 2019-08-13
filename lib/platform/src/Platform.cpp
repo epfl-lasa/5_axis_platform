@@ -133,12 +133,19 @@ void Platform::init()
      _pidPose[k]->reset();//! Reset PID Pose
      _pidTwist[k]->reset(); //! Reset PID Twist
     
-    // Set process and unit agnostic limits for inputs and outputs of the PID
-
-     _pidPose[k]->setOutputLimits(-100.0, 100.0);
-     _pidTwist[k]->setOutputLimits(-100.0, 100.0);  
-     _pidPose[k]->setInputLimits(-100.0, 100.0);  
-     _pidTwist[k]->setInputLimits(-100.0, 100.0); 
+    
+    if (k<2){
+     _pidPose[k]->setOutputLimits(-25.0, 25.0);
+     _pidTwist[k]->setOutputLimits(-25.0, 25.0);  
+     _pidPose[k]->setInputLimits(-0.5, 0.5);  
+     _pidTwist[k]->setInputLimits(-15.0, 15.0); 
+    }
+     else {
+     _pidPose[k]->setOutputLimits(-12.0, 12.0);
+     _pidTwist[k]->setOutputLimits(-12.0, 12.0);  
+     _pidPose[k]->setInputLimits(-100, 100);  
+     _pidTwist[k]->setInputLimits(-1500, 1500);    
+      }
 
     //}
     _pidPose[k]->setInterval(POSE_PID_SAMPLE_P*1e-6); //! [us]
@@ -194,10 +201,10 @@ void Platform::step()
       // Definition of the transition rule to the next state
       if ((_switchesState[X] == 1) && (_switchesState[Y] == 1) && (_switchesState[PITCH] == 1))
       {
-        allReset();
+        poseAllReset();
         static uint32_t idle = _innerTimer.read_us();
         //  After 1.5 second move to next state
-        if ((_innerTimer.read_us() - idle) > 1500000)
+        if ((_innerTimer.read_us() - idle) > 150000)
         {
           _state = CENTERING;
         }
@@ -212,11 +219,11 @@ void Platform::step()
         _poseD[k] = 0.0f;
         if(k<2)
         {
-          _kpPose[k] = 1000.0f;
+          _kpPose[k] = 100.0f;
         }
         else
         {
-          _kpPose[k] = 5000 * PI / 180.0f * 0.001f;
+          _kpPose[k] = 500 * PI / 180.0f * 0.01f;
         }
         _tdPose[k] = 0.0f;
         _tiPose[k] = 1e6f; //Ki->0.0f;
@@ -310,11 +317,11 @@ void Platform::poseControl()
 
   for (int k = 0; k < NB_AXIS; k++)
   {  
-    if (k<2&&(_controllerType==POSE_ONLY||_controllerType==TWIST_POSE_CASCADE)){
+    if ((k<2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
       _pidPose[k]->setOutputLimits(-25,25); //!N
     }
 
-    if (k>=2&&(_controllerType==POSE_ONLY||_controllerType==TWIST_POSE_CASCADE)){
+    if ((k>=2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
       _pidPose[k]->setOutputLimits(-12,12); //!Nm
     }
 
@@ -327,7 +334,7 @@ void Platform::poseControl()
      _pidPose[k]->setSetPoint(_poseD[k]);
      _poseCtrlOut[k]=_pidPose[k]->compute();
 
-    if (_controllerType==POSE_ONLY||_controllerType==TWIST_POSE_CASCADE){
+    if ((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE)){
       _wrenchD[k]=_poseCtrlOut[k];
     }
   }
@@ -339,11 +346,11 @@ void Platform::twistControl()
 
   for (int k = 0; k < NB_AXIS; k++)
   {  
-    if (k<2&&(_controllerType==TWIST_ONLY||_controllerType==POSE_TWIST_CASCADE)){
+    if ((k<2)&&((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE))){
       _pidTwist[k]->setOutputLimits(-25,25); //!N
     }
 
-    if (k>=2&&(_controllerType==TWIST_ONLY||_controllerType==POSE_TWIST_CASCADE)){
+    if ((k>=2)&&((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE))){
       _pidTwist[k]->setOutputLimits(-12,12); //!Nm
     }
 
@@ -356,7 +363,7 @@ void Platform::twistControl()
      _pidTwist[k]->setSetPoint(_poseD[k]);
      _twistCtrlOut[k]=_pidTwist[k]->compute();
 
-    if (_controllerType==TWIST_ONLY||_controllerType==POSE_TWIST_CASCADE){
+    if ((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE)){
       _wrenchD[k]=_twistCtrlOut[k];
     }
   }
@@ -469,18 +476,20 @@ void Platform::switchCallbackPitch()
 }
 
 
-void Platform::allReset()
+void Platform::poseAllReset()
 {
   if (_switchesState[X] == 1 && _switchesState[Y] == 1 && _switchesState[PITCH] == 1)
   {
-    for(int k = 0; k <NB_AXIS; k++)
-    {
-     _encoders[k]->QEC_offset();
-    }
-
     _poseOffsets[X] = HOMING_OFFSET_X;
     _poseOffsets[Y] = HOMING_OFFSET_Y;
     _poseOffsets[PITCH] = HOMING_OFFSET_PITCH;
+    _spi->lock();
+      for(int k = 0; k <NB_AXIS; k++)
+      {
+      _encoders[k]->QEC_offset(_spi);
+      }
+    _spi->unlock();
+
     // TODO add other offsets !!!!!
   }
 }
