@@ -80,11 +80,9 @@ int main()
   
   while(1) {   
       if (flagControl){ 
-        platform._spi->lock(); //! Locks the SPI... just in case someday we need to move this part of the code to a thread
           platform.getMotion(); //! SPI
           platform.step(); //! Does the Control, Platform::SetWrenches() of the motors. It doesn't include Platform::getMotion() anymore due to method macros
           flagControl=false;
-        platform._spi->unlock();
       }
       platform.communicateToRos(); //! This one publishes the message to ROS
       platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption

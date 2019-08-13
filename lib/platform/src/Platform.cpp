@@ -219,14 +219,14 @@ void Platform::step()
         _poseD[k] = 0.0f;
         if(k<2)
         {
-          _kpPose[k] = 100.0f;
+          _kpPose[k] = 10.0f;
         }
         else
         {
-          _kpPose[k] = 500 * PI / 180.0f * 0.01f;
+          _kpPose[k] = 50 * PI / 180.0f * 0.01f;
         }
         _tdPose[k] = 0.0f;
-        _tiPose[k] = 1e6f; //Ki->0.0f;
+        _tiPose[k] = 1e9f; //Ki->0.0f;
       }
       _controllerType=POSE_ONLY;
       poseControl();
