@@ -26,14 +26,14 @@ Platform::Platform()
     _twistFilters[k] = new LP_Filter(0.01);
     _switchesState[k] = 0;
     _kpPose[k] = 0.0f;
-    _tiPose[k] = 1e6f; //! Ki->0
-    _tdPose[k] = 0.0f;
+    _kiPose[k] = 0.0f; //! Ki->0
+    _kdPose[k] = 0.0f;
     _kpTwist[k] = 0.0f;
-    _tiTwist[k] = 1e6f;
-    _tdTwist[k] = 0.0f;
+    _kiTwist[k] = 0.0f;
+    _kdTwist[k] = 0.0f;
 
-     _pidPose[k] = new PID(_kpPose[k], _tiPose[k], _tdPose[k],POSE_PID_SAMPLE_P*1e-6f);
-     _pidTwist[k] = new PID(_kpTwist[k], _tiTwist[k], _tdTwist[k],VELOCITY_PID_SAMPLE_P*1e-6f);
+     _pidPose[k] = new PID(&_innerTimer, &_pose[k], &_poseCtrlOut[k], &_poseD[k], _kpPose[k], _kiPose[k], _kdPose[k],DIRECT);
+     _pidTwist[k] = new PID(&_innerTimer, &_twist[k], &_twistCtrlOut[k], &_twistD[k], _kpTwist[k], _kiTwist[k], _kdTwist[k],DIRECT);
   }
 
   _state = HOMING;
@@ -129,29 +129,20 @@ void Platform::init()
     for(int k = 0; k <NB_AXIS; k++)
     {
 
-     _motors[k]->period_us(200); // PWM (to ESCON) PERIOD 200 us-> 1kHz
-     _pidPose[k]->reset();//! Reset PID Pose
-     _pidTwist[k]->reset(); //! Reset PID Twist
-    
+     _motors[k]->period_us(200); // PWM (to ESCON) PERIOD 200 us-> 1kHz    
     
     if (k<2){
      _pidPose[k]->setOutputLimits(-25.0, 25.0);
      _pidTwist[k]->setOutputLimits(-25.0, 25.0);  
-     _pidPose[k]->setInputLimits(-0.5, 0.5);  
-     _pidTwist[k]->setInputLimits(-15.0, 15.0); 
     }
      else {
      _pidPose[k]->setOutputLimits(-12.0, 12.0);
-     _pidTwist[k]->setOutputLimits(-12.0, 12.0);  
-     _pidPose[k]->setInputLimits(-100, 100);  
-     _pidTwist[k]->setInputLimits(-1500, 1500);    
+     _pidTwist[k]->setOutputLimits(-12.0, 12.0);    
       }
 
     //}
-    _pidPose[k]->setInterval(POSE_PID_SAMPLE_P*1e-6); //! [us]
-    _pidTwist[k]->setInterval(VELOCITY_PID_SAMPLE_P*1e-6);
-    _pidPose[k]->setMode(AUTO_MODE); //! [us]
-    _pidTwist[k]->setMode(AUTO_MODE);
+    _pidPose[k]->setSampleTime(POSE_PID_SAMPLE_P*1e-6); //! [us]
+    _pidTwist[k]->setSampleTime(VELOCITY_PID_SAMPLE_P*1e-6);
     }
 
   //! Attach interruptions to callbacks on rising edge 
@@ -219,14 +210,21 @@ void Platform::step()
         _poseD[k] = 0.0f;
         if(k<2)
         {
-          _kpPose[k] = 10.0f;
+          _kpPose[k] = 100.0f;
+          _kdPose[k] = 0.0f;
+          _kiPose[k] = 0.0f; //Ki->0.0f;
         }
         else
         {
-          _kpPose[k] = 50 * PI / 180.0f * 0.01f;
+          _kpPose[k] = 100.0f * PI / 180.0f * 0.01f;
+          _kdPose[k] = 0.0f * PI / 180.0f * 0.01f;
+          _kiPose[k] = 0.0f * PI / 180.0f * 0.01f;;
         }
-        _tdPose[k] = 0.0f;
-        _tiPose[k] = 1e9f; //Ki->0.0f;
+      // For the moment set to zero the roll and yaw  
+      _kpPose[4] = 0.0f;
+      _kpPose[3] = 0.0f;
+
+
       }
       _controllerType=POSE_ONLY;
       poseControl();
@@ -329,9 +327,9 @@ void Platform::poseControl()
       _poseD[k]=_twistCtrlOut[k];
     }
 
-     _pidPose[k]->setTunings(_kpPose[k], _tiPose[k], _tdPose[k]);
-     _pidPose[k]->setProcessValue(_pose[k]);
-     _pidPose[k]->setSetPoint(_poseD[k]);
+     _pidPose[k]->setTunings(_kpPose[k], _kiPose[k], _kdPose[k]);
+     //_pidPose[k]->setProcessValue(_pose[k]);
+     //_pidPose[k]->setSetPoint(_poseD[k]);
      _poseCtrlOut[k]=_pidPose[k]->compute();
 
     if ((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE)){
@@ -358,9 +356,9 @@ void Platform::twistControl()
       _poseD[k]=_twistCtrlOut[k];
     }
 
-     _pidTwist[k]->setTunings(_kpPose[k], _tiPose[k], _tdPose[k]);
-     _pidTwist[k]->setProcessValue(_pose[k]);
-     _pidTwist[k]->setSetPoint(_poseD[k]);
+     _pidTwist[k]->setTunings(_kpTwist[k], _kiTwist[k], _kdTwist[k]);
+     //_pidTwist[k]->setProcessValue(_pose[k]);
+     //_pidTwist[k]->setSetPoint(_poseD[k]);
      _twistCtrlOut[k]=_pidTwist[k]->compute();
 
     if ((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE)){

@@ -10,7 +10,7 @@
 #include <FootOutputMsg.h>
 #include <Platform.h>
 #include <definitions.h>
-#include <PID.h>
+#include <PID_v1.h>
 
 #define NB_AXIS 5
 #define NB_SWITCHES 3
@@ -64,11 +64,11 @@ class Platform
 
     // PID variabless
     double _kpPose[NB_AXIS];
-    double _tiPose[NB_AXIS];
-    double _tdPose[NB_AXIS];
+    double _kiPose[NB_AXIS];
+    double _kdPose[NB_AXIS];
     double _kpTwist[NB_AXIS];
-    double _tiTwist[NB_AXIS];
-    double _tdTwist[NB_AXIS];
+    double _kiTwist[NB_AXIS];
+    double _kdTwist[NB_AXIS];
     PID* _pidPose[NB_AXIS];
     PID* _pidTwist[NB_AXIS];
 
