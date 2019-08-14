@@ -41,11 +41,11 @@
 
 #if (PLATFORM_ID == LEFT_PLATFORM)
 
-#define HOMING_FORCE_X 0.0F
+#define HOMING_FORCE_X -10.0F
 
-#define HOMING_FORCE_Y 0.0F
+#define HOMING_FORCE_Y 20.0F
 
-#define HOMING_TORQUE_P -1.5F
+#define HOMING_TORQUE_P 1.5F
 
 
 

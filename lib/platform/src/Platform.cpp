@@ -33,7 +33,9 @@ Platform::Platform()
     _kdTwist[k] = 0.0f;
 
      _pidPose[k] = new PID(&_innerTimer, &_pose[k], &_poseCtrlOut[k], &_poseD[k], _kpPose[k], _kiPose[k], _kdPose[k],DIRECT);
+     _pidPose[k]->setMode(AUTOMATIC);
      _pidTwist[k] = new PID(&_innerTimer, &_twist[k], &_twistCtrlOut[k], &_twistD[k], _kpTwist[k], _kiTwist[k], _kdTwist[k],DIRECT);
+     _pidTwist[k]->setMode(AUTOMATIC);
   }
 
   _state = HOMING;
@@ -208,24 +210,19 @@ void Platform::step()
       {
         _switchesState[k] = 0;
         _poseD[k] = 0.0f;
-        if(k<2)
-        {
-          _kpPose[k] = 100.0f;
-          _kdPose[k] = 0.0f;
-          _kiPose[k] = 0.0f; //Ki->0.0f;
-        }
-        else
-        {
-          _kpPose[k] = 100.0f * PI / 180.0f * 0.01f;
-          _kdPose[k] = 0.0f * PI / 180.0f * 0.01f;
-          _kiPose[k] = 0.0f * PI / 180.0f * 0.01f;;
-        }
-      // For the moment set to zero the roll and yaw  
+      }
+      _kpPose[X] = 100.0f;
+      _kdPose[X] = 0.0f;
+      _kiPose[X] = 0.0f; //Ki->0.0f;
+      _kpPose[Y] = 200.0f;
+      _kdPose[Y] = 0.0f;
+      _kiPose[Y] = 0.0f; //Ki->0.0f;
+      _kpPose[PITCH] = 1000.0f * PI / 180.0f * 0.01f;
+      _kdPose[PITCH] = 0.0f * PI / 180.0f * 0.01f;
+      _kiPose[PITCH] = 0.0f * PI / 180.0f * 0.01f; // For the moment set to zero the roll and yaw
+
       _kpPose[4] = 0.0f;
       _kpPose[3] = 0.0f;
-
-
-      }
       _controllerType=POSE_ONLY;
       poseControl();
 
@@ -330,7 +327,7 @@ void Platform::poseControl()
      _pidPose[k]->setTunings(_kpPose[k], _kiPose[k], _kdPose[k]);
      //_pidPose[k]->setProcessValue(_pose[k]);
      //_pidPose[k]->setSetPoint(_poseD[k]);
-     _poseCtrlOut[k]=_pidPose[k]->compute();
+     _pidPose[k]->compute();
 
     if ((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE)){
       _wrenchD[k]=_poseCtrlOut[k];
@@ -359,7 +356,7 @@ void Platform::twistControl()
      _pidTwist[k]->setTunings(_kpTwist[k], _kiTwist[k], _kdTwist[k]);
      //_pidTwist[k]->setProcessValue(_pose[k]);
      //_pidTwist[k]->setSetPoint(_poseD[k]);
-     _twistCtrlOut[k]=_pidTwist[k]->compute();
+     _pidTwist[k]->compute();
 
     if ((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE)){
       _wrenchD[k]=_twistCtrlOut[k];
