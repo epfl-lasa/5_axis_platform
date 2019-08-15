@@ -25,8 +25,8 @@
 #define BELT_PULLEY_R 0.00915F //! Torque/Force
 
 #define COMM_LOOP 2000 //! [us] -> 2ms = 500Hz
-#define CTRL_LOOP 1000 //! [us] -> 1000us = 1KHz
-#define VELOCITY_PID_SAMPLE_P 10 * CTRL_LOOP             //!  [us]
+#define CTRL_LOOP 500 //! [us] -> 500us = 2KHz
+#define VELOCITY_PID_SAMPLE_P 1 * CTRL_LOOP             //!  [us]
 #define POSE_PID_SAMPLE_P 20 * VELOCITY_PID_SAMPLE_P //! [us]
 
 #define MY_PWM_RESOLUTION 16 // Bits
@@ -47,27 +47,21 @@
 
 #define HOMING_TORQUE_P 1.5F
 
-
-
-/*#define HOMING_SPEED_X 0.5 //! [m/s]
-
-#define HOMING_SPEED_Y 0.5 //! [m/s]
-
-#define HOMING_ANG_SPEED_P PI/8.0 //![rad/s] */
-
-
-
 #define HOMING_OFFSET_X -X_LIMIT / 2 
 
 #define HOMING_OFFSET_Y Y_LIMIT / 2 
 
-
-
 #define HOMING_OFFSET_PITCH 77.0 - 18.55 - 46.774 + 33.95 //! [deg]
 
+#define WS_LIMIT_X X_LIMIT*0.9F
 
+#define WS_LIMIT_Y Y_LIMIT*0.9F
 
+#define WS_LIMIT_PITCH 40.0F
 
+#define WS_LIMIT_ROLL 40.0F
+
+#define WS_LIMIT_YAW 40.0F
 
 #define ENCODERSIGN1 1 //! LEFT
 
@@ -79,6 +73,17 @@
 
 #define ENCODERSIGN5 1 //! LEFT
 
+// MOTORSIGN: To programatically change the rotation sign
+
+#define MOTORSIGN1 1 //! LEFT
+
+#define MOTORSIGN2 1 //! LEFT
+
+#define MOTORSIGN3 1 //! LEFT
+
+#define MOTORSIGN4 1 //! LEFT
+
+#define MOTORSIGN5 1 //! LEFT
 
 
 #define ENCODERSCALE1 (X_LIMIT / 7310.0f)

@@ -14,6 +14,8 @@
 
 #define NB_AXIS 5
 #define NB_SWITCHES 3
+#define WRENCH_COMPONENTS 3
+
 class Platform
 {
   public:    
@@ -24,8 +26,10 @@ class Platform
     // Enum for axis ID
     enum Axis {X,Y,PITCH,ROLL,YAW};
 
+    enum WrenchComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD};
+
     // Enum for state machine
-    enum State {HOMING,CENTERING,NORMAL,COMPENSATION,FEEDFORWARD}; 
+    enum State {HOMING,CENTERING,TELEOPERATION}; 
 
     // Enum for the controller that is directly ouput for the motors
     enum Controller {TORQUE_ONLY, POSE_ONLY, TWIST_ONLY, TWIST_POSE_CASCADE, POSE_TWIST_CASCADE}; //! F= D(K(x-xd)-x_dot)
@@ -49,9 +53,14 @@ class Platform
     double _twistCtrlOut[NB_AXIS];
     double _wrench[NB_AXIS];
     double _wrenchD[NB_AXIS];
+    double _wrenchD_ADD[WRENCH_COMPONENTS][NB_AXIS];
     LP_Filter* _poseFilters[NB_AXIS];
     LP_Filter* _twistFilters[NB_AXIS];
     volatile int _switchesState[NB_AXIS];
+    int _encoderSign[NB_AXIS];
+    int _motorSign[NB_AXIS];
+    float _encoderScale[NB_AXIS];
+    float _wsLimits[NB_AXIS];
 
     // Hardware variables
     PinName _csPins[NB_AXIS];
@@ -101,7 +110,7 @@ class Platform
 
     void getTwist();
 
-    void poseControl();
+    void poseControl(WrenchComp Component);
     
     void twistControl();
 
@@ -122,6 +131,8 @@ class Platform
     static void updateFootInput(const custom_msgs::FootInputMsg &msg);
 
     void pubFootOutput();
+
+    void wsConstrains();
     
 };
 

@@ -65,7 +65,7 @@ int main()
   return 0;
 }
 
-#elif (METHOD==INTERRUPTS2) //! Better using a flag
+#elif (METHOD==INTERRUPTS2) 
 Ticker t_Control;
 volatile bool flagControl = false;
 
@@ -132,8 +132,7 @@ int main()
       platform.getMotion(); //! SPI
       platform.step();
       platform.communicateToRos(); //! This one publishes the message to ROS
-      platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption
-      
+      platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption     
   }
   return 0;
 }

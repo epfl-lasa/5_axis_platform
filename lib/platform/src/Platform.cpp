@@ -10,6 +10,40 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
 Platform::Platform()
 {
   me = this;
+
+  _encoderScale[X] =ENCODERSCALE1;
+  _encoderScale[Y] =ENCODERSCALE2;
+  _encoderScale[PITCH] =ENCODERSCALE3;
+  _encoderScale[ROLL] =ENCODERSCALE4;
+  _encoderScale[YAW] =ENCODERSCALE5;
+
+  _encoderSign[X] =ENCODERSIGN1;
+  _encoderSign[Y] =ENCODERSIGN2;
+  _encoderSign[PITCH] =ENCODERSIGN3;
+  _encoderSign[ROLL] =ENCODERSIGN4;
+  _encoderSign[YAW] =ENCODERSIGN5;
+
+  _motorSign[X] =MOTORSIGN1;
+  _motorSign[Y] =MOTORSIGN2;
+  _motorSign[PITCH] =MOTORSIGN3;
+  _motorSign[ROLL] =MOTORSIGN4;
+  _motorSign[YAW] =MOTORSIGN5;
+
+  _wsLimits[X] = WS_LIMIT_X;
+  _wsLimits[Y] = WS_LIMIT_Y;
+  _wsLimits[PITCH] = WS_LIMIT_PITCH;
+  _wsLimits[ROLL] = WS_LIMIT_ROLL;
+  _wsLimits[YAW] = WS_LIMIT_YAW;
+
+
+for(int k = 0; k < NB_AXIS; k++)
+{
+  for(int j = 0; k < WRENCH_COMPONENTS; j++)
+  {
+    _wrenchD_ADD[j][k] = 0.0f;
+  }
+}
+
   for(int k = 0; k < NB_AXIS; k++)
   {
     _pose[k] = 0.0f;
@@ -22,8 +56,8 @@ Platform::Platform()
     _twistCtrlOut[k]= 0.0f;
     _wrench[k] = 0.0f;
     _wrenchD[k] = 0.0f;
-    _poseFilters[k] = new LP_Filter(0.05);
-    _twistFilters[k] = new LP_Filter(0.01);
+    _poseFilters[k] = new LP_Filter(0.65);
+    _twistFilters[k] = new LP_Filter(0.9);
     _switchesState[k] = 0;
     _kpPose[k] = 0.0f;
     _kiPose[k] = 0.0f; //! Ki->0
@@ -53,8 +87,8 @@ Platform::Platform()
   _motorPins[X] = PC_7_ALT0; // D9 PWM8/2
   _motorPins[Y] = PB_3; // D3  PWM2/2
   _motorPins[PITCH] = PB_5; // D4 PWM3/2 
-  _motorPins[ROLL] = PB_4; // D5  PWM3/1
-  _motorPins[YAW] = PA_8; // D7 PWM1/1
+  _motorPins[ROLL] = PA_8; // D7 PWM1/1
+  _motorPins[YAW] = PB_4; // D5  PWM3/1
 
   _limitSwitchesPins[X] = PC_8; // PC_13 NO PWM
   _limitSwitchesPins[Y] = PC_6; // NOT as PWMX/XN
@@ -125,7 +159,7 @@ Platform::~Platform()
 
 void Platform::init()
 {
-  
+    
   // Setup the spi for 8 bit data, high steady state clock,
   // second edge capture, with a 1MHz clock rate
     for(int k = 0; k <NB_AXIS; k++)
@@ -153,11 +187,10 @@ void Platform::init()
   _limitSwitches[PITCH]->fall(&switchCallbackPitch);
   
   _spi->lock();
-  _encoders[X]->QEC_init(X, ENCODERSCALE1, ENCODERSIGN1,_spi);
-    _encoders[Y]->QEC_init(Y, ENCODERSCALE2, ENCODERSIGN2,_spi);
-    _encoders[PITCH]->QEC_init(PITCH, ENCODERSCALE3, ENCODERSIGN3,_spi);
-    _encoders[ROLL]->QEC_init(ROLL, ENCODERSCALE4, ENCODERSIGN4,_spi);
-    _encoders[YAW]->QEC_init(YAW, ENCODERSCALE5, ENCODERSIGN5,_spi);
+  for (int k = 0; k<NB_AXIS; k++)
+  {
+    _encoders[k]->QEC_init((int)k, _encoderScale[k], _encoderSign[k],_spi);
+  }
   _spi->unlock(); 
 
 #if (PLATFORM_ID == LEFT_PLATFORM)
@@ -187,10 +220,12 @@ void Platform::step()
     case HOMING:
     {
       // Set commanded forces and torques for homing
-      _wrenchD[X] = HOMING_FORCE_X;   //
-      _wrenchD[Y] = HOMING_FORCE_Y;   // [N]
-      _wrenchD[PITCH] = HOMING_TORQUE_P;  // [Nm]
+      _wrenchD_ADD[NORMAL][X] = HOMING_FORCE_X;   //
+      _wrenchD_ADD[NORMAL][Y] = HOMING_FORCE_Y;   // [N]
+      _wrenchD_ADD[NORMAL][PITCH] = HOMING_TORQUE_P;  // [Nm]
+
       _controllerType=TORQUE_ONLY;
+
       // Definition of the transition rule to the next state
       if ((_switchesState[X] == 1) && (_switchesState[Y] == 1) && (_switchesState[PITCH] == 1))
       {
@@ -211,34 +246,64 @@ void Platform::step()
         _switchesState[k] = 0;
         _poseD[k] = 0.0f;
       }
-      _kpPose[X] = 100.0f;
-      _kdPose[X] = 0.0f;
-      _kiPose[X] = 0.0f; //Ki->0.0f;
-      _kpPose[Y] = 200.0f;
-      _kdPose[Y] = 0.0f;
-      _kiPose[Y] = 0.0f; //Ki->0.0f;
-      _kpPose[PITCH] = 1000.0f * PI / 180.0f * 0.01f;
-      _kdPose[PITCH] = 0.0f * PI / 180.0f * 0.01f;
-      _kiPose[PITCH] = 0.0f * PI / 180.0f * 0.01f; // For the moment set to zero the roll and yaw
 
-      _kpPose[4] = 0.0f;
-      _kpPose[3] = 0.0f;
+    #if (PLATFORM_ID==LEFT_PLATFORM)
+      // Set the PID tunings for the centering
+      _kpPose[X] = 1000.0f;
+      _kdPose[X] = 1.0f;
+      _kiPose[X] = 1000.0f; //Ki->0.0f;
+      _kpPose[Y] = 1500.0f;
+      _kdPose[Y] = 1.0f;
+      _kiPose[Y] = 1000.0f; //Ki->0.0f;
+      _kpPose[PITCH] = 2000.0f * PI / 180.0f * 0.01f;
+      _kdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[PITCH] = 1000.0f * PI / 180.0f * 0.01f; 
+      _kpPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f;
+      _kdPose[ROLL] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f; 
+      _kpPose[YAW] = 1000.0f * PI / 180.0f * 0.01f;
+      _kdPose[YAW] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[YAW] = 1000.0f * PI / 180.0f * 0.01f; 
+    #else  //! TODO TUNE FOR RIGHT_PLATFORM
+      // Set the PID tunings for the centering
+      _kpPose[X] = 1000.0f;
+      _kdPose[X] = 1.0f;
+      _kiPose[X] = 1000.0f; //Ki->0.0f;
+      _kpPose[Y] = 1500.0f;
+      _kdPose[Y] = 1.0f;
+      _kiPose[Y] = 1000.0f; //Ki->0.0f;
+      _kpPose[PITCH] = 2000.0f * PI / 180.0f * 0.01f;
+      _kdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[PITCH] = 1000.0f * PI / 180.0f * 0.01f; 
+      _kpPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f;
+      _kdPose[ROLL] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f; 
+      _kpPose[YAW] = 1000.0f * PI / 180.0f * 0.01f;
+      _kdPose[YAW] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[YAW] = 1000.0f * PI / 180.0f * 0.01f; 
+    #endif
+      // Set the controller to position control
       _controllerType=POSE_ONLY;
-      poseControl();
+      poseControl(NORMAL);
 
       if((fabs(_poseD[X]-_pose[X]) < 0.003f) && (fabs(_poseD[Y]-_pose[Y]) < 0.003f) && (fabs(_poseD[PITCH]-_pose[PITCH]) < 3.0f))
       {
+        for (int k = 0; k<NB_AXIS; k++)
+        {
+          _wrenchD_ADD[NORMAL][k] = 0.0f;
+        }
         static uint32_t idle = _innerTimer.read_us();
         // After a second and a half move to next state
         if ((_innerTimer.read_us() - idle) > 1500000)
         {
-          _state = NORMAL;
+          _state = TELEOPERATION;
         };
       }
       break;
     }
-    case NORMAL:
+    case TELEOPERATION:
     {
+      //wsConstrains();
       _controllerType=TORQUE_ONLY;
       for (int k = 0; k < NB_AXIS; k++)
       {
@@ -246,18 +311,10 @@ void Platform::step()
       }
       break;
     }
-    case COMPENSATION:
-    {
-      break;
-    }
-    case FEEDFORWARD:
-    {
-      break;
-    }
   }
 
   // Apply forces and torques
- setWrenches();
+// setWrenches();
 }
 
 void Platform::getMotion()
@@ -306,7 +363,7 @@ void Platform::getTwist()
 }
 
 
-void Platform::poseControl()
+void Platform::poseControl(WrenchComp Component)
 {
   //Compute the PID
 
@@ -325,12 +382,10 @@ void Platform::poseControl()
     }
 
      _pidPose[k]->setTunings(_kpPose[k], _kiPose[k], _kdPose[k]);
-     //_pidPose[k]->setProcessValue(_pose[k]);
-     //_pidPose[k]->setSetPoint(_poseD[k]);
      _pidPose[k]->compute();
 
     if ((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE)){
-      _wrenchD[k]=_poseCtrlOut[k];
+      _wrenchD_ADD[Component][k]=_poseCtrlOut[k];
     }
   }
 }
@@ -354,12 +409,10 @@ void Platform::twistControl()
     }
 
      _pidTwist[k]->setTunings(_kpTwist[k], _kiTwist[k], _kdTwist[k]);
-     //_pidTwist[k]->setProcessValue(_pose[k]);
-     //_pidTwist[k]->setSetPoint(_poseD[k]);
      _pidTwist[k]->compute();
 
     if ((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE)){
-      _wrenchD[k]=_twistCtrlOut[k];
+      _wrenchD_ADD[NORMAL][k]=_twistCtrlOut[k];
     }
   }
 }
@@ -367,17 +420,28 @@ void Platform::twistControl()
 
 void Platform::setWrenches()
 {
+
+  for(int k = 0; k < NB_AXIS; k++)
+  { 
+    for(int j = 0; k < WRENCH_COMPONENTS; j++)
+    {
+      _wrenchD[k]+= _wrenchD_ADD[j][k];
+    }
+  } 
+
   for(int k = 0; k <2; k++)
   {
     if(k<2)
     {
-      setForce(_wrenchD[k], _motors[k], 1, k);
+      setForce(_wrenchD[k], _motors[k], _motorSign[k], (int)k);
     }  
   }
-  setTorque(_wrenchD[PITCH],_motors[PITCH],1,(int)PITCH);
+
+  setTorque(_wrenchD[PITCH],_motors[PITCH],_motorSign[PITCH],(int)PITCH);
   // Adapt roll and yaw commands due to differential mechanism
-  setTorque((_wrenchD[YAW]+_wrenchD[ROLL])/2.0f, _motors[ROLL], 1, (int)ROLL);
-  setTorque((_wrenchD[YAW]-_wrenchD[ROLL])/2.0f, _motors[YAW], 1, (int)YAW);
+  setTorque((_wrenchD[YAW]+_wrenchD[ROLL])/2.0f, _motors[ROLL], _motorSign[ROLL], (int)ROLL);
+  setTorque((_wrenchD[YAW]-_wrenchD[ROLL])/2.0f, _motors[YAW], _motorSign[YAW], (int)YAW);
+
 }
 
 
@@ -526,4 +590,37 @@ void Platform::pubFootOutput()
   _msgFootOutput.wpsi = _twist[YAW];
   _msgFootOutput.state = _state;
   _pubFootOutput->publish(&_msgFootOutput);
+}
+
+void Platform::wsConstrains()
+{
+  _controllerType=POSE_ONLY;
+     // Set the PID tunings for the centering
+      _kpPose[X] = 200.0f;
+      _kdPose[X] = 1.0f;
+      _kiPose[X] = 0.0f;
+      _kpPose[Y] = 00.0f;
+      _kdPose[Y] = 1.0f;
+      _kiPose[Y] = 0.0f;
+      _kpPose[PITCH] = 500.0f * PI / 180.0f * 0.01f;
+      _kdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[PITCH] = 0.0f * PI / 180.0f * 0.01f; 
+      _kpPose[ROLL] = 500.0f * PI / 180.0f * 0.01f;
+      _kdPose[ROLL] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[ROLL] = 0.0f * PI / 180.0f * 0.01f; 
+      _kpPose[YAW] = 500.0f * PI / 180.0f * 0.01f;
+      _kdPose[YAW] = 5.0f * PI / 180.0f * 0.01f;
+      _kiPose[YAW] = 0.0f * PI / 180.0f * 0.01f; 
+
+  for (int k = 0; k<NB_AXIS; k++){
+    _poseD[k] = _pose[k] > _wsLimits[k] ? _wsLimits[k] : (_pose[k] < -_wsLimits[k] ? -_wsLimits[k]: _poseD[k]);  
+    if ( _pose[k] > _wsLimits[k] || _pose[k] < -_wsLimits[k] )
+    {
+      poseControl(CONSTRAINS);
+    }
+    else    
+      {
+        _wrenchD_ADD[CONSTRAINS][k]=0.0f;
+      }
+  }
 }
