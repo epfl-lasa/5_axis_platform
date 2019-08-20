@@ -16,7 +16,7 @@ class QEC_1X
 		void QEC_read(SPI* spi);
 		void QEC_getPose(SPI* spi);
 		void QEC_config(SPI* spi);
-		void QEC_offset(SPI* spi);
+		void QEC_clear(SPI* spi);
 		//void QEC_offset();
 		
 	private:

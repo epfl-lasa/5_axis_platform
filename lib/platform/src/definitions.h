@@ -16,7 +16,7 @@
 
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
 
 
 #define PITCH_REDUCTION_R 12.0F //! Pulley Big [mm] / Pulley Belt [mm]
@@ -43,25 +43,25 @@
 
 #define HOMING_FORCE_X -10.0F
 
-#define HOMING_FORCE_Y 20.0F
+#define HOMING_FORCE_Y 15.0F
 
-#define HOMING_TORQUE_P 1.5F
+#define HOMING_TORQUE_P 2.0F
 
 #define HOMING_OFFSET_X -X_LIMIT / 2 
 
 #define HOMING_OFFSET_Y Y_LIMIT / 2 
 
-#define HOMING_OFFSET_PITCH 77.0 - 18.55 - 46.774 + 33.95 //! [deg]
+#define HOMING_OFFSET_PITCH 23 //! [deg]
 
-#define WS_LIMIT_X X_LIMIT*0.9F
+#define WS_LIMIT_X X_LIMIT*0.7/2
 
-#define WS_LIMIT_Y Y_LIMIT*0.9F
+#define WS_LIMIT_Y Y_LIMIT*0.7/2
 
-#define WS_LIMIT_PITCH 40.0F
+#define WS_LIMIT_PITCH 0.0F
 
-#define WS_LIMIT_ROLL 40.0F
+#define WS_LIMIT_ROLL 0.0F
 
-#define WS_LIMIT_YAW 40.0F
+#define WS_LIMIT_YAW 0.0F
 
 #define ENCODERSIGN1 1 //! LEFT
 
@@ -113,33 +113,46 @@
 #define MAX_CURRENT_PITCH_ROLL_YAW 4.96F //! Max current EC 90 V1 607931 [A]
 
 
-
-#define C_CURRENT_MAX_XY 7 //! A
-
 #else
 
-#define HOMING_FORCE_X 10.0F //! Right
-#define HOMING_FORCE_Y 12.0F
-#define HOMING_TORQUE_P -0.5F
+#define HOMING_FORCE_X 10.0F //! 10 Right
+#define HOMING_FORCE_Y 15.0F // 15
+#define HOMING_TORQUE_P -1.5F //-1.5F
 
-/*#define HOMING_SPEED_X 0.5 //! [m/s]
- #define HOMING_SPEED_Y 0.5 //! [m/s]
- #define HOMING_ANG_SPEED_P PI/8.0 //![rad/s] */
 
 #define HOMING_OFFSET_X X_LIMIT / 2   //! Right
 #define HOMING_OFFSET_Y Y_LIMIT / 2   //! Right
 
-#define HOMING_OFFSET_PITCH 45 //! [deg]
+#define HOMING_OFFSET_PITCH -24 //! [deg]
 
+#define WS_LIMIT_X X_LIMIT*0.7/2
+
+#define WS_LIMIT_Y Y_LIMIT*0.7/2
+
+#define WS_LIMIT_PITCH 0.0F
+
+#define WS_LIMIT_ROLL 0.0F
+
+#define WS_LIMIT_YAW 0.0F
 
 #define ENCODERSIGN1 -1 //! RIGHT
 #define ENCODERSIGN2 -1 //! RIGHT
-#define ENCODERSIGN3 1 //! RIGHT
+#define ENCODERSIGN3 -1 //! RIGHT
 #define ENCODERSIGN4 1 //! RIGHT
 #define ENCODERSIGN5 1 //! RIGHT
 
-// #define ENCODERSCALE1 (X_LIMIT / 7360.0F) * 0.93129358228F
-// #define ENCODERSCALE2 (Y_LIMIT / 7560.0F) * (0.1465 / 0.147585198283)
+// MOTORSIGN: To programatically change the rotation sign
+
+#define MOTORSIGN1 1 //! RIGHT
+
+#define MOTORSIGN2 -1 //! RIGHT
+
+#define MOTORSIGN3 1 //! RIGHT
+
+#define MOTORSIGN4 1 //! RIGHT
+
+#define MOTORSIGN5 1 //! RIGHT
+
 #define ENCODERSCALE1 (X_LIMIT / 7310.0f)
 #define ENCODERSCALE2 (Y_LIMIT / 12400.0f)
 #define ENCODERSCALE3 360.F / PITCH_REDUCTION_R / (4 * 4095.0F)
@@ -153,8 +166,6 @@
 #define MAX_CURRENT_Y 5.0F           //! Max current Faulhaber 3890H024C R2016 [A]
 #define TORQUE_CONSTANT_PITCH_ROLL_YAW 231 //! Torque constant EC 90 V1 607931 [mNm/A]
 #define MAX_CURRENT_PITCH_ROLL_YAW 4.96f //! Max current EC 90 V1 607931 [A]
-
-#define C_CURRENT_MAX_XY 7 //! A
 
 #endif
 

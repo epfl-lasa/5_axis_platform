@@ -16,6 +16,10 @@
 #define NB_SWITCHES 3
 #define WRENCH_COMPONENTS 3
 
+#define SPEED_CONTROLLED_HOMING 1
+#define TORQUE_CONTROLLED_HOMING 2
+#define HOMING_TECHNIQUE SPEED_CONTROLLED_HOMING
+
 class Platform
 {
   public:    
@@ -41,7 +45,8 @@ class Platform
     custom_msgs::FootOutputMsg _msgFootOutput;
 
     // State variables
-    State _state;
+    volatile State _state;
+    volatile bool _stateOnceFlag[3];
     Controller _controllerType;
     double _pose[NB_AXIS];
     double _poseOffsets[NB_AXIS];
@@ -53,7 +58,7 @@ class Platform
     double _twistCtrlOut[NB_AXIS];
     double _wrench[NB_AXIS];
     double _wrenchD[NB_AXIS];
-    double _wrenchD_ADD[WRENCH_COMPONENTS][NB_AXIS];
+    volatile double _wrenchD_ADD[WRENCH_COMPONENTS][NB_AXIS];
     LP_Filter* _poseFilters[NB_AXIS];
     LP_Filter* _twistFilters[NB_AXIS];
     volatile int _switchesState[NB_AXIS];
@@ -61,6 +66,7 @@ class Platform
     int _motorSign[NB_AXIS];
     float _encoderScale[NB_AXIS];
     float _wsLimits[NB_AXIS];
+    
 
     // Hardware variables
     PinName _csPins[NB_AXIS];
@@ -68,6 +74,7 @@ class Platform
     PinName _motorPins[NB_AXIS];
     PwmOut* _motors[NB_AXIS];
     PinName _limitSwitchesPins[NB_AXIS];
+    //DigitalIn* _esconEnabled;
     InterruptIn* _limitSwitches[NB_AXIS]; 
     SPI* _spi;
 
@@ -111,8 +118,12 @@ class Platform
     void getTwist();
 
     void poseControl(WrenchComp Component);
+
+    void posAxisControl(WrenchComp Component, int axis);
     
-    void twistControl();
+    void speedAxisControl(WrenchComp Component, int axis);
+
+    void twistControl(WrenchComp Component);
 
     //void setWrenches();
 
@@ -133,6 +144,8 @@ class Platform
     void pubFootOutput();
 
     void wsConstrains();
+
+    void frictionID();
     
 };
 

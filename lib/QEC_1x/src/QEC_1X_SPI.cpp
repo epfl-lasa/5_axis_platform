@@ -54,7 +54,7 @@ void QEC_1X::QEC_config(SPI *spi)
   *_cs=1;
 }
 
-void QEC_1X::QEC_offset(SPI *spi) //To restart the counter.
+void QEC_1X::QEC_clear(SPI *spi) //To restart the counter.
 //void QEC_1X::QEC_offset()
 
 {
