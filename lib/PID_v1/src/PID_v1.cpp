@@ -232,3 +232,8 @@ double PID::getKd(){ return  dispKd;}
 int PID::getMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int PID::getDirection(){ return controllerDirection;}
 
+void PID::reset() {
+   *myOutput=0.0f;
+   outputSum=0.0f;
+   lastInput = *myInput;
+}

@@ -130,7 +130,9 @@ int main()
     
   while(1) {   
       platform.getMotion(); //! SPI
-      platform.step();
+      if (*platform._esconEnabled){
+        platform.step();
+      }
       platform.communicateToRos(); //! This one publishes the message to ROS
       platform._nh.spinOnce(); // For Retrieving and Publishing to ROS. Separate in case we want to put it in an interruption     
   }

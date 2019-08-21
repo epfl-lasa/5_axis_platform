@@ -25,7 +25,7 @@ class Platform
   public:    
     // ROS variables
     ros::NodeHandle _nh;
-
+    DigitalIn* _esconEnabled;
   private:
     // Enum for axis ID
     enum Axis {X,Y,PITCH,ROLL,YAW};
@@ -65,7 +65,8 @@ class Platform
     int _encoderSign[NB_AXIS];
     int _motorSign[NB_AXIS];
     float _encoderScale[NB_AXIS];
-    float _wsLimits[NB_AXIS];
+    float _c_wsLimits[NB_AXIS];
+    float _wsRange[NB_AXIS];
     
 
     // Hardware variables
@@ -74,17 +75,28 @@ class Platform
     PinName _motorPins[NB_AXIS];
     PwmOut* _motors[NB_AXIS];
     PinName _limitSwitchesPins[NB_AXIS];
-    //DigitalIn* _esconEnabled;
+    
     InterruptIn* _limitSwitches[NB_AXIS]; 
     SPI* _spi;
 
-    // PID variabless
+    // PID variables
+      //General Variables
     double _kpPose[NB_AXIS];
     double _kiPose[NB_AXIS];
     double _kdPose[NB_AXIS];
     double _kpTwist[NB_AXIS];
     double _kiTwist[NB_AXIS];
     double _kdTwist[NB_AXIS];
+      //GoTo constants
+    double _gtKpPose[NB_AXIS];
+    double _gtKiPose[NB_AXIS];
+    double _gtKdPose[NB_AXIS];
+    double _gtKpTwist[NB_AXIS];
+    double _gtKiTwist[NB_AXIS];
+    double _gtKdTwist[NB_AXIS];
+    
+    
+
     PID* _pidPose[NB_AXIS];
     PID* _pidTwist[NB_AXIS];
 
@@ -92,7 +104,16 @@ class Platform
     uint32_t _timestamp;
     static Platform *me;
     float _epson;
+
     Timer _innerTimer; //! micros()
+    uint32_t _toc;
+    bool _tic; //flag for timer
+
+
+    //Compensation variables
+
+    bool _frictionIDFlag;
+
 
   public:
 
@@ -111,8 +132,6 @@ class Platform
 
   private:
 
-    // void getMotion();
-
     void getPose();
 
     void getTwist();
@@ -124,8 +143,6 @@ class Platform
     void speedAxisControl(WrenchComp Component, int axis);
 
     void twistControl(WrenchComp Component);
-
-    //void setWrenches();
 
     void setForce(float force,  PwmOut *pin, int sign, int axis);
     
@@ -145,7 +162,11 @@ class Platform
 
     void wsConstrains();
 
-    void frictionID();
+    void frictionID(int axis_, int direction_);
+
+    void gotoPointAxis(int axis_, float point);
+
+    void gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW);
     
 };
 

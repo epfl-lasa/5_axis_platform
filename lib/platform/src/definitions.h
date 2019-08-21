@@ -7,10 +7,16 @@
 #define NUCLEO64 2
 #define BOARD NUCLEO64//! Nucleo 32 or Nucleo 64
 
+#define NB_COMPENSATION_STEPS 16
 
-#define X_LIMIT 0.325F //! [m] -> TO UPDATE FOR SECOND VERSION
-#define Y_LIMIT 0.240F //! [m] -> TO UPDATE FOR SECOND VERSION
-#define P_LIMIT 90.0F  //! [deg]
+#define FW_COMP 1
+#define RW_COMP -1
+
+#define X_RANGE 0.195F //! [m]
+#define Y_RANGE 0.180F //! [m] -> TO UPDATE FOR SECOND VERSION
+#define PITCH_RANGE 48.0F  //! [deg]
+#define ROLL_RANGE 40.0F  //! [deg]
+#define YAW_RANGE 40.0F  //! [deg]
 
 #define PI 3.14159265359F
 
@@ -47,21 +53,21 @@
 
 #define HOMING_TORQUE_P 2.0F
 
-#define HOMING_OFFSET_X -X_LIMIT / 2 
+#define HOMING_OFFSET_X -X_RANGE / 2 
 
-#define HOMING_OFFSET_Y Y_LIMIT / 2 
+#define HOMING_OFFSET_Y Y_RANGE / 2 
 
 #define HOMING_OFFSET_PITCH 23 //! [deg]
 
-#define WS_LIMIT_X X_LIMIT*0.7/2
+#define C_WS_RANGE_X X_RANGE*0.7/2
 
-#define WS_LIMIT_Y Y_LIMIT*0.7/2
+#define C_WS_RANGE_Y Y_RANGE*0.7/2
 
-#define WS_LIMIT_PITCH 0.0F
+#define C_WS_RANGE_PITCH 0.0F
 
-#define WS_LIMIT_ROLL 0.0F
+#define C_WS_RANGE_ROLL 0.0F
 
-#define WS_LIMIT_YAW 0.0F
+#define C_WS_RANGE_YAW 0.0F
 
 #define ENCODERSIGN1 1 //! LEFT
 
@@ -86,9 +92,9 @@
 #define MOTORSIGN5 1 //! LEFT
 
 
-#define ENCODERSCALE1 (X_LIMIT / 7310.0f)
+#define ENCODERSCALE1 (X_RANGE / 7310.0f)
 
-#define ENCODERSCALE2 (Y_LIMIT / 12400.0f)
+#define ENCODERSCALE2 (Y_RANGE / 12400.0f)
 
 #define ENCODERSCALE3 360.F / PITCH_REDUCTION_R / (4 * 4095.0F)
 
@@ -120,20 +126,20 @@
 #define HOMING_TORQUE_P -1.5F //-1.5F
 
 
-#define HOMING_OFFSET_X X_LIMIT / 2   //! Right
-#define HOMING_OFFSET_Y Y_LIMIT / 2   //! Right
+#define HOMING_OFFSET_X X_RANGE / 2   //! Right
+#define HOMING_OFFSET_Y Y_RANGE / 2   //! Right
 
-#define HOMING_OFFSET_PITCH -24 //! [deg]
+#define HOMING_OFFSET_PITCH -PITCH_RANGE/2 //! [deg]
 
-#define WS_LIMIT_X X_LIMIT*0.7/2
+#define C_WS_RANGE_X X_RANGE*0.7/2
 
-#define WS_LIMIT_Y Y_LIMIT*0.7/2
+#define C_WS_RANGE_Y Y_RANGE*0.7/2
 
-#define WS_LIMIT_PITCH 0.0F
+#define C_WS_RANGE_PITCH PITCH_RANGE*0.0
 
-#define WS_LIMIT_ROLL 0.0F
+#define C_WS_RANGE_ROLL ROLL_RANGE*0.0
 
-#define WS_LIMIT_YAW 0.0F
+#define C_WS_RANGE_YAW YAW_RANGE*0.0
 
 #define ENCODERSIGN1 -1 //! RIGHT
 #define ENCODERSIGN2 -1 //! RIGHT
@@ -153,8 +159,8 @@
 
 #define MOTORSIGN5 1 //! RIGHT
 
-#define ENCODERSCALE1 (X_LIMIT / 7310.0f)
-#define ENCODERSCALE2 (Y_LIMIT / 12400.0f)
+#define ENCODERSCALE1 (X_RANGE / 7310.0f * (0.195f/0.180f))
+#define ENCODERSCALE2 (Y_RANGE / 12400.0f* (0.180f/0.1767f))
 #define ENCODERSCALE3 360.F / PITCH_REDUCTION_R / (4 * 4095.0F)
 #define ENCODERSCALE4 90.0f/53000.0f
 #define ENCODERSCALE5 90.0f/53000.0f

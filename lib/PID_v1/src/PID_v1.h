@@ -60,10 +60,14 @@ class PID
 	double getKd();						  // where it's important to know what is actually 
 	int getMode();						  //  inside the PID.
 	int getDirection();					  //
+  void reset();
+  
 
   private:
 	void initialize();
 	
+  double outputSum;
+  
 	double dispKp;				// * we'll hold on to the tuning parameters in user-entered 
 	double dispKi;				//   format for display purposes
 	double dispKd;				//
@@ -82,7 +86,7 @@ class PID
 		Timer *myTimer;
 
 	unsigned long lastTime;
-	double outputSum, lastInput;
+	double lastInput;
 
 	unsigned long SampleTime;
 	double outMin, outMax;
