@@ -130,10 +130,10 @@ for(int k = 0; k < NB_AXIS; k++)
           _gtKpPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; //2000.0
           _gtKdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f; // 5.0
           _gtKiPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; // 1000.0 
-          _gtKpPose[ROLL] = 2000.0f * PI / 180.0f * 0.01f;
+          _gtKpPose[ROLL] = 2500.0f * PI / 180.0f * 0.01f;
           _gtKdPose[ROLL] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f; 
-          _gtKpPose[YAW] = 2000.0f * PI / 180.0f * 0.01f;
+          _gtKpPose[YAW] = 2500.0f * PI / 180.0f * 0.01f;
           _gtKdPose[YAW] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[YAW] = 1000.0f * PI / 180.0f * 0.01f; 
         #endif
@@ -232,7 +232,9 @@ Platform::~Platform()
     delete (_poseFilters[k]);
     delete (_wrenchMFilters[k]);
     delete (_twistFilters[k]);
+    _pidPose[k]->~PID();
     delete (_pidPose[k]);
+    _pidTwist[k]->~PID();
     delete (_pidTwist[k]);
     _encoders[k]->~QEC_1X();
     delete (_encoders[k]);
@@ -764,6 +766,10 @@ void Platform::wsConstrains()
     _kpPose[k]=_gtKpPose[k];
     _kdPose[k]=_gtKdPose[k];
     _kiPose[k]=0.0f;
+    //
+    if (k>=ROLL){
+      _kpPose[k]=2000.0f * PI / 180.0f * 0.01f;
+    }
     }
   for (int k = 0; k<NB_AXIS; k++){
   _poseD[k] = _pose[k] >= fabs(_c_wsLimits[k]) ? fabs(_c_wsLimits[k]) : (_pose[k] <= -fabs(_c_wsLimits[k]) ? -fabs(_c_wsLimits[k]): _poseD[k]);

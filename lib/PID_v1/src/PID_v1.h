@@ -5,8 +5,6 @@
 
 class PID
 {
-
-
   public:
 
   //Constants used in some of the functions below
@@ -24,7 +22,9 @@ class PID
 
     PID(Timer*, double*, double*, double*,        // * constructor.  links the PID to the Input, Output, and 
         double, double, double, int);     //   Setpoint.  Initial tuning parameters are also set here
-	
+    
+    ~PID();
+    
     void setMode(int Mode);               // * sets PID to either Manual (0) or Auto (non-0)
 
     bool compute();                       // * performs the PID calculation.  it should be

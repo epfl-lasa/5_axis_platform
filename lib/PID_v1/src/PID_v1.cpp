@@ -46,6 +46,13 @@ PID::PID(Timer* timer_, double* Input, double* Output, double* Setpoint,
 
 }
 
+PID::~PID()
+{
+   delete(myOutput);
+   delete(myTimer);
+   delete(myInput);
+   delete(mySetpoint);
+}
 
 /* Compute() **********************************************************************
  *     This, as they say, is where the magic happens.  this function should be called

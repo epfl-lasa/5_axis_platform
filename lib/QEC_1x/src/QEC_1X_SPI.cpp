@@ -11,6 +11,7 @@ QEC_1X::QEC_1X(PinName CS)
 QEC_1X::~QEC_1X()
 {
     delete(_cs);
+    delete(me);
 }
 
 void QEC_1X::QEC_init(int id_, float scale_, int sign_, SPI *spi) {
