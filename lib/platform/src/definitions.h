@@ -32,8 +32,8 @@
 
 #define COMM_LOOP 2000 //! [us] -> 2ms = 500Hz
 #define CTRL_LOOP 500 //! [us] -> 500us = 2KHz
-#define VELOCITY_PID_SAMPLE_P 1 * CTRL_LOOP             //!  [us]
-#define ANALOG_SAMPLING_TIME 2 * CTRL_LOOP
+#define VELOCITY_PID_SAMPLE_P 5 * CTRL_LOOP             //!  [us]
+#define ANALOG_SAMPLING_TIME 10 * CTRL_LOOP
 #define POSE_PID_SAMPLE_P 20 * VELOCITY_PID_SAMPLE_P //! [us]
 
 #define MY_PWM_RESOLUTION 16 // Bits
@@ -136,9 +136,9 @@
 
 #define C_WS_RANGE_Y Y_RANGE*0.7/2
 
-#define C_WS_RANGE_PITCH PITCH_RANGE*0.5
+#define C_WS_RANGE_PITCH PITCH_RANGE*0.3
 
-#define C_WS_RANGE_ROLL ROLL_RANGE*0.5
+#define C_WS_RANGE_ROLL ROLL_RANGE*0.0
 
 #define C_WS_RANGE_YAW YAW_RANGE*0.5
 

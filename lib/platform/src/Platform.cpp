@@ -129,13 +129,13 @@ for(int k = 0; k < NB_AXIS; k++)
           _gtKiPose[Y] = 1000.0f; //Ki->0.0f;
           _gtKpPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; //2000.0
           _gtKdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f; // 5.0
-          _gtKiPose[PITCH] = 1000.0f * PI / 180.0f * 0.01f; // 1000.0 
-          _gtKpPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f;
-          _gtKdPose[ROLL] = 1.0f * PI / 180.0f * 0.01f;
+          _gtKiPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; // 1000.0 
+          _gtKpPose[ROLL] = 2500.0f * PI / 180.0f * 0.01f;
+          _gtKdPose[ROLL] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f; 
-          _gtKpPose[YAW] = 1000.0f * PI / 180.0f * 0.01f;
-          _gtKdPose[YAW] = 1.0f * PI / 180.0f * 0.01f;
-          _gtKiPose[YAW] = 100.0f * PI / 180.0f * 0.01f; 
+          _gtKpPose[YAW] = 2500.0f * PI / 180.0f * 0.01f;
+          _gtKdPose[YAW] = 10.0f * PI / 180.0f * 0.01f;
+          _gtKiPose[YAW] = 1000.0f * PI / 180.0f * 0.01f; 
         #endif
 
 
@@ -309,8 +309,12 @@ void Platform::step()
 {
   getMotion(); //! SPI
   readActualWrench(); //! Using the ESCON 50/5 Analog Output  
-   
+
+  //Security Check  
   if (!_allEsconOk) {_state=EMERGENCY;}
+  _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
+  for (int k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  //
 
   switch (_state)
   {
@@ -442,15 +446,13 @@ void Platform::step()
 
       // Main State
     
-    wsConstrains();
+      wsConstrains();
       //frictionID(X,FW_COMP);
       _lastState=_state;
       break;
     }
     case EMERGENCY:
       releasePlatform();
-      _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
-      for (int k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
       _enableMotors->write(0);
       break;
   }
@@ -542,7 +544,8 @@ void Platform::posAxisControl(WrenchComp Component, int axis){
     }
 
     if ((axis>=2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
-      _pidPose[axis]->setOutputLimits(-3,3); //!Nm
+      if (axis==PITCH) {_pidPose[axis]->setOutputLimits(-3,3);} //!Nm
+      if (axis==ROLL || axis==YAW){_pidPose[axis]->setOutputLimits(-5,5);} //!Nm
     }
 
     if (_controllerType==TWIST_POSE_CASCADE){
@@ -769,7 +772,7 @@ void Platform::wsConstrains()
     {
     _kpPose[k]=_gtKpPose[k];
     _kdPose[k]=_gtKdPose[k];
-    _kiPose[k]=_gtKiPose[k];
+    _kiPose[k]=0.0f;
     }
   for (int k = 0; k<NB_AXIS; k++){
   _poseD[k] = _pose[k] >= fabs(_c_wsLimits[k]) ? fabs(_c_wsLimits[k]) : (_pose[k] <= -fabs(_c_wsLimits[k]) ? -fabs(_c_wsLimits[k]): _poseD[k]);
