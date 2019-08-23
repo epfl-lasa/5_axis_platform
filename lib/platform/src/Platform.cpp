@@ -4,30 +4,56 @@ Platform *Platform::me = NULL;
 
 float map(float x, float in_min, float in_max, float out_min, float out_max)
 {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+  float mapping = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+
+  return mapping<-out_min ? -out_min : (mapping>out_max ? out_max : mapping);
 }
+
 
 Platform::Platform()
 {
   me = this;
+  
+    _transmisions[X]=(1.0f/BELT_PULLEY_R)/cos(PI/3.0f); 
+    _transmisions[Y]=1.0f/BELT_PULLEY_R; 
+    _transmisions[PITCH]=PITCH_REDUCTION_R;
+    _transmisions[ROLL]=ROLL_YAW_REDUCTION_R;
+    _transmisions[YAW]=ROLL_YAW_REDUCTION_R;
 
-  _encoderScale[X] =ENCODERSCALE1;
-  _encoderScale[Y] =ENCODERSCALE2;
-  _encoderScale[PITCH] =ENCODERSCALE3;
-  _encoderScale[ROLL] =ENCODERSCALE4;
-  _encoderScale[YAW] =ENCODERSCALE5;
+    _maxCurrent[X]=MAX_CURRENT_X;
+    _maxCurrent[Y]=MAX_CURRENT_Y;
+    _maxCurrent[PITCH]=MAX_CURRENT_PITCH_ROLL_YAW;
+    _maxCurrent[ROLL]=MAX_CURRENT_PITCH_ROLL_YAW;
+    _maxCurrent[YAW]=MAX_CURRENT_PITCH_ROLL_YAW;
 
-  _encoderSign[X] =ENCODERSIGN1;
-  _encoderSign[Y] =ENCODERSIGN2;
-  _encoderSign[PITCH] =ENCODERSIGN3;
-  _encoderSign[ROLL] =ENCODERSIGN4;
-  _encoderSign[YAW] =ENCODERSIGN5;
+    _torqueConstants[X]=TORQUE_CONSTANT_X/1000; 
+    _torqueConstants[Y]=TORQUE_CONSTANT_Y/1000;
+    _torqueConstants[PITCH]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;
+    _torqueConstants[ROLL]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;//[Nm/A]
+    _torqueConstants[YAW]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;
+    
+    for (int k=0; k<NB_AXIS; k++)
+    {
+      _maxWrench[k]=_torqueConstants[k]*_maxCurrent[k]*_transmisions[k];
+    }
 
-  _motorSign[X] =MOTORSIGN1;
-  _motorSign[Y] =MOTORSIGN2;
-  _motorSign[PITCH] =MOTORSIGN3;
-  _motorSign[ROLL] =MOTORSIGN4;
-  _motorSign[YAW] =MOTORSIGN5;
+  _encoderScale[X] =ENCODERSCALE_X;
+  _encoderScale[Y] =ENCODERSCALE_Y;
+  _encoderScale[PITCH] =ENCODERSCALE_PITCH;
+  _encoderScale[ROLL] =ENCODERSCALE_ROLL;
+  _encoderScale[YAW] =ENCODERSCALE_YAW;
+
+  _encoderSign[X] =ENCODERSIGN_X;
+  _encoderSign[Y] =ENCODERSIGN_Y;
+  _encoderSign[PITCH] =ENCODERSIGN_PITCH;
+  _encoderSign[ROLL] =ENCODERSIGN_ROLL;
+  _encoderSign[YAW] =ENCODERSIGN_YAW;
+
+  _motorSign[X] =MOTORSIGN_X;
+  _motorSign[Y] =MOTORSIGN_Y;
+  _motorSign[PITCH] =MOTORSIGN_PITCH;
+  _motorSign[ROLL] =MOTORSIGN_ROLL;
+  _motorSign[YAW] =MOTORSIGN_YAW;
 
   _c_wsLimits[X] = C_WS_RANGE_X;
   _c_wsLimits[Y] = C_WS_RANGE_Y;
@@ -61,6 +87,7 @@ for(int k = 0; k < NB_AXIS; k++)
     _twistCtrlOut[k]= 0.0f;
     _wrench[k] = 0.0f;
     _wrenchD[k] = 0.0f;
+    _wrenchM[k] = 0.0f;
     _poseFilters[k] = new LP_Filter(0.5);
     _twistFilters[k] = new LP_Filter(0.95);
     _switchesState[k] = 0;
@@ -119,6 +146,7 @@ for(int k = 0; k < NB_AXIS; k++)
 
   _tic=false;
   _state = HOMING;
+  _lastState=_state;
   _frictionIDFlag=false;
   
   // Reset the flags that acknowledge when the state is entered for the first time 
@@ -148,34 +176,25 @@ for(int k = 0; k < NB_AXIS; k++)
   _limitSwitchesPins[Y] = PC_5; // NOT as PWMX/XN
   _limitSwitchesPins[PITCH] = PC_6; // NOT as PWMX/XN
   
-  _esconEnabled=new DigitalIn(PB_1);
+  _esconEnabledPins[X] = PC_3;
+  _esconEnabledPins[PITCH] = PC_2;
+  _esconEnabledPins[Y] = PH_1;
+  _esconEnabledPins[ROLL] = PH_0;
+  _esconEnabledPins[YAW] = PC_13;
 
+
+  _motorCurrentsPins[X]=PC_0;
+  _motorCurrentsPins[PITCH]=PC_1;
+  _motorCurrentsPins[Y]=PB_0;
+  _motorCurrentsPins[ROLL]=PA_4;
+  _motorCurrentsPins[YAW]=PA_0;
+
+  _enableMotors= new DigitalOut(PB_1);  
 
   _spi = new SPI(PA_7, PA_6, PA_5); // mosi, miso, sclk https://os.mbed.com/platforms/ST-Nucleo-L476RG/
   // _spi->format(8,0); // Default
   // _spi->frequency(1000000); // Default
   /************************************************************* */
-#elif (BOARD==NUCLEO32)
-
-  /*******DESIGNATIONS OF PINS IN THE MICROCONTROLLER NUCLEO F303K8 */
-  _csPins[X] = D6;  //! CS1 -> Lateral NOT as PWMX/XN
-  _csPins[Y] = D5;  //! CS2  -> Dorsi/Plantar Flexion NOT as PWMX/XN
-  _csPins[PITCH] = D4; //! CS3 -> Flexion/Extension of the Leg NOT as PWM/XN
-  _csPins[ROLL] = A1;  //! CS4 -> roll and yaw encoder 1 NOT as PWMX/XN
-  _csPins[YAW] = A2;  //! CS5 -> roll and yaw encoder 2  NOT as PWMX/X
-
-  _motorPins[X] = PA_8; // D9 PA_8 PWM1/1
-  _motorPins[Y] = PA_11_ALT0; // D10 PA_11_ALT0 PWM1/4   ***UNCOMMENT THIS IF USING NUCLEO32***
-  _motorPins[PITCH] = PA_9; // D1 PA_9 PWM1/2 
-  _motorPins[ROLL] = PA_10; // D0 PA_10 PWM1/3
-  _motorPins[YAW] = PA_12_ALT0; // D2 PA_12_ALT0 PWM16/1 ***UNCOMMENT THIS IF USING NUCLEO32***
-
-  _limitSwitchesPins[X] = D8; // NO PWM
-  _limitSwitchesPins[Y] = D7; // NOT as PWMX/XN
-  _limitSwitchesPins[PITCH] = D3; // NOT as PWMX/XN
-
-  _spi = new SPI(PB_5, PB_4, PB_3); // mosi, miso, sclk https://os.mbed.com/platforms/ST-Nucleo-F303K8/ and PeripheralPins.c from mbed
-  
 #endif
 
   wait_ms(10); //! Wait a bit after the SPI starts
@@ -183,7 +202,12 @@ for(int k = 0; k < NB_AXIS; k++)
   for(int k = 0; k < NB_AXIS; k++)
   {
     _encoders[k] = new QEC_1X(_csPins[k]);
-    _motors[k] = new PwmOut(_motorPins[k]);
+    _motors[k] = new PwmOut(_motorPins[k]);  {
+    _esconEnabled[k]=new InterruptIn(_esconEnabledPins[k]);
+    _esconEnabled[k]->mode(PullDown);
+    _motorCurrents[k]= new AnalogIn(_motorCurrentsPins[k]);
+
+  }
     if (k<NB_SWITCHES)
       {
         _limitSwitches[k] = new InterruptIn(_limitSwitchesPins[k]);
@@ -195,7 +219,7 @@ for(int k = 0; k < NB_AXIS; k++)
     }
       
    }
-_timestamp=0;
+_timestamp=0; // We don't read the timer until the platform is initialized
 }
 
 
@@ -211,8 +235,12 @@ Platform::~Platform()
     delete (_encoders[k]);
     delete (_motors[k]);
     delete (_limitSwitches[k]);
+    delete (_motorCurrents[k]);
+    delete (_esconEnabled[k]);
   }
-  delete (_spi);  
+  delete(_enableMotors);
+  delete (_spi); 
+  delete (_pubFootOutput);
 }
 
 
@@ -225,14 +253,15 @@ void Platform::init()
     {
 
      _motors[k]->period_us(200); // PWM (to ESCON) PERIOD 200 us-> 1kHz    
-    
+     _esconEnabled[k]->fall(&emergencyCallback);
+
     if (k<2){
      _pidPose[k]->setOutputLimits(-25.0, 25.0);
      _pidTwist[k]->setOutputLimits(-25.0, 25.0);  
     }
      else {
-     _pidPose[k]->setOutputLimits(-6.0, 6.0); //! For the moment 
-     _pidTwist[k]->setOutputLimits(-6.0, 6.0);    
+     _pidPose[k]->setOutputLimits(-3.0, 3.0); //! For the moment 
+     _pidTwist[k]->setOutputLimits(-3.0, 3.0);    
       }
 
     //}
@@ -267,54 +296,28 @@ void Platform::init()
   wait_ms(10);
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _timestamp = _innerTimer.read_us();
+  _speedSamplingStamp=_timestamp;
+  _enableMotors->write(0);
+  _allEsconOk=0;
+
 }
-
-
-
-
-
 
 void Platform::step()
 {
+  getMotion(); //! SPI
+  //readActualWrench(); //! Using the ESCON 50/5 Analog Output  
   
+  _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
+  for (int k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  
+  if (!_allEsconOk) {_state=EMERGENCY;}
+
   switch (_state)
   {
 
-  #if (HOMING_TECHNIQUE==TORQUE_CONTROLLED_HOMING)    
-    case HOMING:
-    {
-      // Init
-      if(!_stateOnceFlag[HOMING])
-      {
-        for(int k = 0; k < NB_AXIS; k++)
-          {
-            _switchesState[k] = 0;
-          }
-        // Set commanded forces and torques for homing
-        _stateOnceFlag[HOMING]=true;
-      }
-      
-      _wrenchD_ADD[NORMAL][X] = HOMING_FORCE_X;   //
-      _wrenchD_ADD[NORMAL][Y] = HOMING_FORCE_Y;   // [N]
-      _wrenchD_ADD[NORMAL][PITCH] = HOMING_TORQUE_P;  // [Nm]
-      _controllerType=TORQUE_ONLY;
+  case STANDBY:{ break;}    //Do nothing
 
-      // Definition of the transition rule to the next state
-      if ((_switchesState[X] == 1) && (_switchesState[Y] == 1) && (_switchesState[PITCH] == 1))
-      {
-        poseAllReset();
-        static uint32_t idle = _innerTimer.read_us();
-        //  After 1.5 second move to next state
-        if ((_innerTimer.read_us() - idle) > 150000)
-        {
-          _state = CENTERING;
-        }
-      }
-      break;
-    }
-  #else
-
-    case HOMING:
+  case HOMING:
     {
       // Init
       if(!_stateOnceFlag[HOMING])
@@ -329,9 +332,9 @@ void Platform::step()
 
       _controllerType=TWIST_ONLY;
       
-      _twistD[X] = 1.5; // m/s
-      _twistD[Y] = 1.5; // m/s
-      _twistD[PITCH] = -70; // °/s
+      _twistD[X] = 2; // m/s
+      _twistD[Y] = 2; // m/s
+      _twistD[PITCH] = -500; // °/s
 
       #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
           _kpTwist[X] = 1500.0f*0.01f;
@@ -342,11 +345,12 @@ void Platform::step()
           _kiTwist[PITCH] = 0.0f * PI / 180.0f * 1e-4f; //  
         #else 
           _kpTwist[X] = 1500.0f*0.01f;
-          _kiTwist[X] = 0.0f*0.01f; 
+          _kiTwist[X] = 1000.0f*0.01f; 
           _kpTwist[Y] = 1500.0f*0.01f;
           _kiTwist[Y] = 1000.0f*0.01f; //
-          _kpTwist[PITCH] = 30000.0f * PI / 180.0f * 1e-4f; //
-          _kiTwist[PITCH] = 30000.0f * PI / 180.0f * 1e-4f; // 
+          _kpTwist[PITCH] = 10000.0f * PI / 180.0f * 1e-4f; //
+          _kiTwist[PITCH] = 5000.0f * PI / 180.0f * 1e-4f; // 
+          
         #endif
 
       twistControl(NORMAL);
@@ -378,10 +382,9 @@ void Platform::step()
               }
             }
       }
+      _lastState=_state;
       break;
     }
-
-  #endif
 
     case CENTERING:
     {
@@ -399,8 +402,7 @@ void Platform::step()
           _toc = _innerTimer.read_us();
           _tic=true;
           }
-        
-
+      
         
         // After a second and a half move to next state
         if ((_innerTimer.read_us() - _toc) > 1500000)
@@ -416,6 +418,7 @@ void Platform::step()
             }
         };
       }
+      _lastState=_state;
       break;
     }
     case TELEOPERATION:
@@ -436,18 +439,26 @@ void Platform::step()
       _stateOnceFlag[TELEOPERATION]=true;
      }
 
-
-
       // Main State
     
-      frictionID(X,FW_COMP);
-
+      //frictionID(X,FW_COMP);
+      _lastState=_state;
       break;
     }
+    case EMERGENCY:
+      releasePlatform();
+      if (_allEsconOk) {_state=_lastState;}
+      else {_enableMotors->write(0);}
+      break;
   }
 
-  // Apply forces and torques
- setWrenches();
+  if (_allEsconOk) {_enableMotors->write(1);}
+
+  setWrenches();// Aply the forces and torques
+  
+  //! Keep track of time
+  _timestep=_innerTimer.read_us()-_timestamp;
+  _timestamp=_innerTimer.read_us();
 }
 
 void Platform::getMotion()
@@ -456,11 +467,25 @@ void Platform::getMotion()
   getTwist();
 }
 
+void Platform::readActualWrench()
+{
+  for (int k=0; k<NB_AXIS; k++)
+  {
+    _wrenchM[k]=map(_motorCurrents[k]->read()*_motorSign[k],0.1,0.9,-_maxWrench[k],_maxWrench[k]);
+  }
+    // Adapt roll and yaw angles due to differential mechanism
+  float diffM1 = _wrenchM[ROLL];
+  float diffM2 = _wrenchM[YAW];
+  _wrenchM[ROLL]= (diffM1-diffM2)/2.0f;
+  _wrenchM[YAW] = (diffM1+diffM2)/2.0f;
+}
+
 void Platform::communicateToRos()
 {
   // Publish foot output
    pubFootOutput();
-  // _nh.spinOnce(); //Publishes and Retrieves Messages
+   _nh.spinOnce(); //Publishes and Retrieves Messages
+   // For Retrieving and Publishing to ROS. We can put it separate in the main in  case we want to put it in an interruption     
 }
 
 void Platform::getPose()
@@ -483,15 +508,15 @@ void Platform::getPose()
 
 void Platform::getTwist()
 {
-  if (fabs(_innerTimer.read_us() - _timestamp) >= VELOCITY_PID_SAMPLE_P)
+  if ((_timestamp-_speedSamplingStamp)>=VELOCITY_PID_SAMPLE_P)
   {
     for (int k = 0; k < NB_AXIS; k++)
     {
       _twist[k] = (_pose[k] - _posePrev[k]) / (VELOCITY_PID_SAMPLE_P * 1e-6f);
       _twist[k] = _twistFilters[k]->update(_twist[k]);
       _posePrev[k] = _pose[k];
+      _speedSamplingStamp=_timestamp;
     }
-    _timestamp = _innerTimer.read_us();
   }
 }
 
@@ -502,7 +527,7 @@ void Platform::posAxisControl(WrenchComp Component, int axis){
     }
 
     if ((axis>=2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
-      _pidPose[axis]->setOutputLimits(-6,6); //!Nm
+      _pidPose[axis]->setOutputLimits(-3,3); //!Nm
     }
 
     if (_controllerType==TWIST_POSE_CASCADE){
@@ -536,7 +561,7 @@ void Platform::speedAxisControl(WrenchComp Component, int axis)
     }
 
     if ((axis>=2)&&((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE))){
-      _pidTwist[axis]->setOutputLimits(-6,6); //!Nm
+      _pidTwist[axis]->setOutputLimits(-3,3); //!Nm
     }
 
     if (_controllerType==POSE_TWIST_CASCADE){
@@ -577,87 +602,33 @@ void Platform::setWrenches()
   } 
   
 
-  for(int k = 0; k <2; k++)
-  {
-    if(k<2)
-    {
-      setForce(_wrenchD[k], _motors[k], _motorSign[k], (int)k);
-    }  
-  }
-
-  setTorque(_wrenchD[PITCH],_motors[PITCH],_motorSign[PITCH],(int)PITCH);
+  setWrenchAxis(_wrenchD[X],_motors[X],_motorSign[X],(int)X);
+  setWrenchAxis(_wrenchD[Y],_motors[Y],_motorSign[Y],(int)Y);
+  setWrenchAxis(_wrenchD[PITCH],_motors[PITCH],_motorSign[PITCH],(int)PITCH);
   // Adapt roll and yaw commands due to differential mechanism
-  setTorque((_wrenchD[YAW]+_wrenchD[ROLL])/2.0f, _motors[ROLL], _motorSign[ROLL], (int)ROLL);
-  setTorque((_wrenchD[YAW]-_wrenchD[ROLL])/2.0f, _motors[YAW], _motorSign[YAW], (int)YAW);
+  setWrenchAxis((_wrenchD[YAW]+_wrenchD[ROLL])/2.0f, _motors[ROLL], _motorSign[ROLL], (int)ROLL);
+  setWrenchAxis((_wrenchD[YAW]-_wrenchD[ROLL])/2.0f, _motors[YAW], _motorSign[YAW], (int)YAW);
 
 }
 
 
-void Platform::setForce(float force, PwmOut *pin, int sign, int axis)
+void Platform::setWrenchAxis(float wrench, PwmOut *pin, int sign, int axis)
 {
-  if(axis==(int)X)
-  {
-    force /= cos(PI/3.0f);
-  }
-  float escon_torque = force * BELT_PULLEY_R; //! Convert from torque to force
-  setTorque(escon_torque, pin, sign, axis);
+  float escon_torque = wrench/_transmisions[axis];
+  setCurrentAxis(escon_torque, pin, sign, axis);
 }
 
-
-void Platform::setTorque(float torque, PwmOut *pin, int sign, int axis)
+void Platform::setCurrentAxis(float torque, PwmOut *pin, int sign, int axis)
 {
-  float kTau = 0.0f, iMax = 0.0f, reduction = 0.0;
-
-  switch (axis)
-  {
-    case X:
-    {
-      kTau = TORQUE_CONSTANT_X;
-      iMax = MAX_CURRENT_X;
-      reduction = 1.0f;
-      break;
-    }
-    case Y:
-    {
-      kTau = TORQUE_CONSTANT_Y;
-      iMax = MAX_CURRENT_Y;
-      reduction = 1.0f;
-      break;
-    }
-    case PITCH:
-    {
-      kTau = TORQUE_CONSTANT_PITCH_ROLL_YAW;
-      iMax = MAX_CURRENT_PITCH_ROLL_YAW;
-      reduction = PITCH_REDUCTION_R;
-      break;
-    }
-    case ROLL:
-    {
-      kTau = TORQUE_CONSTANT_PITCH_ROLL_YAW;
-      iMax = MAX_CURRENT_PITCH_ROLL_YAW;
-      reduction = ROLL_YAW_REDUCTION_R;
-      break;
-    }
-    case YAW:
-    {
-      kTau = TORQUE_CONSTANT_PITCH_ROLL_YAW;
-      iMax = MAX_CURRENT_PITCH_ROLL_YAW;
-      reduction = ROLL_YAW_REDUCTION_R;
-      break;
-    }
-  }
-
-  double escon_current = sign*(torque * 1000 / kTau) / reduction;
-  escon_current = (escon_current > iMax ? iMax : (escon_current < -iMax ? -iMax : escon_current)); 
-  float escon_current_PWM = map(escon_current, -iMax, iMax, 0.1f, 0.9f); //! from 10 to 90% of Duty Cycle to acknowledge connection
+  float escon_current = torque/_torqueConstants[axis];
+  float escon_current_PWM = map(sign*escon_current, -_maxCurrent[axis], _maxCurrent[axis], 0.1f, 0.9f); //! from 10 to 90% of Duty Cycle to acknowledge connection
   pin->write(escon_current_PWM);
-  
 }
 
 
 void Platform::switchCallbackX()
 {
-  if ((me->_switchesState[X] == 0) && (me->_limitSwitches[X]->read()==0) )
+  if ((me->_switchesState[X] == 0) )
   {
     me->_switchesState[X] = 1;
   }
@@ -666,7 +637,7 @@ void Platform::switchCallbackX()
 
 void Platform::switchCallbackY()
 {
-  if ((me->_switchesState[Y] == 0) && (me->_limitSwitches[Y]->read()==0))
+  if ((me->_switchesState[Y] == 0) )
   {
     me->_switchesState[Y] = 1;
   }
@@ -675,7 +646,7 @@ void Platform::switchCallbackY()
 
 void Platform::switchCallbackPitch()
 {
-  if ((me->_switchesState[PITCH] == 0) && (me->_limitSwitches[PITCH]->read()==0))
+  if ((me->_switchesState[PITCH] == 0) )
   {
     me->_switchesState[PITCH] = 1;
   }
@@ -701,7 +672,6 @@ void Platform::poseAllReset()
 
 void Platform::updateFootInput(const custom_msgs::FootInputMsg &msg)
 {
-  //TODO: Check if it should be the commands or the measured forces and torques
   me->_wrenchD_ADD[NORMAL][X] = msg.FxDes;
   me->_wrenchD_ADD[NORMAL][Y] = msg.FyDes;
   me->_wrenchD_ADD[NORMAL][PITCH] = msg.TphiDes;
@@ -713,8 +683,7 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg &msg)
     me->_stateOnceFlag[me->_state]=false; //! Unless it is in teleoperation (continuous messages)
     me->_stateOnceFlag[newState]=false; 
     me->_state = newState;
-  }
-  
+  } 
 }
 
 
@@ -730,11 +699,16 @@ void Platform::pubFootOutput()
   //_msgFootOutput.phi = (float)_switchesState[2];
   _msgFootOutput.theta = _pose[ROLL];
   _msgFootOutput.psi = _pose[YAW];
-  _msgFootOutput.Fx = _wrenchD[X];
-  _msgFootOutput.Fy = _wrenchD[Y];
-  _msgFootOutput.Tphi = _wrenchD[PITCH];
-  _msgFootOutput.Ttheta = _wrenchD[ROLL];
-  _msgFootOutput.Tpsi = _wrenchD[YAW];
+  _msgFootOutput.Fx_d = _wrenchD[X];
+  _msgFootOutput.Fy_d = _wrenchD[Y];
+  _msgFootOutput.Tphi_d = _wrenchD[PITCH];
+  _msgFootOutput.Ttheta_d = _wrenchD[ROLL];
+  _msgFootOutput.Tpsi_d = _wrenchD[YAW];
+  _msgFootOutput.Fx_m = _wrenchM[X];
+  _msgFootOutput.Fy_m = _wrenchM[Y];
+  _msgFootOutput.Tphi_m = _wrenchM[PITCH];
+  _msgFootOutput.Ttheta_m = _wrenchM[ROLL];
+  _msgFootOutput.Tpsi_m = _wrenchM[YAW];
   _msgFootOutput.vx = _twist[X];
   _msgFootOutput.vy = _twist[Y];
   _msgFootOutput.wphi = _twist[PITCH];
@@ -744,16 +718,13 @@ void Platform::pubFootOutput()
   _pubFootOutput->publish(&_msgFootOutput);
 }
 
-
 void Platform::gotoPointAxis(int axis_, float point)
 {
   _controllerType=POSE_ONLY;
- 
   _kpPose[axis_]=_gtKpPose[axis_];
   _kdPose[axis_]=_gtKdPose[axis_];
   _kiPose[axis_]=_gtKiPose[axis_];
   _poseD[axis_]=point;
-
   posAxisControl(NORMAL,axis_); 
 }
 
@@ -765,8 +736,7 @@ void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float 
   _poseD[PITCH]=pointPITCH;
   _poseD[ROLL]=pointROLL;
   _poseD[YAW]=pointYAW;
-
-    for (int k=0; k<NB_AXIS; k++)
+  for (int k=0; k<NB_AXIS; k++)
     {
     _kpPose[k]=_gtKpPose[k];
     _kdPose[k]=_gtKdPose[k];
@@ -778,7 +748,6 @@ void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float 
 void Platform::wsConstrains()
 {
   _controllerType=POSE_ONLY;
-
   for (int k = 0; k<NB_AXIS; k++){
   _poseD[k] = _pose[k] >= fabs(_c_wsLimits[k]) ? fabs(_c_wsLimits[k]) : (_pose[k] <= -fabs(_c_wsLimits[k]) ? -fabs(_c_wsLimits[k]): _poseD[k]);
     if ( _pose[k] >= fabs(_c_wsLimits[k]) || _pose[k] <= -fabs(_c_wsLimits[k]) )
@@ -800,9 +769,9 @@ void Platform::frictionID(int axis_, int direction_)
       static float tolerance = 0.003;
       _poseD[axis_] = direction_*step_; // Go to the limit
 
-      _kpPose[axis_]=0.0f;
-      _kiPose[axis_]=50.0f;
-      _kdPose[axis_]=0.0f;
+      _kpPose[axis_]=1.0f;
+      _kiPose[axis_]=500.0f;
+      _kdPose[axis_]=1.0f;
 
       if (axis_>2)
       {
@@ -824,3 +793,28 @@ void Platform::frictionID(int axis_, int direction_)
   }
 }
 
+
+
+
+void Platform::emergencyCallback()
+{
+  me->_allEsconOk=0;
+  me->_state=EMERGENCY; 
+}
+
+void Platform::releasePlatform()
+{
+  for(int k = 0; k < NB_AXIS; k++)
+  {
+    _pidPose[k]->reset();
+    _pidTwist[k]->reset();
+    _poseFilters[k]->reset();
+    _twistFilters[k]->reset();
+    
+     for(int j = 0; j < WRENCH_COMPONENTS; j++)
+    {
+      _wrenchD_ADD[j][k] = 0.0f;
+    }
+  }
+  poseAllReset();
+}

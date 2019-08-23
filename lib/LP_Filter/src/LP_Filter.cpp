@@ -13,6 +13,12 @@ float LP_Filter::update(float raw_input){
   return _output;
 }
 
+void LP_Filter::reset()
+{
+  _output=0.0f;
+  _old_output=0.0f;
+}
+
 // void LP_Filter::setValue(float alpha)
 // {
 //   _alpha=alpha;

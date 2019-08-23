@@ -8,6 +8,7 @@
 #include <LP_Filter.h>
 #include <FootInputMsg.h>
 #include <FootOutputMsg.h>
+//#include <frictionIDConfig.h>
 #include <Platform.h>
 #include <definitions.h>
 #include <PID_v1.h>
@@ -25,7 +26,19 @@ class Platform
   public:    
     // ROS variables
     ros::NodeHandle _nh;
-    DigitalIn* _esconEnabled;
+
+    //Power Electronics Variables
+    PinName _esconEnabledPins[NB_AXIS];
+    InterruptIn* _esconEnabled[NB_AXIS];
+    volatile int _allEsconOk;
+    DigitalOut* _enableMotors;
+
+    //Public Time
+    uint32_t _timestamp;
+    uint32_t _timestep;
+    uint32_t _speedSamplingStamp;
+    Timer _innerTimer; //! micros()
+    
   private:
     // Enum for axis ID
     enum Axis {X,Y,PITCH,ROLL,YAW};
@@ -33,7 +46,7 @@ class Platform
     enum WrenchComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD};
 
     // Enum for state machine
-    enum State {HOMING,CENTERING,TELEOPERATION}; 
+    enum State {HOMING,CENTERING,TELEOPERATION,EMERGENCY,STANDBY}; 
 
     // Enum for the controller that is directly ouput for the motors
     enum Controller {TORQUE_ONLY, POSE_ONLY, TWIST_ONLY, TWIST_POSE_CASCADE, POSE_TWIST_CASCADE}; //! F= D(K(x-xd)-x_dot)
@@ -46,6 +59,7 @@ class Platform
 
     // State variables
     volatile State _state;
+    State _lastState;
     volatile bool _stateOnceFlag[3];
     Controller _controllerType;
     double _pose[NB_AXIS];
@@ -58,10 +72,15 @@ class Platform
     double _twistCtrlOut[NB_AXIS];
     double _wrench[NB_AXIS];
     double _wrenchD[NB_AXIS];
+    double _wrenchM[NB_AXIS];
     volatile double _wrenchD_ADD[WRENCH_COMPONENTS][NB_AXIS];
     LP_Filter* _poseFilters[NB_AXIS];
     LP_Filter* _twistFilters[NB_AXIS];
     volatile int _switchesState[NB_AXIS];
+    float _maxWrench[NB_AXIS];
+    float _maxCurrent[NB_AXIS];
+    float _transmisions[NB_AXIS];
+    float _torqueConstants[NB_AXIS];
     int _encoderSign[NB_AXIS];
     int _motorSign[NB_AXIS];
     float _encoderScale[NB_AXIS];
@@ -75,7 +94,9 @@ class Platform
     PinName _motorPins[NB_AXIS];
     PwmOut* _motors[NB_AXIS];
     PinName _limitSwitchesPins[NB_AXIS];
-    
+    PinName _motorCurrentsPins[NB_AXIS];
+    AnalogIn* _motorCurrents[NB_AXIS];
+
     InterruptIn* _limitSwitches[NB_AXIS]; 
     SPI* _spi;
 
@@ -101,11 +122,10 @@ class Platform
     PID* _pidTwist[NB_AXIS];
 
     // Other variables
-    uint32_t _timestamp;
+    
     static Platform *me;
     float _epson;
 
-    Timer _innerTimer; //! micros()
     uint32_t _toc;
     bool _tic; //flag for timer
 
@@ -129,6 +149,12 @@ class Platform
     void setWrenches();
     
     void getMotion();
+    
+     //EMERGENCY
+
+    static void emergencyCallback();
+
+    void releasePlatform();
 
   private:
 
@@ -144,9 +170,9 @@ class Platform
 
     void twistControl(WrenchComp Component);
 
-    void setForce(float force,  PwmOut *pin, int sign, int axis);
+    void setWrenchAxis(float wrench,  PwmOut *pin, int sign, int axis);
     
-    void setTorque(float torque, PwmOut *pin, int sign, int axis);
+    void setCurrentAxis(float torque, PwmOut *pin, int sign, int axis);
 
     static void switchCallbackX();
 
@@ -168,6 +194,7 @@ class Platform
 
     void gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW);
     
+    void readActualWrench();
 };
 
 #endif

@@ -7,6 +7,7 @@ class LP_Filter
 		LP_Filter(float alpha); 
 		float update(float raw_input);
 		//void setValue(float alpha);		
+		void reset();
 	private:
 		float _alpha;
 		float _old_output;

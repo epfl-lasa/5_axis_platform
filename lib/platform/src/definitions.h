@@ -141,37 +141,36 @@
 
 #define C_WS_RANGE_YAW YAW_RANGE*0.0
 
-#define ENCODERSIGN1 -1 //! RIGHT
-#define ENCODERSIGN2 -1 //! RIGHT
-#define ENCODERSIGN3 -1 //! RIGHT
-#define ENCODERSIGN4 1 //! RIGHT
-#define ENCODERSIGN5 1 //! RIGHT
+#define ENCODERSIGN_X -1 //! RIGHT
+#define ENCODERSIGN_Y -1 //! RIGHT
+#define ENCODERSIGN_PITCH -1 //! RIGHT
+#define ENCODERSIGN_ROLL 1 //! RIGHT
+#define ENCODERSIGN_YAW 1 //! RIGHT
 
 // MOTORSIGN: To programatically change the rotation sign
 
-#define MOTORSIGN1 1 //! RIGHT
+#define MOTORSIGN_X 1 //! RIGHT
 
-#define MOTORSIGN2 -1 //! RIGHT
+#define MOTORSIGN_Y 1 //! RIGHT
 
-#define MOTORSIGN3 1 //! RIGHT
+#define MOTORSIGN_PITCH 1 //! RIGHT
 
-#define MOTORSIGN4 1 //! RIGHT
+#define MOTORSIGN_ROLL -1 //! RIGHT
 
-#define MOTORSIGN5 1 //! RIGHT
+#define MOTORSIGN_YAW -1 //! RIGHT
 
-#define ENCODERSCALE1 (X_RANGE / 7310.0f * (0.195f/0.180f))
-#define ENCODERSCALE2 (Y_RANGE / 12400.0f* (0.180f/0.1767f))
-#define ENCODERSCALE3 360.F / PITCH_REDUCTION_R / (4 * 4095.0F)
-#define ENCODERSCALE4 90.0f/53000.0f
-#define ENCODERSCALE5 90.0f/53000.0f
+#define ENCODERSCALE_X (X_RANGE / 7310.0f * (0.195f/0.180f))
+#define ENCODERSCALE_Y (Y_RANGE / 12400.0f* (0.180f/0.1767f))
+#define ENCODERSCALE_PITCH 360.F / PITCH_REDUCTION_R / (4 * 4095.0F)
+#define ENCODERSCALE_ROLL 90.0f/53000.0f
+#define ENCODERSCALE_YAW 90.0f/53000.0f
 
-#define CURRENT_K_1 30.2F             //! K_i Maxon Motor RE40mm 148867 [mNm/A]
 #define TORQUE_CONSTANT_X 30.2F       //! Torque constant RE40mm 148867 [mNm/A]
 #define MAX_CURRENT_X 6.0F            //! Max current RE40mm 148867 [A]
 #define TORQUE_CONSTANT_Y 42.3F       //! Torque constant Faulhaber 3890H024C R2016 [mNm/A]
 #define MAX_CURRENT_Y 5.0F           //! Max current Faulhaber 3890H024C R2016 [A]
-#define TORQUE_CONSTANT_PITCH_ROLL_YAW 231 //! Torque constant EC 90 V1 607931 [mNm/A]
-#define MAX_CURRENT_PITCH_ROLL_YAW 4.96f //! Max current EC 90 V1 607931 [A]
+#define TORQUE_CONSTANT_PITCH_ROLL_YAW 231.0F //! Torque constant EC 90 V1 607931 [mNm/A]
+#define MAX_CURRENT_PITCH_ROLL_YAW 4.96F //! Max current EC 90 V1 607931 [A]
 
 #endif
 

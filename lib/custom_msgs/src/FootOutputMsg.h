@@ -27,16 +27,16 @@ namespace custom_msgs
       _theta_type theta;
       typedef float _psi_type;
       _psi_type psi;
-      typedef float _Fx_type;
-      _Fx_type Fx;
-      typedef float _Fy_type;
-      _Fy_type Fy;
-      typedef float _Tphi_type;
-      _Tphi_type Tphi;
-      typedef float _Ttheta_type;
-      _Ttheta_type Ttheta;
-      typedef float _Tpsi_type;
-      _Tpsi_type Tpsi;
+      typedef float _Fx_d_type;
+      _Fx_d_type Fx_d;
+      typedef float _Fy_d_type;
+      _Fy_d_type Fy_d;
+      typedef float _Tphi_d_type;
+      _Tphi_d_type Tphi_d;
+      typedef float _Ttheta_d_type;
+      _Ttheta_d_type Ttheta_d;
+      typedef float _Tpsi_d_type;
+      _Tpsi_d_type Tpsi_d;
       typedef float _vx_type;
       _vx_type vx;
       typedef float _vy_type;
@@ -47,6 +47,16 @@ namespace custom_msgs
       _wtheta_type wtheta;
       typedef float _wpsi_type;
       _wpsi_type wpsi;
+      typedef float _Fx_m_type;
+      _Fx_m_type Fx_m;
+      typedef float _Fy_m_type;
+      _Fy_m_type Fy_m;
+      typedef float _Tphi_m_type;
+      _Tphi_m_type Tphi_m;
+      typedef float _Ttheta_m_type;
+      _Ttheta_m_type Ttheta_m;
+      typedef float _Tpsi_m_type;
+      _Tpsi_m_type Tpsi_m;
       typedef int16_t _state_type;
       _state_type state;
 
@@ -58,16 +68,21 @@ namespace custom_msgs
       phi(0),
       theta(0),
       psi(0),
-      Fx(0),
-      Fy(0),
-      Tphi(0),
-      Ttheta(0),
-      Tpsi(0),
+      Fx_d(0),
+      Fy_d(0),
+      Tphi_d(0),
+      Ttheta_d(0),
+      Tpsi_d(0),
       vx(0),
       vy(0),
       wphi(0),
       wtheta(0),
       wpsi(0),
+      Fx_m(0),
+      Fy_m(0),
+      Tphi_m(0),
+      Ttheta_m(0),
+      Tpsi_m(0),
       state(0)
     {
     }
@@ -146,53 +161,53 @@ namespace custom_msgs
       union {
         float real;
         uint32_t base;
-      } u_Fx;
-      u_Fx.real = this->Fx;
-      *(outbuffer + offset + 0) = (u_Fx.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_Fx.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_Fx.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_Fx.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->Fx);
+      } u_Fx_d;
+      u_Fx_d.real = this->Fx_d;
+      *(outbuffer + offset + 0) = (u_Fx_d.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Fx_d.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Fx_d.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Fx_d.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Fx_d);
       union {
         float real;
         uint32_t base;
-      } u_Fy;
-      u_Fy.real = this->Fy;
-      *(outbuffer + offset + 0) = (u_Fy.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_Fy.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_Fy.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_Fy.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->Fy);
+      } u_Fy_d;
+      u_Fy_d.real = this->Fy_d;
+      *(outbuffer + offset + 0) = (u_Fy_d.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Fy_d.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Fy_d.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Fy_d.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Fy_d);
       union {
         float real;
         uint32_t base;
-      } u_Tphi;
-      u_Tphi.real = this->Tphi;
-      *(outbuffer + offset + 0) = (u_Tphi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_Tphi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_Tphi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_Tphi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->Tphi);
+      } u_Tphi_d;
+      u_Tphi_d.real = this->Tphi_d;
+      *(outbuffer + offset + 0) = (u_Tphi_d.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Tphi_d.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Tphi_d.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Tphi_d.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Tphi_d);
       union {
         float real;
         uint32_t base;
-      } u_Ttheta;
-      u_Ttheta.real = this->Ttheta;
-      *(outbuffer + offset + 0) = (u_Ttheta.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_Ttheta.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_Ttheta.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_Ttheta.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->Ttheta);
+      } u_Ttheta_d;
+      u_Ttheta_d.real = this->Ttheta_d;
+      *(outbuffer + offset + 0) = (u_Ttheta_d.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Ttheta_d.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Ttheta_d.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Ttheta_d.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Ttheta_d);
       union {
         float real;
         uint32_t base;
-      } u_Tpsi;
-      u_Tpsi.real = this->Tpsi;
-      *(outbuffer + offset + 0) = (u_Tpsi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_Tpsi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_Tpsi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_Tpsi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->Tpsi);
+      } u_Tpsi_d;
+      u_Tpsi_d.real = this->Tpsi_d;
+      *(outbuffer + offset + 0) = (u_Tpsi_d.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Tpsi_d.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Tpsi_d.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Tpsi_d.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Tpsi_d);
       union {
         float real;
         uint32_t base;
@@ -243,6 +258,56 @@ namespace custom_msgs
       *(outbuffer + offset + 2) = (u_wpsi.base >> (8 * 2)) & 0xFF;
       *(outbuffer + offset + 3) = (u_wpsi.base >> (8 * 3)) & 0xFF;
       offset += sizeof(this->wpsi);
+      union {
+        float real;
+        uint32_t base;
+      } u_Fx_m;
+      u_Fx_m.real = this->Fx_m;
+      *(outbuffer + offset + 0) = (u_Fx_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Fx_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Fx_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Fx_m.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Fx_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Fy_m;
+      u_Fy_m.real = this->Fy_m;
+      *(outbuffer + offset + 0) = (u_Fy_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Fy_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Fy_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Fy_m.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Fy_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Tphi_m;
+      u_Tphi_m.real = this->Tphi_m;
+      *(outbuffer + offset + 0) = (u_Tphi_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Tphi_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Tphi_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Tphi_m.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Tphi_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Ttheta_m;
+      u_Ttheta_m.real = this->Ttheta_m;
+      *(outbuffer + offset + 0) = (u_Ttheta_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Ttheta_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Ttheta_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Ttheta_m.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Ttheta_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Tpsi_m;
+      u_Tpsi_m.real = this->Tpsi_m;
+      *(outbuffer + offset + 0) = (u_Tpsi_m.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_Tpsi_m.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_Tpsi_m.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_Tpsi_m.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->Tpsi_m);
       union {
         int16_t real;
         uint16_t base;
@@ -334,58 +399,58 @@ namespace custom_msgs
       union {
         float real;
         uint32_t base;
-      } u_Fx;
-      u_Fx.base = 0;
-      u_Fx.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_Fx.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_Fx.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_Fx.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->Fx = u_Fx.real;
-      offset += sizeof(this->Fx);
+      } u_Fx_d;
+      u_Fx_d.base = 0;
+      u_Fx_d.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Fx_d.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Fx_d.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Fx_d.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Fx_d = u_Fx_d.real;
+      offset += sizeof(this->Fx_d);
       union {
         float real;
         uint32_t base;
-      } u_Fy;
-      u_Fy.base = 0;
-      u_Fy.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_Fy.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_Fy.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_Fy.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->Fy = u_Fy.real;
-      offset += sizeof(this->Fy);
+      } u_Fy_d;
+      u_Fy_d.base = 0;
+      u_Fy_d.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Fy_d.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Fy_d.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Fy_d.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Fy_d = u_Fy_d.real;
+      offset += sizeof(this->Fy_d);
       union {
         float real;
         uint32_t base;
-      } u_Tphi;
-      u_Tphi.base = 0;
-      u_Tphi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_Tphi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_Tphi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_Tphi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->Tphi = u_Tphi.real;
-      offset += sizeof(this->Tphi);
+      } u_Tphi_d;
+      u_Tphi_d.base = 0;
+      u_Tphi_d.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Tphi_d.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Tphi_d.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Tphi_d.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Tphi_d = u_Tphi_d.real;
+      offset += sizeof(this->Tphi_d);
       union {
         float real;
         uint32_t base;
-      } u_Ttheta;
-      u_Ttheta.base = 0;
-      u_Ttheta.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_Ttheta.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_Ttheta.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_Ttheta.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->Ttheta = u_Ttheta.real;
-      offset += sizeof(this->Ttheta);
+      } u_Ttheta_d;
+      u_Ttheta_d.base = 0;
+      u_Ttheta_d.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Ttheta_d.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Ttheta_d.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Ttheta_d.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Ttheta_d = u_Ttheta_d.real;
+      offset += sizeof(this->Ttheta_d);
       union {
         float real;
         uint32_t base;
-      } u_Tpsi;
-      u_Tpsi.base = 0;
-      u_Tpsi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_Tpsi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_Tpsi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_Tpsi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->Tpsi = u_Tpsi.real;
-      offset += sizeof(this->Tpsi);
+      } u_Tpsi_d;
+      u_Tpsi_d.base = 0;
+      u_Tpsi_d.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Tpsi_d.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Tpsi_d.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Tpsi_d.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Tpsi_d = u_Tpsi_d.real;
+      offset += sizeof(this->Tpsi_d);
       union {
         float real;
         uint32_t base;
@@ -442,6 +507,61 @@ namespace custom_msgs
       this->wpsi = u_wpsi.real;
       offset += sizeof(this->wpsi);
       union {
+        float real;
+        uint32_t base;
+      } u_Fx_m;
+      u_Fx_m.base = 0;
+      u_Fx_m.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Fx_m.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Fx_m.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Fx_m.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Fx_m = u_Fx_m.real;
+      offset += sizeof(this->Fx_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Fy_m;
+      u_Fy_m.base = 0;
+      u_Fy_m.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Fy_m.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Fy_m.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Fy_m.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Fy_m = u_Fy_m.real;
+      offset += sizeof(this->Fy_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Tphi_m;
+      u_Tphi_m.base = 0;
+      u_Tphi_m.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Tphi_m.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Tphi_m.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Tphi_m.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Tphi_m = u_Tphi_m.real;
+      offset += sizeof(this->Tphi_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Ttheta_m;
+      u_Ttheta_m.base = 0;
+      u_Ttheta_m.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Ttheta_m.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Ttheta_m.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Ttheta_m.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Ttheta_m = u_Ttheta_m.real;
+      offset += sizeof(this->Ttheta_m);
+      union {
+        float real;
+        uint32_t base;
+      } u_Tpsi_m;
+      u_Tpsi_m.base = 0;
+      u_Tpsi_m.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_Tpsi_m.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_Tpsi_m.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_Tpsi_m.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->Tpsi_m = u_Tpsi_m.real;
+      offset += sizeof(this->Tpsi_m);
+      union {
         int16_t real;
         uint16_t base;
       } u_state;
@@ -454,7 +574,7 @@ namespace custom_msgs
     }
 
     const char * getType(){ return "custom_msgs/FootOutputMsg"; };
-    const char * getMD5(){ return "d8e84508485f8ff66f85ecd7bdcbd77f"; };
+    const char * getMD5(){ return "abcff2c619e990de9f64e1851406adcc"; };
 
   };
 

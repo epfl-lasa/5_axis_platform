@@ -6,6 +6,7 @@
     "C_Cpp.errorSquiggles": "Disabled",
     "files.associations": {
         "timer.h": "c",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "limits": "cpp"
     }
 }
