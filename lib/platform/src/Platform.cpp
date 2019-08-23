@@ -130,10 +130,10 @@ for(int k = 0; k < NB_AXIS; k++)
           _gtKpPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; //2000.0
           _gtKdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f; // 5.0
           _gtKiPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; // 1000.0 
-          _gtKpPose[ROLL] = 2500.0f * PI / 180.0f * 0.01f;
+          _gtKpPose[ROLL] = 2000.0f * PI / 180.0f * 0.01f;
           _gtKdPose[ROLL] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f; 
-          _gtKpPose[YAW] = 2500.0f * PI / 180.0f * 0.01f;
+          _gtKpPose[YAW] = 2000.0f * PI / 180.0f * 0.01f;
           _gtKdPose[YAW] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[YAW] = 1000.0f * PI / 180.0f * 0.01f; 
         #endif
@@ -234,6 +234,7 @@ Platform::~Platform()
     delete (_twistFilters[k]);
     delete (_pidPose[k]);
     delete (_pidTwist[k]);
+    _encoders[k]->~QEC_1X();
     delete (_encoders[k]);
     delete (_motors[k]);
     delete (_limitSwitches[k]);
@@ -319,7 +320,7 @@ void Platform::step()
   switch (_state)
   {
 
-  case STANDBY:{ break;}    //Do nothing
+  case STANDBY:{ _lastState=_state; break;}    //Do nothing
 
   case HOMING:
     {
@@ -367,30 +368,23 @@ void Platform::step()
           _toc = _innerTimer.read_us();
           _tic=true;
           }
-
-        
-        
+ 
         //  After 1.5 second move to next state       
       
         if ((_innerTimer.read_us() - _toc) > 1500000)
         {
-             poseAllReset();
-            _state = CENTERING;
-            _stateOnceFlag[HOMING]=false;
+             
+            poseAllReset();
+            _state = CENTERING;    
             _tic=false;
-            
-            //! Finally resets the wrench commands given by this controller. 
-            for (int k = 0; k<NB_AXIS; k++)
-              {
-              _twistD[k] = 0; // m/s
-              _wrenchD_ADD[NORMAL][k] = 0.0f;
-              // _pidTwist[k]->reset();
-              }
-            }
+            clearLastState(); 
+        }
       }
+
       _lastState=_state;
       break;
-    }
+      }
+    
 
     case CENTERING:
     {
@@ -413,15 +407,9 @@ void Platform::step()
         if ((_innerTimer.read_us() - _toc) > 1500000)
         {
           _state = TELEOPERATION;
-          _stateOnceFlag[CENTERING]=false;
           _tic=false;
-          for (int k = 0; k<NB_AXIS; k++)
-            {
-              _wrenchD_ADD[NORMAL][k] = 0.0f;
-              _poseD[k]=0.0f;
-              // _pidPose[k]->reset();
-            }
-        };
+          clearLastState();
+        }
       }
       _lastState=_state;
       break;
@@ -445,16 +433,20 @@ void Platform::step()
      }
 
       // Main State
-    
       wsConstrains();
       //frictionID(X,FW_COMP);
       _lastState=_state;
       break;
     }
     case EMERGENCY:
+    {
+      if(!_stateOnceFlag[EMERGENCY]){
+        _stateOnceFlag[EMERGENCY]=true;
+      }
       releasePlatform();
       _enableMotors->write(0);
       break;
+    }
   }
 
   if (_allEsconOk) {setWrenches();}// Aply the forces and torques}  
@@ -698,8 +690,7 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg &msg)
   Platform::State newState = (Platform::State) msg.stateDes;
   if (!(newState==me->_state)) // If I want to go to a new state
   {
-    me->_stateOnceFlag[me->_state]=false; //! Unless it is in teleoperation (continuous messages)
-    me->_stateOnceFlag[newState]=false; 
+    me->clearLastState();
     me->_state = newState;
   } 
 }
@@ -843,4 +834,50 @@ void Platform::releasePlatform()
       _wrenchD_ADD[j][k] = 0.0f;
     }
   }
+}
+
+void Platform::clearLastState()
+{
+  switch(_lastState)
+    {
+      case(HOMING):
+
+      {
+        _stateOnceFlag[HOMING]=false;          
+            //! Finally resets the wrench commands given by this controller. 
+            for (int k = 0; k<NB_AXIS; k++)
+              {
+              _twistD[k] = 0; // m/s
+              _wrenchD_ADD[NORMAL][k] = 0.0f;
+              // _pidTwist[k]->reset();
+              }
+        break; 
+      }
+
+      case(CENTERING):
+      {
+        _stateOnceFlag[CENTERING]=false;
+          for (int k = 0; k<NB_AXIS; k++)
+            {
+              _wrenchD_ADD[NORMAL][k] = 0.0f;
+              _poseD[k]=0.0f;
+            }
+        break;
+      }
+      case(TELEOPERATION):
+      {
+        _stateOnceFlag[TELEOPERATION]=false;
+        for (int k = 0; k<NB_AXIS; k++)
+        {
+          for (int j=0; j<WRENCH_COMPONENTS; j++)
+            {
+              _wrenchD_ADD[j][k] = 0.0f;
+            }
+          _poseD[k]=0.0f;
+        }
+        break;
+      }
+      case(EMERGENCY):{break;}
+      case(STANDBY): {break;}
+    }
 }

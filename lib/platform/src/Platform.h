@@ -62,7 +62,7 @@ class Platform
     // State variables
     volatile State _state;
     State _lastState;
-    volatile bool _stateOnceFlag[3];
+    volatile bool _stateOnceFlag[5];
     Controller _controllerType;
     double _pose[NB_AXIS];
     double _poseOffsets[NB_AXIS];
@@ -198,6 +198,8 @@ class Platform
     void gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW);
     
     void readActualWrench();
+
+    void clearLastState();
 };
 
 #endif
