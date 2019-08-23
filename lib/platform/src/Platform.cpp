@@ -88,8 +88,9 @@ for(int k = 0; k < NB_AXIS; k++)
     _wrench[k] = 0.0f;
     _wrenchD[k] = 0.0f;
     _wrenchM[k] = 0.0f;
-    _poseFilters[k] = new LP_Filter(0.5);
+    _poseFilters[k] = new LP_Filter(0.6);
     _twistFilters[k] = new LP_Filter(0.95);
+    _wrenchMFilters[k] = new LP_Filter(0.95);
     _switchesState[k] = 0;
     _kpPose[k] = 0.0f;
     _kiPose[k] = 0.0f; 
@@ -97,6 +98,7 @@ for(int k = 0; k < NB_AXIS; k++)
     _kpTwist[k] = 0.0f;
     _kiTwist[k] = 0.0f;
     _kdTwist[k] = 0.0f;
+    _innerCounter=0;
     
     //Define the common PID constants for the GoTo function
 
@@ -204,7 +206,6 @@ for(int k = 0; k < NB_AXIS; k++)
     _encoders[k] = new QEC_1X(_csPins[k]);
     _motors[k] = new PwmOut(_motorPins[k]);  {
     _esconEnabled[k]=new InterruptIn(_esconEnabledPins[k]);
-    _esconEnabled[k]->mode(PullDown);
     _motorCurrents[k]= new AnalogIn(_motorCurrentsPins[k]);
 
   }
@@ -229,6 +230,7 @@ Platform::~Platform()
   for(int k = 0; k <NB_AXIS; k++)
   {
     delete (_poseFilters[k]);
+    delete (_wrenchMFilters[k]);
     delete (_twistFilters[k]);
     delete (_pidPose[k]);
     delete (_pidTwist[k]);
@@ -297,6 +299,7 @@ void Platform::init()
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _timestamp = _innerTimer.read_us();
   _speedSamplingStamp=_timestamp;
+  _analogReadStamp=_timestamp;
   _enableMotors->write(0);
   _allEsconOk=0;
 
@@ -305,11 +308,8 @@ void Platform::init()
 void Platform::step()
 {
   getMotion(); //! SPI
-  //readActualWrench(); //! Using the ESCON 50/5 Analog Output  
-  
-  _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
-  for (int k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
-  
+  readActualWrench(); //! Using the ESCON 50/5 Analog Output  
+   
   if (!_allEsconOk) {_state=EMERGENCY;}
 
   switch (_state)
@@ -322,6 +322,7 @@ void Platform::step()
       // Init
       if(!_stateOnceFlag[HOMING])
       {
+        _enableMotors->write(1);
         for(int k = 0; k < NB_AXIS; k++)
           {
             _switchesState[k] = 0;
@@ -332,8 +333,8 @@ void Platform::step()
 
       _controllerType=TWIST_ONLY;
       
-      _twistD[X] = 2; // m/s
-      _twistD[Y] = 2; // m/s
+      _twistD[X] = 2.5; // m/s
+      _twistD[Y] = 2.5; // m/s
       _twistD[PITCH] = -500; // °/s
 
       #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
@@ -344,8 +345,8 @@ void Platform::step()
           _kpTwist[PITCH] = 1000.0f * PI / 180.0f * 1e-4f; //
           _kiTwist[PITCH] = 0.0f * PI / 180.0f * 1e-4f; //  
         #else 
-          _kpTwist[X] = 1500.0f*0.01f;
-          _kiTwist[X] = 1000.0f*0.01f; 
+          _kpTwist[X] = 2500.0f*0.01f;
+          _kiTwist[X] = 2500.0f*0.01f; 
           _kpTwist[Y] = 1500.0f*0.01f;
           _kiTwist[Y] = 1000.0f*0.01f; //
           _kpTwist[PITCH] = 10000.0f * PI / 180.0f * 1e-4f; //
@@ -363,12 +364,13 @@ void Platform::step()
           _tic=true;
           }
 
-        poseAllReset();
+        
         
         //  After 1.5 second move to next state       
       
         if ((_innerTimer.read_us() - _toc) > 1500000)
         {
+             poseAllReset();
             _state = CENTERING;
             _stateOnceFlag[HOMING]=false;
             _tic=false;
@@ -378,7 +380,7 @@ void Platform::step()
               {
               _twistD[k] = 0; // m/s
               _wrenchD_ADD[NORMAL][k] = 0.0f;
-              _pidTwist[k]->reset();
+              // _pidTwist[k]->reset();
               }
             }
       }
@@ -403,7 +405,6 @@ void Platform::step()
           _tic=true;
           }
       
-        
         // After a second and a half move to next state
         if ((_innerTimer.read_us() - _toc) > 1500000)
         {
@@ -414,7 +415,7 @@ void Platform::step()
             {
               _wrenchD_ADD[NORMAL][k] = 0.0f;
               _poseD[k]=0.0f;
-              _pidPose[k]->reset();
+              // _pidPose[k]->reset();
             }
         };
       }
@@ -441,20 +442,20 @@ void Platform::step()
 
       // Main State
     
+    wsConstrains();
       //frictionID(X,FW_COMP);
       _lastState=_state;
       break;
     }
     case EMERGENCY:
       releasePlatform();
-      if (_allEsconOk) {_state=_lastState;}
-      else {_enableMotors->write(0);}
+      _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
+      for (int k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+      _enableMotors->write(0);
       break;
   }
 
-  if (_allEsconOk) {_enableMotors->write(1);}
-
-  setWrenches();// Aply the forces and torques
+  if (_allEsconOk) {setWrenches();}// Aply the forces and torques}  
   
   //! Keep track of time
   _timestep=_innerTimer.read_us()-_timestamp;
@@ -469,15 +470,29 @@ void Platform::getMotion()
 
 void Platform::readActualWrench()
 {
-  for (int k=0; k<NB_AXIS; k++)
+  if(_innerCounter<NB_AXIS && (_timestamp-_analogReadStamp)>=ANALOG_SAMPLING_TIME)
   {
-    _wrenchM[k]=map(_motorCurrents[k]->read()*_motorSign[k],0.1,0.9,-_maxWrench[k],_maxWrench[k]);
-  }
+    if (_innerCounter>=ROLL){
+      _wrenchM[_innerCounter+2]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxWrench[_innerCounter],_maxWrench[_innerCounter]);
+    }
+    else
+    {
+      _wrenchM[_innerCounter]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxWrench[_innerCounter],_maxWrench[_innerCounter]);
+      _wrenchM[_innerCounter]=_wrenchMFilters[_innerCounter]->update(_wrenchM[_innerCounter]);
+    }
+    
+  if(_innerCounter==YAW){
     // Adapt roll and yaw angles due to differential mechanism
-  float diffM1 = _wrenchM[ROLL];
-  float diffM2 = _wrenchM[YAW];
-  _wrenchM[ROLL]= (diffM1-diffM2)/2.0f;
-  _wrenchM[YAW] = (diffM1+diffM2)/2.0f;
+    _wrenchM[ROLL]= (_wrenchM[ROLL+2]-_wrenchM[YAW+2])/2.0f;
+    _wrenchM[YAW] = (_wrenchM[ROLL+2]+_wrenchM[YAW+2])/2.0f;
+    _wrenchM[ROLL]=_wrenchMFilters[ROLL]->update(_wrenchM[ROLL]);
+    _wrenchM[YAW]=_wrenchMFilters[YAW]->update(_wrenchM[YAW]);
+    _innerCounter=0;
+  }
+  
+  _innerCounter++;
+  }
+
 }
 
 void Platform::communicateToRos()
@@ -747,7 +762,15 @@ void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float 
 
 void Platform::wsConstrains()
 {
+
+
   _controllerType=POSE_ONLY;
+  for (int k=0; k<NB_AXIS; k++)
+    {
+    _kpPose[k]=_gtKpPose[k];
+    _kdPose[k]=_gtKdPose[k];
+    _kiPose[k]=_gtKiPose[k];
+    }
   for (int k = 0; k<NB_AXIS; k++){
   _poseD[k] = _pose[k] >= fabs(_c_wsLimits[k]) ? fabs(_c_wsLimits[k]) : (_pose[k] <= -fabs(_c_wsLimits[k]) ? -fabs(_c_wsLimits[k]): _poseD[k]);
     if ( _pose[k] >= fabs(_c_wsLimits[k]) || _pose[k] <= -fabs(_c_wsLimits[k]) )
@@ -806,15 +829,15 @@ void Platform::releasePlatform()
 {
   for(int k = 0; k < NB_AXIS; k++)
   {
-    _pidPose[k]->reset();
-    _pidTwist[k]->reset();
+    // _pidPose[k]->reset();
+    // _pidTwist[k]->reset();
     _poseFilters[k]->reset();
     _twistFilters[k]->reset();
+    _wrenchMFilters[k]->reset();
     
      for(int j = 0; j < WRENCH_COMPONENTS; j++)
     {
       _wrenchD_ADD[j][k] = 0.0f;
     }
   }
-  poseAllReset();
 }

@@ -36,9 +36,11 @@ class Platform
     //Public Time
     uint32_t _timestamp;
     uint32_t _timestep;
+    uint32_t _analogReadStamp;
     uint32_t _speedSamplingStamp;
     Timer _innerTimer; //! micros()
-    
+    int _innerCounter;
+
   private:
     // Enum for axis ID
     enum Axis {X,Y,PITCH,ROLL,YAW};
@@ -72,10 +74,11 @@ class Platform
     double _twistCtrlOut[NB_AXIS];
     double _wrench[NB_AXIS];
     double _wrenchD[NB_AXIS];
-    double _wrenchM[NB_AXIS];
+    double _wrenchM[NB_AXIS+2]; //The last two elements are temporary variables
     volatile double _wrenchD_ADD[WRENCH_COMPONENTS][NB_AXIS];
     LP_Filter* _poseFilters[NB_AXIS];
     LP_Filter* _twistFilters[NB_AXIS];
+    LP_Filter* _wrenchMFilters[NB_AXIS];
     volatile int _switchesState[NB_AXIS];
     float _maxWrench[NB_AXIS];
     float _maxCurrent[NB_AXIS];
