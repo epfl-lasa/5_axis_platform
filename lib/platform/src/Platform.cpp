@@ -104,20 +104,20 @@ for(int k = 0; k < NB_AXIS; k++)
 
      #if (PLATFORM_ID==LEFT_PLATFORM)
           
-          _gtKpPose[X] = 1000.0f;
+          _gtKpPose[X] = 2000.0f;
           _gtKdPose[X] = 1.0f;
-          _gtKiPose[X] = 1000.0f; //Ki->0.0f;
-          _gtKpPose[Y] = 1500.0f;
-          _gtKdPose[Y] = 1.0f;
-          _gtKiPose[Y] = 1000.0f; //Ki->0.0f;
-          _gtKpPose[PITCH] = 2000.0f * PI / 180.0f * 0.01f;
-          _gtKdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f;
-          _gtKiPose[PITCH] = 1000.0f * PI / 180.0f * 0.01f; 
-          _gtKpPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f;
-          _gtKdPose[ROLL] = 5.0f * PI / 180.0f * 0.01f;
+          _gtKiPose[X] = 2000.0f; //Ki->0.0f;
+          _gtKpPose[Y] = 2500.0f;
+          _gtKdPose[Y] = 0.5f;
+          _gtKiPose[Y] = 2500.0f; //Ki->0.0f;
+          _gtKpPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; //2000.0
+          _gtKdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f; // 5.0
+          _gtKiPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; // 1000.0 
+          _gtKpPose[ROLL] = 2500.0f * PI / 180.0f * 0.01f;
+          _gtKdPose[ROLL] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f; 
-          _gtKpPose[YAW] = 1000.0f * PI / 180.0f * 0.01f;
-          _gtKdPose[YAW] = 5.0f * PI / 180.0f * 0.01f;
+          _gtKpPose[YAW] = 2500.0f * PI / 180.0f * 0.01f;
+          _gtKdPose[YAW] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[YAW] = 1000.0f * PI / 180.0f * 0.01f; 
         #else  //! TODO TUNE FOR RIGHT_PLATFORM
           
@@ -282,7 +282,7 @@ void Platform::init()
   _spi->lock();
   for (int k = 0; k<NB_AXIS; k++)
   {
-    _encoders[k]->QEC_init((int)k, _encoderScale[k], _encoderSign[k],_spi);
+     _encoders[k]->QEC_init((int)k, _encoderScale[k], _encoderSign[k],_spi);
   }
   _spi->unlock(); 
 
@@ -340,18 +340,24 @@ void Platform::step()
 
       _controllerType=TWIST_ONLY;
       
-      _twistD[X] = 2.5; // m/s
-      _twistD[Y] = 2.5; // m/s
-      _twistD[PITCH] = -500; // °/s
+      
 
       #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
-          _kpTwist[X] = 1500.0f*0.01f;
-          _kiTwist[X] = 1000.0f*0.01f; 
-          _kpTwist[Y] = 1500.0f*0.01f;
-          _kiTwist[Y] = 1000.0f*0.01f; //
-          _kpTwist[PITCH] = 1000.0f * PI / 180.0f * 1e-4f; //
-          _kiTwist[PITCH] = 0.0f * PI / 180.0f * 1e-4f; //  
+          _twistD[X] = -2.5; // m/s
+          _twistD[Y] = 2.5; // m/s
+          _twistD[PITCH] = 300; // °/s
+          
+          _kpTwist[X] = 2500.0f*0.01f;
+          _kiTwist[X] = 2500.0f*0.01f; 
+          _kpTwist[Y] = 2000.0f*0.01f;
+          _kiTwist[Y] = 2000.0f*0.01f; //
+          _kpTwist[PITCH] = 10000.0f * PI / 180.0f * 1e-4f; //
+          _kiTwist[PITCH] = 5000.0f * PI / 180.0f * 1e-4f; //   
         #else 
+          _twistD[X] = 2.5; // m/s
+          _twistD[Y] = 2.5; // m/s
+          _twistD[PITCH] = -300; // °/s
+
           _kpTwist[X] = 2500.0f*0.01f;
           _kiTwist[X] = 2500.0f*0.01f; 
           _kpTwist[Y] = 1500.0f*0.01f;
@@ -464,7 +470,7 @@ void Platform::getMotion()
   getTwist();
 }
 
-void Platform::readActualWrench()
+void Platform::readActualWrench() //! ADC
 {
   if(_innerCounter<NB_AXIS && (_timestamp-_analogReadStamp)>=ANALOG_SAMPLING_TIME)
   {
@@ -534,12 +540,12 @@ void Platform::getTwist()
 void Platform::posAxisControl(WrenchComp Component, int axis){
 
     if ((axis<2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
-      _pidPose[axis]->setOutputLimits(-25,25); //!N
+      _pidPose[axis]->setOutputLimits(-25.0,25.0); //!N
     }
 
     if ((axis>=2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
-      if (axis==PITCH) {_pidPose[axis]->setOutputLimits(-3,3);} //!Nm
-      if (axis==ROLL || axis==YAW){_pidPose[axis]->setOutputLimits(-5,5);} //!Nm
+      if (axis==PITCH) {_pidPose[axis]->setOutputLimits(-5.0,5.0);} //!Nm
+      if (axis==ROLL || axis==YAW){_pidPose[axis]->setOutputLimits(-5.0,5.0);} //!Nm
     }
 
     if (_controllerType==TWIST_POSE_CASCADE){
@@ -767,15 +773,17 @@ void Platform::wsConstrains()
     _kdPose[k]=_gtKdPose[k];
     _kiPose[k]=0.0f;
     //
-    if (k>=ROLL){
+    if (k>=PITCH){
       _kpPose[k]=2000.0f * PI / 180.0f * 0.01f;
     }
     }
   for (int k = 0; k<NB_AXIS; k++){
-  _poseD[k] = _pose[k] >= fabs(_c_wsLimits[k]) ? fabs(_c_wsLimits[k]) : (_pose[k] <= -fabs(_c_wsLimits[k]) ? -fabs(_c_wsLimits[k]): _poseD[k]);
-    if ( _pose[k] >= fabs(_c_wsLimits[k]) || _pose[k] <= -fabs(_c_wsLimits[k]) )
+  _poseD[k] = _pose[k] >= _c_wsLimits[k] ? _c_wsLimits[k] : (_pose[k] <= -_c_wsLimits[k] ? -_c_wsLimits[k]: 0.0f);
+    if ( _pose[k] >= _c_wsLimits[k] || _pose[k] <= -_c_wsLimits[k] )
     {
-      posAxisControl(CONSTRAINS,k);
+     if ( ((_pose[k] < 0) && (_twist[k] < 0)) || ((_pose[k] > 0) && (_twist[k] > 0)) ) {
+       posAxisControl(CONSTRAINS,k);
+      }
     }
     else    
     {

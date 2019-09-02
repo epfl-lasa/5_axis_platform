@@ -98,7 +98,7 @@ bool PID::compute()
          output = outMin;
       }
 
-	    *myOutput = output;
+	   *myOutput = output; 
 
       /*Remember some variables for next time*/
       lastInput = input;
