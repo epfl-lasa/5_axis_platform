@@ -110,9 +110,9 @@ for(int k = 0; k < NB_AXIS; k++)
           _gtKpPose[Y] = 2500.0f;
           _gtKdPose[Y] = 0.5f;
           _gtKiPose[Y] = 2500.0f; //Ki->0.0f;
-          _gtKpPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; //2000.0
+          _gtKpPose[PITCH] = 3000.0f * PI / 180.0f * 0.01f; //2000.0
           _gtKdPose[PITCH] = 5.0f * PI / 180.0f * 0.01f; // 5.0
-          _gtKiPose[PITCH] = 2500.0f * PI / 180.0f * 0.01f; // 1000.0 
+          _gtKiPose[PITCH] = 5000.0f * PI / 180.0f * 0.01f; // 1000.0 
           _gtKpPose[ROLL] = 2500.0f * PI / 180.0f * 0.01f;
           _gtKdPose[ROLL] = 10.0f * PI / 180.0f * 0.01f;
           _gtKiPose[ROLL] = 1000.0f * PI / 180.0f * 0.01f; 
@@ -162,10 +162,10 @@ for(int k = 0; k < NB_AXIS; k++)
 #if (BOARD==NUCLEO64)
   /*******DESIGNATIONS OF PINS IN THE MICROCONTROLLER NUCLEO L476RG */
 
-  _csPins[X] = D2;  //! CS1 -> Lateral NOT as PWMX/XN
-  _csPins[Y] = D6;  //! CS2  -> Dorsi/Plantar Flexion NOT as PWMX/XN
-  _csPins[PITCH] = D8; //! CS3 -> Flexion/Extension of the Leg NOT as PWM/XN
-  _csPins[ROLL] = D10;  //! CS4 -> roll and yaw encoder 1 NOT as PWMX/XN
+  _csPins[X] = PA_10;  //! CS1 -> Lateral NOT as PWMX/XN
+  _csPins[Y] = PB_10;  //! CS2  -> Dorsi/Plantar Flexion NOT as PWMX/XN
+  _csPins[PITCH] = PA_9; //! CS3 -> Flexion/Extension of the Leg NOT as PWM/XN
+  _csPins[ROLL] = PB_6;  //! CS4 -> roll and yaw encoder 1 NOT as PWMX/XN
   _csPins[YAW] = PB_2;  //! CS5 -> roll and yaw encoder 2  NOT as PWMX/X
   
   _motorPins[X] = PC_7_ALT0; // D9 PWM8/2
@@ -781,7 +781,7 @@ void Platform::wsConstrains()
   _poseD[k] = _pose[k] >= _c_wsLimits[k] ? _c_wsLimits[k] : (_pose[k] <= -_c_wsLimits[k] ? -_c_wsLimits[k]: 0.0f);
     if ( _pose[k] >= _c_wsLimits[k] || _pose[k] <= -_c_wsLimits[k] )
     {
-     if ( ((_pose[k] < 0) && (_twist[k] < 0)) || ((_pose[k] > 0) && (_twist[k] > 0)) ) {
+     if ( ((_pose[k] <= 0.0) && (_twist[k] <= 0.0)) || ((_pose[k] >= 0.0) && (_twist[k] >= 0.0)) ) {
        posAxisControl(CONSTRAINS,k);
       }
     }
