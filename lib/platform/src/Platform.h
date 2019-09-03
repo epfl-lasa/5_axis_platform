@@ -48,7 +48,7 @@ class Platform
     enum WrenchComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD};
 
     // Enum for state machine
-    enum State {HOMING,CENTERING,TELEOPERATION,EMERGENCY,STANDBY}; 
+    enum State {HOMING,CENTERING,TELEOPERATION,EMERGENCY,STANDBY,RESET}; 
 
     // Enum for the controller that is directly ouput for the motors
     enum Controller {TORQUE_ONLY, POSE_ONLY, TWIST_ONLY, TWIST_POSE_CASCADE, POSE_TWIST_CASCADE}; //! F= D(K(x-xd)-x_dot)
@@ -200,6 +200,10 @@ class Platform
     void readActualWrench();
 
     void clearLastState();
+
+    void resetEscons();
+
+    void softReset();
 };
 
 #endif

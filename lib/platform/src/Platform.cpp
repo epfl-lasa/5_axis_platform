@@ -305,7 +305,7 @@ void Platform::init()
   _analogReadStamp=_timestamp;
   _enableMotors->write(0);
   _allEsconOk=0;
-
+  resetEscons();
 }
 
 void Platform::step()
@@ -453,6 +453,11 @@ void Platform::step()
       }
       releasePlatform();
       _enableMotors->write(0);
+      break;
+    }
+    case RESET:
+    {
+      softReset();
       break;
     }
   }
@@ -893,5 +898,26 @@ void Platform::clearLastState()
       }
       case(EMERGENCY):{break;}
       case(STANDBY): {break;}
+      case(RESET):{break;}
     }
+}
+
+void Platform::resetEscons(){
+
+  for(int k = 0; k < NB_AXIS; k++)
+  {
+    for(int j = 0; j < WRENCH_COMPONENTS; j++)
+    {
+      _wrenchD_ADD[j][k] = 0.0f;
+    }
+  }
+  setWrenches();
+  wait_ms(150);
+  _enableMotors->write(1);
+  wait_ms(750);
+  _enableMotors->write(0);
+}
+
+void Platform::softReset(){
+   NVIC_SystemReset(); 
 }
