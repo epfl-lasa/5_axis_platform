@@ -7,17 +7,22 @@
 #define NUCLEO64 2
 #define BOARD NUCLEO64//! Nucleo 32 or Nucleo 64
 
+#define MESSAGE_VERSION 2
+
+// Definitions Related to Friction Identifications
+
 #define NB_COMPENSATION_STEPS 16
 
-#define FW_COMP 1
-#define RW_COMP -1
+#define FRICTION_FW_ 1
+#define FRICTION_RW_ -1
 
+/**************************/
 
 #define PI 3.14159265359F
 
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
 
 
 #define PITCH_REDUCTION_R 12.0F //! Pulley Big [mm] / Pulley Belt [mm]
@@ -51,12 +56,12 @@
 #define Y_RANGE 0.180F //! [m] -> TO UPDATE FOR SECOND VERSION
 #define PITCH_RANGE 40.0F  //! [deg]
 #define ROLL_RANGE 40.0F  //! [deg]
-#define YAW_RANGE 40.0F  //! [deg]
+#define YAW_RANGE 50.0F  //! [deg]
 
 #define C_WS_RANGE_X X_RANGE*0.7/2
 #define C_WS_RANGE_Y Y_RANGE*0.7/2
 #define C_WS_RANGE_PITCH PITCH_RANGE/2*0.3
-#define C_WS_RANGE_ROLL ROLL_RANGE/2*0.1
+#define C_WS_RANGE_ROLL ROLL_RANGE/2*0.2
 #define C_WS_RANGE_YAW YAW_RANGE/2*0.5
 
 

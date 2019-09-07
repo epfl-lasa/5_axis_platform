@@ -7,8 +7,9 @@
 #include <QEC_1X_SPI.h>
 #include <LP_Filter.h>
 #include <FootInputMsg.h>
+#include <FootInputMsg_v2.h>
 #include <FootOutputMsg.h>
-//#include <frictionIDConfig.h>
+#include <FootOutputMsg_v2.h>
 #include <Platform.h>
 #include <definitions.h>
 #include <PID_v1.h>
@@ -55,9 +56,15 @@ class Platform
 
     // ROS variables  
 
-    ros::Subscriber<custom_msgs::FootInputMsg>*  _subFootInput;
-    ros::Publisher *_pubFootOutput;
-    custom_msgs::FootOutputMsg _msgFootOutput;
+    #if (MESSAGE_VERSION==1)
+      ros::Subscriber<custom_msgs::FootInputMsg>*  _subFootInput;
+      ros::Publisher *_pubFootOutput;
+      custom_msgs::FootOutputMsg _msgFootOutput;
+    #else
+      ros::Subscriber<custom_msgs::FootInputMsg_v2>*  _subFootInput;
+      ros::Publisher *_pubFootOutput;
+      custom_msgs::FootOutputMsg_v2 _msgFootOutput;
+    #endif
 
     // State variables
     volatile State _state;
@@ -185,8 +192,12 @@ class Platform
 
     void poseAllReset();
 
-    static void updateFootInput(const custom_msgs::FootInputMsg &msg);
-
+    #if (MESSAGE_VERSION==1)
+      static void updateFootInput(const custom_msgs::FootInputMsg &msg);
+    #else
+      static void updateFootInput(const custom_msgs::FootInputMsg_v2 &msg);
+    #endif
+    
     void pubFootOutput();
 
     void wsConstrains();

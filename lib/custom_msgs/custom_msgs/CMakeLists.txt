@@ -18,7 +18,9 @@ add_message_files(
   DIRECTORY msg
 	FILES 
 	FootInputMsg.msg
+	FootInputMsg_v2.msg
 	FootOutputMsg.msg
+	FootOutputMsg_v2.msg
 	FeetOutputMsg.msg)
 
 generate_messages(DEPENDENCIES std_msgs)

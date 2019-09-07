@@ -286,13 +286,24 @@ void Platform::init()
   }
   _spi->unlock(); 
 
-#if (PLATFORM_ID == LEFT_PLATFORM)
-  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg>("/FI_Input/Left", updateFootInput);
-  _pubFootOutput = new ros::Publisher("/FI_Output/Left", &_msgFootOutput);
+#if (MESSAGE_VERSION==1)
+  #if (PLATFORM_ID == LEFT_PLATFORM) 
+    _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg>("/FI_Input/Left", updateFootInput);
+    _pubFootOutput = new ros::Publisher("/FI_Output/Left", &_msgFootOutput);
+  #else
+    _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg>("/FI_Input/Right", updateFootInput);
+    _pubFootOutput = new ros::Publisher("/FI_Output/Right", &_msgFootOutput);
+  #endif
 #else
-  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg>("/FI_Input/Right", updateFootInput);
-  _pubFootOutput = new ros::Publisher("/FI_Output/Right", &_msgFootOutput);
-#endif
+   #if (PLATFORM_ID == LEFT_PLATFORM) 
+    _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg_v2>("/FI_Input/Left", updateFootInput);
+    _pubFootOutput = new ros::Publisher("/FI_Output/Left", &_msgFootOutput);
+  #else
+    _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg_v2>("/FI_Input/Right", updateFootInput);
+    _pubFootOutput = new ros::Publisher("/FI_Output/Right", &_msgFootOutput);
+  #endif
+#endif 
+
   _nh.getHardware()->setBaud(BAUDRATE);
   _nh.initNode();
    wait_ms(10);
@@ -322,7 +333,13 @@ void Platform::step()
   switch (_state)
   {
 
-  case STANDBY:{ _lastState=_state; break;}    //Do nothing
+  case STANDBY:{ 
+    if (!_stateOnceFlag[STANDBY]){
+      // TODO
+      _stateOnceFlag[STANDBY]=true;
+    }
+    _lastState=_state; 
+    break;}    //Do nothing
 
   case HOMING:
     {
@@ -442,7 +459,7 @@ void Platform::step()
 
       // Main State
       wsConstrains();
-      //frictionID(X,FW_COMP);
+      //frictionID(X,FRICTION_FW_COMP);
       _lastState=_state;
       break;
     }
@@ -692,15 +709,15 @@ void Platform::poseAllReset()
   }
 }
 
-
+#if (MESSAGE_VERSION==1)
 void Platform::updateFootInput(const custom_msgs::FootInputMsg &msg)
 {
-  me->_wrenchD_ADD[NORMAL][X] = msg.FxDes;
-  me->_wrenchD_ADD[NORMAL][Y] = msg.FyDes;
-  me->_wrenchD_ADD[NORMAL][PITCH] = msg.TphiDes;
-  me->_wrenchD_ADD[NORMAL][ROLL] = msg.TthetaDes;
-  me->_wrenchD_ADD[NORMAL][YAW] = msg.TpsiDes;
-  Platform::State newState = (Platform::State) msg.stateDes;
+    me->_wrenchD_ADD[NORMAL][X] = msg.FxDes;
+    me->_wrenchD_ADD[NORMAL][Y] = msg.FyDes;
+    me->_wrenchD_ADD[NORMAL][PITCH] = msg.TphiDes;
+    me->_wrenchD_ADD[NORMAL][ROLL] = msg.TthetaDes;
+    me->_wrenchD_ADD[NORMAL][YAW] = msg.TpsiDes;
+    Platform::State newState = (Platform::State) msg.stateDes;
   if (!(newState==me->_state)) // If I want to go to a new state
   {
     me->clearLastState();
@@ -708,9 +725,26 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg &msg)
   } 
 }
 
+#else
+void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
+{
+    for (int k=0; k<NB_AXIS; k++){
+      me->_wrenchD_ADD[NORMAL][k]=msg.reflect_effort[k];
+    }
+    Platform::State newState = (Platform::State) msg.stateDes;
+  if (!(newState==me->_state)) // If I want to go to a new state
+  {
+    me->clearLastState();
+    me->_state = newState;
+  } 
+}
+#endif
+
 
 void Platform::pubFootOutput()
 {
+
+#if (MESSAGE_VERSION==1)
   _msgFootOutput.id = PLATFORM_ID;
   _msgFootOutput.stamp = _nh.now();
   _msgFootOutput.x = _pose[X];
@@ -737,6 +771,21 @@ void Platform::pubFootOutput()
   _msgFootOutput.wtheta = _twist[ROLL];
   _msgFootOutput.wpsi = _twist[YAW];
   _msgFootOutput.state = _state;
+#else
+
+  _msgFootOutput.id = PLATFORM_ID;
+  _msgFootOutput.stamp = _nh.now();
+  for (int k=0; k<NB_AXIS; k++)
+  {
+    _msgFootOutput.joint_position[k] = _pose[k];
+    _msgFootOutput.joint_speed[k]= _twist[k];
+    _msgFootOutput.desired_efforts[k] =_wrenchD[k];
+    _msgFootOutput.actual_efforts[k] =_wrenchM[k];
+  }
+    _msgFootOutput.state=_state;
+  
+#endif
+
   _pubFootOutput->publish(&_msgFootOutput);
 }
 
@@ -897,7 +946,7 @@ void Platform::clearLastState()
         break;
       }
       case(EMERGENCY):{break;}
-      case(STANDBY): {break;}
+      case(STANDBY): {_stateOnceFlag[STANDBY]=false; break;} 
       case(RESET):{break;}
     }
 }
