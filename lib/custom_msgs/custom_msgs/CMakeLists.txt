@@ -39,16 +39,3 @@ catkin_package(
 #add dynamic reconfigure api
 
 include_directories(${catkin_INCLUDE_DIRS})
-
-add_executable(feet_output_publisher src/feet_output_publisher.cpp)
-target_link_libraries(feet_output_publisher ${catkin_LIBRARIES})
-add_dependencies(feet_output_publisher ${PROJECT_NAME}_generate_messages_cpp)
-add_dependencies(feet_output_publisher ${PROJECT_NAME}_gencpp)
-
-add_dependencies(feet_output_publisher ${PROJECT_NAME}_gencfg)
-
-target_link_libraries(feet_output_publisher ${catkin_LIBRARIES})
-
-add_library(${PROJECT_NAME} src/feet_output_publisher.cpp)
-add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
-

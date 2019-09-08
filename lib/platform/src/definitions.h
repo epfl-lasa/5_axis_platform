@@ -7,17 +7,6 @@
 #define NUCLEO64 2
 #define BOARD NUCLEO64//! Nucleo 32 or Nucleo 64
 
-#define MESSAGE_VERSION 2
-
-// Definitions Related to Friction Identifications
-
-#define NB_COMPENSATION_STEPS 16
-
-#define FRICTION_FW_ 1
-#define FRICTION_RW_ -1
-
-/**************************/
-
 #define PI 3.14159265359F
 
 #define RIGHT_PLATFORM 1
@@ -121,4 +110,4 @@
 
 
 
-#endif
+#endif // DEFINITIONS_H

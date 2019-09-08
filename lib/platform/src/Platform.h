@@ -12,11 +12,14 @@
 #include <FootOutputMsg_v2.h>
 #include <Platform.h>
 #include <definitions.h>
+#include <definitions_2.h>
+
 #include <PID_v1.h>
 
 #define NB_AXIS 5
 #define NB_SWITCHES 3
-#define WRENCH_COMPONENTS 3
+#define NB_WRENCH_COMPONENTS 4
+#define NB_MACHINE_STATES 7
 
 #define SPEED_CONTROLLED_HOMING 1
 #define TORQUE_CONTROLLED_HOMING 2
@@ -46,30 +49,27 @@ class Platform
     // Enum for axis ID
     enum Axis {X,Y,PITCH,ROLL,YAW};
 
-    enum WrenchComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD};
+    enum WrenchComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD}; //! Count := 4
 
     // Enum for state machine
-    enum State {HOMING,CENTERING,TELEOPERATION,EMERGENCY,STANDBY,RESET}; 
+    enum State {HOMING,CENTERING,TELEOPERATION,EMERGENCY,STANDBY,RESET,ROBOT_STATE_CONTROL}; 
 
     // Enum for the controller that is directly ouput for the motors
-    enum Controller {TORQUE_ONLY, POSE_ONLY, TWIST_ONLY, TWIST_POSE_CASCADE, POSE_TWIST_CASCADE}; //! F= D(K(x-xd)-x_dot)
+    enum Controller {TORQUE_ONLY, POSE_ONLY, TWIST_ONLY, TWIST_POSE_CASCADE, POSE_TWIST_CASCADE}; //! F= D(K(x-xd)-x_dot) TWIST_POSE_CASCADE IS AN IMPEDANCE CTRL MODULATED BY DYNAMICAL SYSTEM
+    
+    // NB. FOR THE MOMENT ONLY POSE_ONLY AND TWIST ONLY ARE USED
 
     // ROS variables  
 
-    #if (MESSAGE_VERSION==1)
-      ros::Subscriber<custom_msgs::FootInputMsg>*  _subFootInput;
-      ros::Publisher *_pubFootOutput;
-      custom_msgs::FootOutputMsg _msgFootOutput;
-    #else
       ros::Subscriber<custom_msgs::FootInputMsg_v2>*  _subFootInput;
       ros::Publisher *_pubFootOutput;
       custom_msgs::FootOutputMsg_v2 _msgFootOutput;
-    #endif
+
 
     // State variables
     volatile State _state;
     State _lastState;
-    volatile bool _stateOnceFlag[5];
+    volatile bool _enterStateOnceFlag[NB_MACHINE_STATES];
     Controller _controllerType;
     double _pose[NB_AXIS];
     double _poseOffsets[NB_AXIS];
@@ -82,7 +82,7 @@ class Platform
     double _wrench[NB_AXIS];
     double _wrenchD[NB_AXIS];
     double _wrenchM[NB_AXIS+2]; //The last two elements are temporary variables
-    volatile double _wrenchD_ADD[WRENCH_COMPONENTS][NB_AXIS];
+    volatile double _wrenchD_ADD[NB_WRENCH_COMPONENTS][NB_AXIS];
     LP_Filter* _poseFilters[NB_AXIS];
     LP_Filter* _twistFilters[NB_AXIS];
     LP_Filter* _wrenchMFilters[NB_AXIS];
@@ -95,6 +95,7 @@ class Platform
     int _motorSign[NB_AXIS];
     float _encoderScale[NB_AXIS];
     float _c_wsLimits[NB_AXIS];
+    bool _flagInWsConstrains;
     float _wsRange[NB_AXIS];
     
 
@@ -112,21 +113,23 @@ class Platform
 
     // PID variables
       //General Variables
-    double _kpPose[NB_AXIS];
-    double _kiPose[NB_AXIS];
-    double _kdPose[NB_AXIS];
-    double _kpTwist[NB_AXIS];
-    double _kiTwist[NB_AXIS];
-    double _kdTwist[NB_AXIS];
-      //GoTo constants
-    double _gtKpPose[NB_AXIS];
-    double _gtKiPose[NB_AXIS];
-    double _gtKdPose[NB_AXIS];
-    double _gtKpTwist[NB_AXIS];
-    double _gtKiTwist[NB_AXIS];
-    double _gtKdTwist[NB_AXIS];
-    
-    
+    volatile double _kpPose[NB_AXIS];
+    volatile double _kiPose[NB_AXIS];
+    volatile double _kdPose[NB_AXIS];
+    volatile double _kpTwist[NB_AXIS];
+    volatile double _kiTwist[NB_AXIS];
+    volatile double _kdTwist[NB_AXIS];
+
+
+      //(ROS)
+    volatile double _commPoseSet[NB_AXIS];// TODO: Expand this to speed and acceleration
+    volatile double _commTwistSet[NB_AXIS];
+    volatile bool _flagDefaultCtrlGains;
+    volatile int _commControlledAxis;
+    volatile Controller _commControllerType;
+    volatile uint16_t _desWrenchComponents[NB_WRENCH_COMPONENTS];
+
+    // PID 
 
     PID* _pidPose[NB_AXIS];
     PID* _pidTwist[NB_AXIS];
@@ -134,16 +137,9 @@ class Platform
     // Other variables
     
     static Platform *me;
-    float _epson;
 
     uint32_t _toc;
     bool _tic; //flag for timer
-
-
-    //Compensation variables
-
-    bool _frictionIDFlag;
-
 
   public:
 
@@ -192,21 +188,31 @@ class Platform
 
     void poseAllReset();
 
-    #if (MESSAGE_VERSION==1)
-      static void updateFootInput(const custom_msgs::FootInputMsg &msg);
-    #else
-      static void updateFootInput(const custom_msgs::FootInputMsg_v2 &msg);
-    #endif
+    static void updateFootInput(const custom_msgs::FootInputMsg_v2 &msg);
     
     void pubFootOutput();
 
-    void wsConstrains();
+    void wsConstrains(int axis_); //! -1 := all of them 
 
-    void frictionID(int axis_, int direction_);
+    void motionDamping(int axis_); //! -1:= all of them
 
     void gotoPointAxis(int axis_, float point);
 
     void gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW);
+
+    void wsConstrainsGainsDefault(int axis_);
+    
+    void gotoPointGainsDefault(int axis_);
+
+    void motionDampingGainsDefault(int axis_); 
+
+    void poseCtrlClear(int axis_); //! Put gains and set point to zero of the Pose Control
+
+    void twistCtrlClear(int axis_); //! Put gains and set point to zero of the Twist Control
+
+    void totalWrenchClear(int axis_);
+
+    void compWrenchClear(int axis_, Platform::WrenchComp comp_);
     
     void readActualWrench();
 
@@ -217,4 +223,4 @@ class Platform
     void softReset();
 };
 
-#endif
+#endif //PLATFORM_H
