@@ -17,6 +17,8 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
       _set_ctrlType_type set_ctrlType;
       typedef bool _default_ctrl_type;
       _default_ctrl_type default_ctrl;
+      typedef int8_t _set_axis_type;
+      _set_axis_type set_axis;
       float pos_p[5];
       float pos_i[5];
       float pos_d[5];
@@ -27,6 +29,7 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
     setControllerSrvRequest():
       set_ctrlType(0),
       default_ctrl(0),
+      set_axis(0),
       pos_p(),
       pos_i(),
       pos_d(),
@@ -48,6 +51,13 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
       u_default_ctrl.real = this->default_ctrl;
       *(outbuffer + offset + 0) = (u_default_ctrl.base >> (8 * 0)) & 0xFF;
       offset += sizeof(this->default_ctrl);
+      union {
+        int8_t real;
+        uint8_t base;
+      } u_set_axis;
+      u_set_axis.real = this->set_axis;
+      *(outbuffer + offset + 0) = (u_set_axis.base >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->set_axis);
       for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
@@ -136,6 +146,14 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
       u_default_ctrl.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
       this->default_ctrl = u_default_ctrl.real;
       offset += sizeof(this->default_ctrl);
+      union {
+        int8_t real;
+        uint8_t base;
+      } u_set_axis;
+      u_set_axis.base = 0;
+      u_set_axis.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      this->set_axis = u_set_axis.real;
+      offset += sizeof(this->set_axis);
       for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
@@ -218,7 +236,7 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
     }
 
     const char * getType(){ return SETCONTROLLERSRV; };
-    const char * getMD5(){ return "cecae5aa64048a33f9054a5f2bfe401e"; };
+    const char * getMD5(){ return "6514ee9cf79e9a1c519a535b7dd06861"; };
 
   };
 

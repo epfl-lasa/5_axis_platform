@@ -156,11 +156,11 @@
 
     #else 
     
-        #define MOTION_DAMPING_KP_TWIST_X  2500.0f*0.01f
-        #define MOTION_DAMPING_KP_TWIST_Y  1500.0f*0.01f
-        #define MOTION_DAMPING_KP_TWIST_PITCH  10000.0f * PI / 180.0f * 1e-4f
-        #define MOTION_DAMPING_KP_TWIST_ROLL  10000.0f * PI / 180.0f * 1e-4f
-        #define MOTION_DAMPING_KP_TWIST_YAW 10000.0f * PI / 180.0f * 1e-4f
+        #define MOTION_DAMPING_KP_TWIST_X  1000.0f*0.01f
+        #define MOTION_DAMPING_KP_TWIST_Y  1000.0f*0.01f
+        #define MOTION_DAMPING_KP_TWIST_PITCH  1000.0f * PI / 180.0f * 1e-4f
+        #define MOTION_DAMPING_KP_TWIST_ROLL  1000.0f * PI / 180.0f * 1e-4f
+        #define MOTION_DAMPING_KP_TWIST_YAW 1000.0f * PI / 180.0f * 1e-4f
 
         #define MOTION_DAMPING_KD_TWIST_YAW 0.0f
         #define MOTION_DAMPING_KI_TWIST_YAW 0.0f 

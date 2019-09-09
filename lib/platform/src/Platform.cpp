@@ -740,7 +740,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
   else
   {
     resp.sC_ok=true;
-    if (me->_commControlledAxis<=-1){ //! Every Axis
+    if (req.set_axis<=-1){ //! Every Axis
 
       for (int k=0; k<NB_AXIS; k++){
           if ((req.set_ctrlType!=TWIST_ONLY) && (req.set_ctrlType!=TORQUE_ONLY))
@@ -761,15 +761,15 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
     {
           if ((req.set_ctrlType!=TWIST_ONLY) && (req.set_ctrlType!=TORQUE_ONLY))
           {
-            me->_kpPose[me->_commControlledAxis]=req.pos_p[me->_commControlledAxis];
-            me->_kiPose[me->_commControlledAxis]=req.pos_i[me->_commControlledAxis];
-            me->_kdPose[me->_commControlledAxis]=req.pos_d[me->_commControlledAxis]; 
+            me->_kpPose[req.set_axis]=req.pos_p[req.set_axis];
+            me->_kiPose[req.set_axis]=req.pos_i[req.set_axis];
+            me->_kdPose[req.set_axis]=req.pos_d[req.set_axis]; 
           }
           if ((req.set_ctrlType!=POSE_ONLY) && (req.set_ctrlType!=TORQUE_ONLY))
           {
-            me->_kpTwist[me->_commControlledAxis]=req.speed_p[me->_commControlledAxis];
-            me->_kiTwist[me->_commControlledAxis]=req.speed_i[me->_commControlledAxis];
-            me->_kdTwist[me->_commControlledAxis]=req.speed_d[me->_commControlledAxis]; 
+            me->_kpTwist[req.set_axis]=req.speed_p[req.set_axis];
+            me->_kiTwist[req.set_axis]=req.speed_i[req.set_axis];
+            me->_kdTwist[req.set_axis]=req.speed_d[req.set_axis]; 
           }
       }
     }
