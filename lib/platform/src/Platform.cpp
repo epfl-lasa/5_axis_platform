@@ -734,6 +734,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
 {
   me->_controllerType=(Platform::Controller) req.set_ctrlType; 
   me->_flagDefaultControl=req.default_ctrl;
+  me->_commControlledAxis=req.set_axis; 
   
   if ((me->_state!=TELEOPERATION) && (me->_state!=ROBOT_STATE_CONTROL))
     { resp.sC_ok=false; }

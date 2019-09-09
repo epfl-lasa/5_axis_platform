@@ -10,7 +10,7 @@
         #define SUBSCRIBER_NAME "/FI_Input/Left"
         #define PUBLISHER_NAME "/FI_Output/Left"
         #define SERVICE_CHANGE_STATE_NAME "update_left_state"
-        #define SERVICE_CHANGE_CTRL_TYPE_NAME "update_left_controller"
+        #define SERVICE_CHANGE_CTRL_NAME "update_left_controller"
     #else
         #define SUBSCRIBER_NAME "/FI_Input/Right"
         #define PUBLISHER_NAME "/FI_Output/Right"
