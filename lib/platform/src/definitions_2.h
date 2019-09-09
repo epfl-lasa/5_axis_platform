@@ -9,9 +9,13 @@
     #if (PLATFORM_ID == LEFT_PLATFORM) 
         #define SUBSCRIBER_NAME "/FI_Input/Left"
         #define PUBLISHER_NAME "/FI_Output/Left"
+        #define SERVICE_CHANGE_STATE_NAME "update_left_state"
+        #define SERVICE_CHANGE_CTRL_TYPE_NAME "update_left_controller"
     #else
         #define SUBSCRIBER_NAME "/FI_Input/Right"
         #define PUBLISHER_NAME "/FI_Output/Right"
+        #define SERVICE_CHANGE_STATE_NAME "update_right_state"
+        #define SERVICE_CHANGE_CTRL_NAME "update_right_controller"
     #endif
 
 
@@ -87,44 +91,44 @@
 
     #endif
 
-//*************************WS_CONSTRAINS****AKA.VIRTUAL_WALLS****************************
+//*************************W_CONSTRAINS****AKA.VIRTUAL_WALLS****************************
 
 
     #if (PLATFORM_ID==LEFT_PLATFORM)
 
-        #define WS_C_KP_POSE_X  2000.0f
-        #define WS_C_KD_POSE_X  1.0f
-        #define WS_C_KI_POSE_X  2000.0f 
-        #define WS_C_KP_POSE_Y  2500.0f
-        #define WS_C_KD_POSE_Y  0.5f
-        #define WS_C_KI_POSE_Y  0.0f 
-        #define WS_C_KP_POSE_PITCH  2000.0f * PI / 180.0f * 0.01f //2000.0
-        #define WS_C_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
-        #define WS_C_KI_POSE_PITCH  0.0f
-        #define WS_C_KP_POSE_ROLL  2000.0f * PI / 180.0f * 0.01f
-        #define WS_C_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
-        #define WS_C_KI_POSE_ROLL  0.0f 
-        #define WS_C_KP_POSE_YAW 2000.0f * PI / 180.0f * 0.01f
-        #define WS_C_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
-        #define WS_C_KI_POSE_YAW 0.0f 
+        #define C_WS_KP_POSE_X  2000.0f
+        #define C_WS_KD_POSE_X  1.0f
+        #define C_WS_KI_POSE_X  2000.0f 
+        #define C_WS_KP_POSE_Y  2500.0f
+        #define C_WS_KD_POSE_Y  0.5f
+        #define C_WS_KI_POSE_Y  0.0f 
+        #define C_WS_KP_POSE_PITCH  2000.0f * PI / 180.0f * 0.01f //2000.0
+        #define C_WS_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
+        #define C_WS_KI_POSE_PITCH  0.0f
+        #define C_WS_KP_POSE_ROLL  2000.0f * PI / 180.0f * 0.01f
+        #define C_WS_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
+        #define C_WS_KI_POSE_ROLL  0.0f 
+        #define C_WS_KP_POSE_YAW 2000.0f * PI / 180.0f * 0.01f
+        #define C_WS_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
+        #define C_WS_KI_POSE_YAW 0.0f 
 
     #else  //! TODO TUNE FOR RIGHT_PLATFORM
     
-        #define WS_C_KP_POSE_X  1000.0f
-        #define WS_C_KD_POSE_X  1.0f
-        #define WS_C_KI_POSE_X  1000.0f //Ki->0.0f
-        #define WS_C_KP_POSE_Y  2500.0f
-        #define WS_C_KD_POSE_Y  0.5f
-        #define WS_C_KI_POSE_Y  1000.0f //Ki->0.0f
-        #define WS_C_KP_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f //2000.0
-        #define WS_C_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
-        #define WS_C_KI_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f // 1000.0 
-        #define WS_C_KP_POSE_ROLL  2500.0f * PI / 180.0f * 0.01f
-        #define WS_C_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
-        #define WS_C_KI_POSE_ROLL  1000.0f * PI / 180.0f * 0.01f 
-        #define WS_C_KP_POSE_YAW 2500.0f * PI / 180.0f * 0.01f
-        #define WS_C_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
-        #define WS_C_KI_POSE_YAW 1000.0f * PI / 180.0f * 0.01f 
+        #define C_WS_KP_POSE_X  1000.0f
+        #define C_WS_KD_POSE_X  1.0f
+        #define C_WS_KI_POSE_X  1000.0f //Ki->0.0f
+        #define C_WS_KP_POSE_Y  2500.0f
+        #define C_WS_KD_POSE_Y  0.5f
+        #define C_WS_KI_POSE_Y  1000.0f //Ki->0.0f
+        #define C_WS_KP_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f //2000.0
+        #define C_WS_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
+        #define C_WS_KI_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f // 1000.0 
+        #define C_WS_KP_POSE_ROLL  2500.0f * PI / 180.0f * 0.01f
+        #define C_WS_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
+        #define C_WS_KI_POSE_ROLL  1000.0f * PI / 180.0f * 0.01f 
+        #define C_WS_KP_POSE_YAW 2500.0f * PI / 180.0f * 0.01f
+        #define C_WS_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
+        #define C_WS_KI_POSE_YAW 1000.0f * PI / 180.0f * 0.01f 
 
     #endif
 

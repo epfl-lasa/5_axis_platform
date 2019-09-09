@@ -23,9 +23,15 @@ add_message_files(
 	FootOutputMsg_v2.msg
 	FeetOutputMsg.msg)
 
+add_service_files(
+  FILES
+  setControllerSrv.srv
+  setStateSrv.srv
+)
+
 generate_messages(DEPENDENCIES std_msgs)
 
-generate_dynamic_reconfigure_options( cfg/frictionID.cfg) 
+#generate_dynamic_reconfigure_options( cfg/frictionID.cfg) 
 
 catkin_package(
   INCLUDE_DIRS

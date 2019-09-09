@@ -1,9 +1,7 @@
 # FootInputMsg.msg
 
-float32[5] reflect_effort
+int8 set_axis # -1:all, 0-4: X Y PITCH ROLL YAW
 
-float32[5] kp_gains # only for controllers POSE_ONLY or TWIST_ONLY
-float32[5] ki_gains
-float32[5] kd_gains
-
-int16 stateDes
+float32[5] set_position 
+float32[5] set_effort
+float32[5] set_twist 

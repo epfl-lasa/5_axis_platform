@@ -6,13 +6,16 @@
 #include <SPI.h>
 #include <QEC_1X_SPI.h>
 #include <LP_Filter.h>
-#include <FootInputMsg.h>
-#include <FootInputMsg_v2.h>
-#include <FootOutputMsg.h>
-#include <FootOutputMsg_v2.h>
 #include <Platform.h>
 #include <definitions.h>
 #include <definitions_2.h>
+
+// #include <FootInputMsg.h>
+// #include <FootOutputMsg.h>
+#include <FootInputMsg_v2.h>
+#include <FootOutputMsg_v2.h>
+#include <setControllerSrv.h>
+#include <setStateSrv.h>
 
 #include <PID_v1.h>
 
@@ -64,6 +67,18 @@ class Platform
       ros::Subscriber<custom_msgs::FootInputMsg_v2>*  _subFootInput;
       ros::Publisher *_pubFootOutput;
       custom_msgs::FootOutputMsg_v2 _msgFootOutput;
+
+      ros::ServiceServer<custom_msgs::setStateSrvRequest,custom_msgs::setStateSrvResponse> *_servChangeState;
+      ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
+
+      //CLIENT VARIABLES FROM (ROS)
+        volatile double _commPoseSet[NB_AXIS];// TODO: Expand this to speed and acceleration
+        volatile double _commTwistSet[NB_AXIS];
+        volatile bool _flagDefaultControl;
+        volatile int8_t _commControlledAxis;
+        volatile Controller _commControllerType;
+        volatile uint8_t _desWrenchComponents[NB_WRENCH_COMPONENTS];
+
 
 
     // State variables
@@ -121,13 +136,6 @@ class Platform
     volatile double _kdTwist[NB_AXIS];
 
 
-      //(ROS)
-    volatile double _commPoseSet[NB_AXIS];// TODO: Expand this to speed and acceleration
-    volatile double _commTwistSet[NB_AXIS];
-    volatile bool _flagDefaultCtrlGains;
-    volatile int _commControlledAxis;
-    volatile Controller _commControllerType;
-    volatile uint16_t _desWrenchComponents[NB_WRENCH_COMPONENTS];
 
     // PID 
 
@@ -190,6 +198,9 @@ class Platform
 
     static void updateFootInput(const custom_msgs::FootInputMsg_v2 &msg);
     
+    static void updateState(const custom_msgs::setStateSrv::Request &req,custom_msgs::setStateSrv::Response &resp );
+    static void updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp );
+    
     void pubFootOutput();
 
     void wsConstrains(int axis_); //! -1 := all of them 
@@ -200,7 +211,7 @@ class Platform
 
     void gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW);
 
-    void wsConstrainsGainsDefault(int axis_);
+    void wsConstrainsDefault(int axis_);
     
     void gotoPointGainsDefault(int axis_);
 
@@ -210,7 +221,7 @@ class Platform
 
     void twistCtrlClear(int axis_); //! Put gains and set point to zero of the Twist Control
 
-    void totalWrenchClear(int axis_);
+    void totalWrenchDClear(int axis_);
 
     void compWrenchClear(int axis_, Platform::WrenchComp comp_);
     
