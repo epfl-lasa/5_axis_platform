@@ -86,6 +86,8 @@ class Platform
     // State variables
     volatile State _state;
     State _lastState;
+    State _newState;
+    volatile bool _flagClearLastState; 
     volatile bool _enterStateOnceFlag[NB_MACHINE_STATES];
     double _pose[NB_AXIS];
     double _poseOffsets[NB_AXIS];

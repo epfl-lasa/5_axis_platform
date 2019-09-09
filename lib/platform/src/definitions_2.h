@@ -24,7 +24,7 @@
 
     #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
 
-        #define TWIST_D_HOMING_X -2.5 // m/s
+        #define TWIST_D_HOMING_X -2.7 // m/s
         #define TWIST_D_HOMING_Y 2.5 // m/s
         #define TWIST_D_HOMING_PITCH 300; // °/s
         

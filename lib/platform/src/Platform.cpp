@@ -92,6 +92,7 @@ Platform::Platform()
   
   _commControlledAxis=-1; //! all of them
   _controllerType=TORQUE_ONLY;
+  _flagClearLastState=false;
   _flagInWsConstrains=false;
   _flagDefaultControl=true;
    wsConstrainsDefault(-1);
@@ -105,6 +106,7 @@ Platform::Platform()
   _tic=false;
   _state = HOMING;
   _lastState=_state;
+  _newState=_state;
     
   // Reset the flags that acknowledge when the state is entered for the first time 
   _enterStateOnceFlag[HOMING]=false;
@@ -276,7 +278,12 @@ void Platform::step()
   _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
   for (int k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
   //
-
+  if(_flagClearLastState)
+  {
+    clearLastState();
+    _state=_newState; 
+    _flagClearLastState=false;
+  }
   switch (_state)
   {
 
@@ -723,9 +730,10 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
   }  
   
   if (!(newState==me->_state)) // If I want to go to a new state
-  { resp.mS_new=true;
-    me->clearLastState();
-    me->_state = newState;
+  { 
+    resp.mS_new=true;
+    me->_flagClearLastState=true;
+    me->_newState = newState;
   } 
   else{ resp.mS_new=false; } //! You are already in the desired state 
 }
@@ -905,7 +913,6 @@ void Platform::clearLastState()
   switch(_lastState)
     {
       case(HOMING):
-
       {
         _enterStateOnceFlag[HOMING]=false;   
         limitSwitchesClear();       
@@ -1085,7 +1092,7 @@ void Platform::resetEscons(){
 
   totalWrenchDClear(-1);
   setWrenches();
-  wait_ms(150);
+  wait_ms(250);
   _enableMotors->write(1);
   wait_ms(750);
   _enableMotors->write(0);
