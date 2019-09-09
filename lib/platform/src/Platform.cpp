@@ -290,6 +290,7 @@ void Platform::step()
   case STANDBY:{ 
     if (!_enterStateOnceFlag[STANDBY]){
       // TODO
+      _nh.loginfo("MOVING TO STATE STANDBY");
       _enterStateOnceFlag[STANDBY]=true;
     }
     _lastState=_state; 
@@ -301,6 +302,7 @@ void Platform::step()
       // Init
       if(!_enterStateOnceFlag[HOMING])
       {
+        _nh.loginfo("MOVING TO STATE HOMING");
         _enableMotors->write(1);
         limitSwitchesClear();
         // Set commanded forces and torques for homing
@@ -352,6 +354,7 @@ void Platform::step()
       // Init State
       if (!_enterStateOnceFlag[CENTERING])
       {
+        _nh.loginfo("MOVING TO STATE CENTERING");
         gotoPointGainsDefault(-1);
         _enterStateOnceFlag[CENTERING]=true;
       }
@@ -383,6 +386,7 @@ void Platform::step()
      if (!_enterStateOnceFlag[TELEOPERATION])
      {
       //
+      _nh.loginfo("MOVING TO STATE TELEOPERATION");
       _enterStateOnceFlag[TELEOPERATION]=true;
      }
 
@@ -411,7 +415,8 @@ void Platform::step()
      if (!_enterStateOnceFlag[ROBOT_STATE_CONTROL])
      {
       //
-        _enterStateOnceFlag[ROBOT_STATE_CONTROL]=true;
+      _nh.loginfo("MOVING TO STATE ROBOT_STATE_CONTROL");
+      _enterStateOnceFlag[ROBOT_STATE_CONTROL]=true;
      }
 
      // Main state
@@ -445,6 +450,7 @@ void Platform::step()
     case EMERGENCY:
     {
       if(!_enterStateOnceFlag[EMERGENCY]){
+        _nh.loginfo("MOVING TO STATE EMERGENCY");
         _enterStateOnceFlag[EMERGENCY]=true;
       }
       releasePlatform();
@@ -453,6 +459,7 @@ void Platform::step()
     }
     case RESET:
     {
+      _nh.loginfo("ABOUT TO RESTART THE PLATFORM CONTROLLER");
       softReset();
       break;
     }
@@ -914,6 +921,7 @@ void Platform::clearLastState()
     {
       case(HOMING):
       {
+        _nh.loginfo("LEAVING HOMING STATE"); 
         _enterStateOnceFlag[HOMING]=false;   
         limitSwitchesClear();       
         //! Finally resets the wrench commands given by this controller. 
@@ -924,6 +932,7 @@ void Platform::clearLastState()
 
       case(CENTERING):
       {
+        _nh.loginfo("LEAVING CENTERING STATE"); 
         _enterStateOnceFlag[CENTERING]=false;
         compWrenchClear(-1,NORMAL);
         poseCtrlClear(-1);
@@ -931,6 +940,7 @@ void Platform::clearLastState()
       }
       case(TELEOPERATION):
       {
+        _nh.loginfo("LEAVING TELEOPERATION STATE"); 
         _enterStateOnceFlag[TELEOPERATION]=false;
         totalWrenchDClear(-1);
         poseCtrlClear(-1);
@@ -940,6 +950,7 @@ void Platform::clearLastState()
 
       case(ROBOT_STATE_CONTROL):
       {
+        _nh.loginfo("LEAVING ROBOT_STATE_CONTROL STATE"); 
         _enterStateOnceFlag[ROBOT_STATE_CONTROL]=false;
         totalWrenchDClear(-1);
         poseCtrlClear(-1);
@@ -948,8 +959,8 @@ void Platform::clearLastState()
       }
 
 
-      case(EMERGENCY):{break;}
-      case(STANDBY): {_enterStateOnceFlag[STANDBY]=false; break;} 
+      case(EMERGENCY):{ _nh.loginfo("LEAVING EMERGENCY STATE"); break;}
+      case(STANDBY): {_enterStateOnceFlag[STANDBY]=false; _nh.loginfo("LEAVING STANDBY STATE");  break;} 
       
       case(RESET):{break;}
     }
