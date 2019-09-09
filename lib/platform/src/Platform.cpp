@@ -78,7 +78,7 @@ Platform::Platform()
     _poseFilters[k] = new LP_Filter(0.6);
     _twistFilters[k] = new LP_Filter(0.95);
     _wrenchMFilters[k] = new LP_Filter(0.95);
-    _switchesState[k] = 0;
+    limitSwitchesClear();
 
     _commPoseSet[k]=0.0f;
     _commTwistSet[k]=0.0f;
@@ -91,7 +91,7 @@ Platform::Platform()
   _innerCounter=0;
   
   _commControlledAxis=-1; //! all of them
-  _commControllerType=TORQUE_ONLY;
+  _controllerType=TORQUE_ONLY;
   _flagInWsConstrains=false;
   _flagDefaultControl=true;
    wsConstrainsDefault(-1);
@@ -295,10 +295,7 @@ void Platform::step()
       if(!_enterStateOnceFlag[HOMING])
       {
         _enableMotors->write(1);
-        for(int k = 0; k < NB_AXIS; k++)
-          {
-            _switchesState[k] = 0;
-          }
+        limitSwitchesClear();
         // Set commanded forces and torques for homing
         _enterStateOnceFlag[HOMING]=true;
       }
@@ -348,7 +345,8 @@ void Platform::step()
       // Init State
       if (!_enterStateOnceFlag[CENTERING])
       {
-          _enterStateOnceFlag[CENTERING]=true;
+        gotoPointGainsDefault(-1);
+        _enterStateOnceFlag[CENTERING]=true;
       }
       // Main State
       gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
@@ -377,20 +375,7 @@ void Platform::step()
       // Init State
      if (!_enterStateOnceFlag[TELEOPERATION])
      {
-       for(int k=0; k<NB_SWITCHES; k++)
-        {
-        _switchesState[k] = 0;
-        }
-        poseCtrlClear(-1); //! Clear the position control gains->0, setpoint->zero
-
-        _desWrenchComponents[NORMAL]=1;
-        _desWrenchComponents[CONSTRAINS]=1;
-        _desWrenchComponents[COMPENSATION]=0;
-        _desWrenchComponents[FEEDFORWARD]=0;
-
-        _commControllerType=TWIST_POSE_CASCADE; //! Default is WS Contrains and motion damping
-        _commControlledAxis=-1; //! Default
-        
+      //
       _enterStateOnceFlag[TELEOPERATION]=true;
      }
 
@@ -398,11 +383,11 @@ void Platform::step()
       //# In this context: e.g. CtrlType=POSE_ONLY-> "I should listen" to set_positions[k], 
 
       if (_desWrenchComponents[CONSTRAINS]==1){ //! Check which components of the wrench I wanna activate
-        if ((_commControllerType!=TWIST_ONLY)&&(_commControllerType!=TORQUE_ONLY))
+        if ((_controllerType!=TWIST_ONLY)&&(_controllerType!=TORQUE_ONLY))
         {
           wsConstrains(_commControlledAxis); //! workspace constraints : soft limits, or joystick effect, etc
         }
-        if ((_commControllerType!=POSE_ONLY)&&(_commControllerType!=TORQUE_ONLY))
+        if ((_controllerType!=POSE_ONLY)&&(_controllerType!=TORQUE_ONLY))
         { 
           motionDamping(_commControlledAxis); //! Motion damping, to make it easier to control the platform
         }
@@ -426,7 +411,7 @@ void Platform::step()
 
       for(int k=0; k<NB_AXIS; k++)
         {
-          if(_commControllerType!=TWIST_ONLY||_commControllerType!=TORQUE_ONLY)
+          if(_controllerType!=TWIST_ONLY && _controllerType!=TORQUE_ONLY)
           {
             _poseD[k]=_commPoseSet[k];
                     //! Position Control
@@ -440,7 +425,7 @@ void Platform::step()
               gotoPointAxis(_commControlledAxis,_poseD[_commControlledAxis]);
             }
           }
-          if(_commControllerType!=POSE_ONLY||_commControllerType!=TORQUE_ONLY)
+          if(_controllerType!=POSE_ONLY && _controllerType!=TORQUE_ONLY)
           {
             _twistD[k]=_commTwistSet[k];
           }
@@ -620,11 +605,10 @@ void Platform::setWrenches()
   for(int k = 0; k < NB_AXIS; k++)
   { 
      wrenchSum = 0.0f;
-    for(int j = 0; j < NB_WRENCH_COMPONENTS; j++)
-
-    {
-      wrenchSum+= _wrenchD_ADD[j][k];
-    }
+      for(int j = 0; j < NB_WRENCH_COMPONENTS; j++)
+      {
+        if (_desWrenchComponents[j]==1) {wrenchSum+= _wrenchD_ADD[j][k];}
+      }
     _wrenchD[k]=wrenchSum;
   } 
   
@@ -701,14 +685,14 @@ void Platform::poseAllReset()
 void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 {
   me->_commControlledAxis=msg.set_axis; 
-  if (me->_commControlledAxis<=-1){ //! Take info of all axis
+  if (msg.set_axis<=-1){ //! Take info of all axis
     for (int k=0; k<NB_AXIS; k++){
       me->_wrenchD_ADD[NORMAL][k]=msg.set_effort[k];
-      if ((me->_commControllerType!=TWIST_ONLY) && (me->_commControllerType!=TORQUE_ONLY))
+      if ((me->_controllerType!=TWIST_ONLY) && (me->_controllerType!=TORQUE_ONLY))
         {
             me->_commPoseSet[k]=msg.set_position[k];
         }
-      if ((me->_commControllerType!=POSE_ONLY) && (me->_commControllerType!=TORQUE_ONLY))
+      if ((me->_controllerType!=POSE_ONLY) && (me->_controllerType!=TORQUE_ONLY))
         {
             me->_commTwistSet[k]=msg.set_twist[k];
         }
@@ -717,11 +701,11 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 
   else{ //Take info of only the axis of interest
       me->_wrenchD_ADD[NORMAL][msg.set_axis]=msg.set_effort[msg.set_axis];
-        if ((me->_commControllerType!=TWIST_ONLY) && (me->_commControllerType!=TORQUE_ONLY))
+        if ((me->_controllerType!=TWIST_ONLY) && (me->_controllerType!=TORQUE_ONLY))
         {
             me->_commPoseSet[msg.set_axis]=msg.set_position[msg.set_axis];
         }
-        if ((me->_commControllerType!=POSE_ONLY) && (me->_commControllerType!=TORQUE_ONLY))
+        if ((me->_controllerType!=POSE_ONLY) && (me->_controllerType!=TORQUE_ONLY))
         {
             me->_commTwistSet[msg.set_axis]=msg.set_twist[msg.set_axis];
         }
@@ -748,10 +732,10 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
 
 void Platform::updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp )
 {
-  me->_commControllerType=(Platform::Controller) req.set_ctrlType; 
+  me->_controllerType=(Platform::Controller) req.set_ctrlType; 
   me->_flagDefaultControl=req.default_ctrl;
   
-  if ((me->_state!=TELEOPERATION)||(me->_state!=ROBOT_STATE_CONTROL))
+  if ((me->_state!=TELEOPERATION) && (me->_state!=ROBOT_STATE_CONTROL))
     { resp.sC_ok=false; }
   else
   {
@@ -908,6 +892,13 @@ void Platform::releasePlatform()
   }
 }
 
+void Platform::limitSwitchesClear()
+{
+  for (int k=0; k<NB_SWITCHES; k++) 
+  {
+    _switchesState[k] = 0;
+  }
+}
 void Platform::clearLastState()
 {
   switch(_lastState)
@@ -915,10 +906,11 @@ void Platform::clearLastState()
       case(HOMING):
 
       {
-        _enterStateOnceFlag[HOMING]=false;          
-            //! Finally resets the wrench commands given by this controller. 
-          compWrenchClear(-1,NORMAL); //! Clear the normal dimension of the 
-          twistCtrlClear(-1);
+        _enterStateOnceFlag[HOMING]=false;   
+        limitSwitchesClear();       
+        //! Finally resets the wrench commands given by this controller. 
+        compWrenchClear(-1,NORMAL); //! Clear the normal dimension of the 
+        twistCtrlClear(-1);
         break; 
       }
 
@@ -935,12 +927,6 @@ void Platform::clearLastState()
         totalWrenchDClear(-1);
         poseCtrlClear(-1);
         twistCtrlClear(-1);
-
-        for (int j=0; j<NB_WRENCH_COMPONENTS; j++) { _desWrenchComponents[j]=0; }
-        
-        _commControllerType=TORQUE_ONLY;
-        _commControlledAxis=-1;
-        
         break;
       }
 
@@ -950,12 +936,6 @@ void Platform::clearLastState()
         totalWrenchDClear(-1);
         poseCtrlClear(-1);
         twistCtrlClear(-1);
-
-        for (int j=0; j<NB_WRENCH_COMPONENTS; j++) { _desWrenchComponents[j]=0; }
-
-        _commControllerType=TORQUE_ONLY;
-        _commControlledAxis=-1;
-
         break;
       }
 

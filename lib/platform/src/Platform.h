@@ -52,6 +52,8 @@ class Platform
     // Enum for axis ID
     enum Axis {X,Y,PITCH,ROLL,YAW};
 
+    enum RobotState {POSITION, SPEED, ACCELERATION}; 
+
     enum WrenchComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD}; //! Count := 4
 
     // Enum for state machine
@@ -76,7 +78,7 @@ class Platform
         volatile double _commTwistSet[NB_AXIS];
         volatile bool _flagDefaultControl;
         volatile int8_t _commControlledAxis;
-        volatile Controller _commControllerType;
+        volatile Controller _controllerType;
         volatile uint8_t _desWrenchComponents[NB_WRENCH_COMPONENTS];
 
 
@@ -85,7 +87,6 @@ class Platform
     volatile State _state;
     State _lastState;
     volatile bool _enterStateOnceFlag[NB_MACHINE_STATES];
-    Controller _controllerType;
     double _pose[NB_AXIS];
     double _poseOffsets[NB_AXIS];
     double _posePrev[NB_AXIS];
@@ -111,7 +112,8 @@ class Platform
     float _encoderScale[NB_AXIS];
     float _c_wsLimits[NB_AXIS];
     bool _flagInWsConstrains;
-    float _wsRange[NB_AXIS];
+    double _wsRange[NB_AXIS];
+    double _effortLimits[NB_AXIS];
     
 
     // Hardware variables
@@ -216,6 +218,14 @@ class Platform
     void gotoPointGainsDefault(int axis_);
 
     void motionDampingGainsDefault(int axis_); 
+
+    void limitSwitchesClear();
+
+    // void fetchOutputLimitsState(int axis_, Platform::RobotState robotState_);
+
+    // void fetchOutputLimitsPose(Platform::Controller controllerType_, int axis_, double limit_);
+    
+    // void fetchOutputLimitsTwist(Platform::Controller controllerType_, int axis_, double limit_);
 
     void poseCtrlClear(int axis_); //! Put gains and set point to zero of the Pose Control
 
