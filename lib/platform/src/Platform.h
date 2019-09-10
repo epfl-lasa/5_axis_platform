@@ -80,15 +80,16 @@ class Platform
         volatile int8_t _commControlledAxis;
         volatile Controller _controllerType;
         volatile uint8_t _desWrenchComponents[NB_WRENCH_COMPONENTS];
-
+        volatile State _newState;
 
 
     // State variables
-    volatile State _state;
+    State _state;
     State _lastState;
-    State _newState;
+    
     volatile bool _flagClearLastState; 
     volatile bool _enterStateOnceFlag[NB_MACHINE_STATES];
+
     double _pose[NB_AXIS];
     double _poseOffsets[NB_AXIS];
     double _posePrev[NB_AXIS];
@@ -153,97 +154,94 @@ class Platform
     uint32_t _toc;
     bool _tic; //flag for timer
 
+//*********************************************LIST-OF-METHODS**********
+  //!Platform_main.cpp
   public:
-
-    Platform();
-    ~Platform();
-
-    void init();
-
-    void step();
-
-    void communicateToRos();
-
-    void setWrenches();
-    
-    void getMotion();
-    
-     //EMERGENCY
-
-    static void emergencyCallback();
-
-    void releasePlatform();
-
+    Platform(); //! 1
+    ~Platform();//! 2
+    void init();//! 3
+    void step();//! 4
   private:
+      //! GPIO Interruptions
+    static void switchCallbackX();      //! 5
+    static void switchCallbackY();      //! 6
+    static void switchCallbackPitch();  //! 7
+  //! Platform_reset.cpp
+  private:
+      void resetEscons(); //! 1
+      void softReset();   //!2
+  
+  //! Platform_ros.cpp
+  public:
+    void communicateToRos();                                              //! 1
+  private:
+  //ROS
+    static void updateFootInput(const custom_msgs::FootInputMsg_v2 &msg); //! 2
+    static void updateState(const custom_msgs::setStateSrv::Request 
+    &req,custom_msgs::setStateSrv::Response &resp );                      //! 3
+    static void updateController(const custom_msgs::setControllerSrv::Request 
+    &req,custom_msgs::setControllerSrv::Response &resp );                 //! 4
+    void pubFootOutput();                                                 //! 5
 
-    void getPose();
+  //!Platform_wrench.cpp
+  public:  
+    void setWrenches();                                                     //! 1
+  private:
+    // Effort Computation for the ESCONS
+      void setWrenchAxis(float wrench,  PwmOut *pin, int sign, int axis);   //! 2
+      void setCurrentAxis(float torque, PwmOut *pin, int sign, int axis);   //! 3
 
-    void getTwist();
+  //! Platform_utils.cpp
+  public:  
+    float map(float x, float in_min, float in_max, float out_min, float out_max); //! 1    
 
-    void poseControl(WrenchComp Component);
+  //!Platform_sensors.cpp
+  public:  
+    void getMotion();                     //! 1
+  private:
+      //! Robot State
+      void getPose();                     //! 2
+      void getTwist();                    //! 3
+      //! Estimate Robot Effort (ADC)    
+      void readActualWrench();            //! 4
 
-    void posAxisControl(WrenchComp Component, int axis);
-    
-    void speedAxisControl(WrenchComp Component, int axis);
+  //! Platform_emergency.cpp
+  public:
+    static void emergencyCallback();  //! 1
+    void releasePlatform();           //! 2
 
-    void twistControl(WrenchComp Component);
+  //! Platform_control.cpp
+  private:
+      // Position and Speed control
+      void poseControl(WrenchComp Component);                             //! 1
+      void posAxisControl(WrenchComp Component, int axis);                //! 2
+      void speedAxisControl(WrenchComp Component, int axis);              //! 3
+      void twistControl(WrenchComp Component);                            //! 4
+      void gotoPointAxis(int axis_, float point);                         //! 5
+      void gotoPointAll(float pointX, float pointY, float pointPITCH,     
+      float pointROLL, float pointYAW);                                   //! 6
+      void gotoPointGainsDefault(int axis_);                              //! 7  
+      
+  //! Platform_constrains.cpp
+  private:    
+      //Constrains 
+      void wsConstrains(int axis_); //! -1 := all of them                 //! 1
+      void motionDamping(int axis_); //! -1:= all of them                 //! 2
+      void wsConstrainsDefault(int axis_);                                //! 3
+      void motionDampingGainsDefault(int axis_);                          //! 4      
 
-    void setWrenchAxis(float wrench,  PwmOut *pin, int sign, int axis);
-    
-    void setCurrentAxis(float torque, PwmOut *pin, int sign, int axis);
+  //!Platform_clear.cpp
+  private:
+      //! Maintenance
+      void limitSwitchesClear();
+      void poseAllReset();
+      void poseCtrlClear(int axis_); //! Put gains and set point to zero of the Pose Control
+      void twistCtrlClear(int axis_); //! Put gains and set point to zero of the Twist Control
+      void totalWrenchDClear(int axis_);
+      void compWrenchClear(int axis_, Platform::WrenchComp comp_);
+      void clearLastState(); 
 
-    static void switchCallbackX();
-
-    static void switchCallbackY();
-
-    static void switchCallbackPitch();
-
-    void poseAllReset();
-
-    static void updateFootInput(const custom_msgs::FootInputMsg_v2 &msg);
-    
-    static void updateState(const custom_msgs::setStateSrv::Request &req,custom_msgs::setStateSrv::Response &resp );
-    static void updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp );
-    
-    void pubFootOutput();
-
-    void wsConstrains(int axis_); //! -1 := all of them 
-
-    void motionDamping(int axis_); //! -1:= all of them
-
-    void gotoPointAxis(int axis_, float point);
-
-    void gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW);
-
-    void wsConstrainsDefault(int axis_);
-    
-    void gotoPointGainsDefault(int axis_);
-
-    void motionDampingGainsDefault(int axis_); 
-
-    void limitSwitchesClear();
-
-    // void fetchOutputLimitsState(int axis_, Platform::RobotState robotState_);
-
-    // void fetchOutputLimitsPose(Platform::Controller controllerType_, int axis_, double limit_);
-    
-    // void fetchOutputLimitsTwist(Platform::Controller controllerType_, int axis_, double limit_);
-
-    void poseCtrlClear(int axis_); //! Put gains and set point to zero of the Pose Control
-
-    void twistCtrlClear(int axis_); //! Put gains and set point to zero of the Twist Control
-
-    void totalWrenchDClear(int axis_);
-
-    void compWrenchClear(int axis_, Platform::WrenchComp comp_);
-    
-    void readActualWrench();
-
-    void clearLastState();
-
-    void resetEscons();
-
-    void softReset();
+  
 };
 
 #endif //PLATFORM_H

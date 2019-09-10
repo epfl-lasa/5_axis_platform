@@ -56,38 +56,44 @@
     #if (PLATFORM_ID==LEFT_PLATFORM)
     
         #define GT_KP_POSE_X  2000.0f
-        #define GT_KD_POSE_X  1.0f
-        #define GT_KI_POSE_X  2000.0f //Ki->0.0f
         #define GT_KP_POSE_Y  2500.0f
-        #define GT_KD_POSE_Y  0.5f
-        #define GT_KI_POSE_Y  2500.0f //Ki->0.0f
-        #define GT_KP_POSE_PITCH  3000.0f * PI / 180.0f * 0.01f //2000.0
-        #define GT_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
-        #define GT_KI_POSE_PITCH  5000.0f * PI / 180.0f * 0.01f // 1000.0 
+        #define GT_KP_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f //2000.0
         #define GT_KP_POSE_ROLL  2500.0f * PI / 180.0f * 0.01f
-        #define GT_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
-        #define GT_KI_POSE_ROLL  1000.0f * PI / 180.0f * 0.01f 
         #define GT_KP_POSE_YAW 2500.0f * PI / 180.0f * 0.01f
-        #define GT_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
-        #define GT_KI_POSE_YAW 1000.0f * PI / 180.0f * 0.01f 
+        
+        #define GT_KI_POSE_X  2000.0f //Ki->0.0f
+        #define GT_KI_POSE_Y  2500.0f //Ki->0.0f
+        #define GT_KI_POSE_PITCH  5000.0f * PI / 180.0f * 0.01f // 1000.0 
+        #define GT_KI_POSE_ROLL  5000.0f * PI / 180.0f * 0.01f 
+        #define GT_KI_POSE_YAW 5000.0f * PI / 180.0f * 0.01f 
 
+        
+        #define GT_KD_POSE_X  1.0f
+        #define GT_KD_POSE_Y  0.5f
+        #define GT_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
+        #define GT_KD_POSE_ROLL  5.0f * PI / 180.0f * 0.01f
+        #define GT_KD_POSE_YAW  5.0f * PI / 180.0f * 0.01f
+        
+        
     #else  //! TODO TUNE FOR RIGHT_PLATFORM
     
-        #define GT_KP_POSE_X  1000.0f
-        #define GT_KD_POSE_X  1.0f
-        #define GT_KI_POSE_X  1000.0f //Ki->0.0f
+        #define GT_KP_POSE_X  2000.0f
         #define GT_KP_POSE_Y  2500.0f
-        #define GT_KD_POSE_Y  0.5f
-        #define GT_KI_POSE_Y  1000.0f //Ki->0.0f
         #define GT_KP_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f //2000.0
-        #define GT_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
-        #define GT_KI_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f // 1000.0 
         #define GT_KP_POSE_ROLL  2500.0f * PI / 180.0f * 0.01f
-        #define GT_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
-        #define GT_KI_POSE_ROLL  1000.0f * PI / 180.0f * 0.01f 
         #define GT_KP_POSE_YAW 2500.0f * PI / 180.0f * 0.01f
-        #define GT_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
-        #define GT_KI_POSE_YAW 1000.0f * PI / 180.0f * 0.01f 
+               
+        #define GT_KI_POSE_X  1000.0f //Ki->0.0f
+        #define GT_KI_POSE_Y  1000.0f //Ki->0.0f
+        #define GT_KI_POSE_PITCH  5000.0f * PI / 180.0f * 0.01f // 1000.0 
+        #define GT_KI_POSE_ROLL  5000.0f * PI / 180.0f * 0.01f 
+        #define GT_KI_POSE_YAW 5000.0f * PI / 180.0f * 0.01f 
+
+        #define GT_KD_POSE_X  1.0f
+        #define GT_KD_POSE_Y  0.5f
+        #define GT_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
+        #define GT_KD_POSE_ROLL  5.0f * PI / 180.0f * 0.01f
+        #define GT_KD_POSE_YAW 5.0f * PI / 180.0f * 0.01f    
 
     #endif
 
@@ -97,39 +103,48 @@
     #if (PLATFORM_ID==LEFT_PLATFORM)
 
         #define C_WS_KP_POSE_X  2000.0f
-        #define C_WS_KD_POSE_X  1.0f
-        #define C_WS_KI_POSE_X  2000.0f 
-        #define C_WS_KP_POSE_Y  2500.0f
-        #define C_WS_KD_POSE_Y  0.5f
-        #define C_WS_KI_POSE_Y  0.0f 
+        #define C_WS_KP_POSE_Y  2000.0f
         #define C_WS_KP_POSE_PITCH  2000.0f * PI / 180.0f * 0.01f //2000.0
-        #define C_WS_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
-        #define C_WS_KI_POSE_PITCH  0.0f
         #define C_WS_KP_POSE_ROLL  2000.0f * PI / 180.0f * 0.01f
-        #define C_WS_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
-        #define C_WS_KI_POSE_ROLL  0.0f 
         #define C_WS_KP_POSE_YAW 2000.0f * PI / 180.0f * 0.01f
-        #define C_WS_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
-        #define C_WS_KI_POSE_YAW 0.0f 
 
-    #else  //! TODO TUNE FOR RIGHT_PLATFORM
+        #define C_WS_KD_POSE_X  1.0f
+        #define C_WS_KD_POSE_Y  0.5f
+        #define C_WS_KD_POSE_PITCH  2.0f * PI / 180.0f * 0.01f // 5.0
+        #define C_WS_KD_POSE_ROLL  2.0f * PI / 180.0f * 0.01f
+        #define C_WS_KD_POSE_YAW 2.0f * PI / 180.0f * 0.01f
+
+           //***************************SHOULD-BE-ZERO****************/ 
+                #define C_WS_KI_POSE_X  0.0f 
+                #define C_WS_KI_POSE_Y  0.0f 
+                #define C_WS_KI_POSE_PITCH  0.0f
+                #define C_WS_KI_POSE_ROLL  0.0f 
+                #define C_WS_KI_POSE_YAW 0.0f 
+    
+    
+    #else
     
         #define C_WS_KP_POSE_X  1000.0f
-        #define C_WS_KD_POSE_X  1.0f
-        #define C_WS_KI_POSE_X  1000.0f //Ki->0.0f
-        #define C_WS_KP_POSE_Y  2500.0f
-        #define C_WS_KD_POSE_Y  0.5f
-        #define C_WS_KI_POSE_Y  1000.0f //Ki->0.0f
-        #define C_WS_KP_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f //2000.0
-        #define C_WS_KD_POSE_PITCH  5.0f * PI / 180.0f * 0.01f // 5.0
-        #define C_WS_KI_POSE_PITCH  2500.0f * PI / 180.0f * 0.01f // 1000.0 
-        #define C_WS_KP_POSE_ROLL  2500.0f * PI / 180.0f * 0.01f
-        #define C_WS_KD_POSE_ROLL  10.0f * PI / 180.0f * 0.01f
-        #define C_WS_KI_POSE_ROLL  1000.0f * PI / 180.0f * 0.01f 
-        #define C_WS_KP_POSE_YAW 2500.0f * PI / 180.0f * 0.01f
-        #define C_WS_KD_POSE_YAW 10.0f * PI / 180.0f * 0.01f
-        #define C_WS_KI_POSE_YAW 1000.0f * PI / 180.0f * 0.01f 
+        #define C_WS_KP_POSE_Y  2000.0f
+        #define C_WS_KP_POSE_PITCH  2000.0f * PI / 180.0f * 0.01f //2000.0
+        #define C_WS_KP_POSE_ROLL  2000.0f * PI / 180.0f * 0.01f
+        #define C_WS_KP_POSE_YAW 2000.0f * PI / 180.0f * 0.01f
 
+        #define C_WS_KD_POSE_X  1.0f
+        #define C_WS_KD_POSE_Y  0.5f
+        #define C_WS_KD_POSE_PITCH  2.0f * PI / 180.0f * 0.01f // 5.0
+        #define C_WS_KD_POSE_ROLL  2.0f * PI / 180.0f * 0.01f
+        #define C_WS_KD_POSE_YAW 2.0f * PI / 180.0f * 0.01f
+
+        //***************************SHOULD-BE-ZERO****************/ 
+
+            #define C_WS_KI_POSE_X  0.0f 
+            #define C_WS_KI_POSE_Y  0.0f 
+            #define C_WS_KI_POSE_PITCH  0.0f 
+            #define C_WS_KI_POSE_ROLL  0.0f 
+            #define C_WS_KI_POSE_YAW 0.0f 
+
+    
     #endif
 
 //*************************MOTION_DAMPING****AKA.SUPRESS_TREMOR****************************
@@ -143,16 +158,19 @@
         #define MOTION_DAMPING_KP_TWIST_ROLL  1000.0f * PI / 180.0f * 1e-4f
         #define MOTION_DAMPING_KP_TWIST_YAW 1000.0f * PI / 180.0f * 1e-4f
 
-        #define MOTION_DAMPING_KD_TWIST_YAW 0.0f
-        #define MOTION_DAMPING_KI_TWIST_YAW 0.0f 
-        #define MOTION_DAMPING_KD_TWIST_X  0.0f
-        #define MOTION_DAMPING_KI_TWIST_X  0.0f
-        #define MOTION_DAMPING_KD_TWIST_Y  0.0f
-        #define MOTION_DAMPING_KI_TWIST_Y  0.0f 
-        #define MOTION_DAMPING_KD_TWIST_PITCH  0.0f
-        #define MOTION_DAMPING_KI_TWIST_PITCH  0.0f
-        #define MOTION_DAMPING_KD_TWIST_ROLL  0.0f
-        #define MOTION_DAMPING_KI_TWIST_ROLL  0.0f 
+           //***************************SHOULD-BE-ZERO****************/ 
+        
+            #define MOTION_DAMPING_KI_TWIST_YAW 0.0f 
+            #define MOTION_DAMPING_KI_TWIST_X  0.0f
+            #define MOTION_DAMPING_KI_TWIST_Y  0.0f 
+            #define MOTION_DAMPING_KI_TWIST_PITCH  0.0f
+            #define MOTION_DAMPING_KI_TWIST_ROLL  0.0f
+
+            #define MOTION_DAMPING_KD_TWIST_YAW 0.0f
+            #define MOTION_DAMPING_KD_TWIST_X  0.0f
+            #define MOTION_DAMPING_KD_TWIST_Y  0.0f
+            #define MOTION_DAMPING_KD_TWIST_PITCH  0.0f
+            #define MOTION_DAMPING_KD_TWIST_ROLL  0.0f
 
     #else 
     
@@ -162,16 +180,19 @@
         #define MOTION_DAMPING_KP_TWIST_ROLL  800.0f * PI / 180.0f * 1e-4f
         #define MOTION_DAMPING_KP_TWIST_YAW 800.0f * PI / 180.0f * 1e-4f
 
-        #define MOTION_DAMPING_KD_TWIST_YAW 0.0f
-        #define MOTION_DAMPING_KI_TWIST_YAW 0.0f 
-        #define MOTION_DAMPING_KD_TWIST_X  0.0f
-        #define MOTION_DAMPING_KI_TWIST_X  0.0f
-        #define MOTION_DAMPING_KD_TWIST_Y  0.0f
-        #define MOTION_DAMPING_KI_TWIST_Y  0.0f 
-        #define MOTION_DAMPING_KD_TWIST_PITCH  0.0f
-        #define MOTION_DAMPING_KI_TWIST_PITCH  0.0f
-        #define MOTION_DAMPING_KD_TWIST_ROLL  0.0f
-        #define MOTION_DAMPING_KI_TWIST_ROLL  0.0f 
+        //***************************SHOULD-BE-ZERO****************/ 
+
+            #define MOTION_DAMPING_KI_TWIST_X  0.0f
+            #define MOTION_DAMPING_KI_TWIST_Y  0.0f 
+            #define MOTION_DAMPING_KI_TWIST_PITCH  0.0f
+            #define MOTION_DAMPING_KI_TWIST_YAW 0.0f 
+            #define MOTION_DAMPING_KI_TWIST_ROLL  0.0f 
+            
+            #define MOTION_DAMPING_KD_TWIST_X  0.0f
+            #define MOTION_DAMPING_KD_TWIST_YAW 0.0f
+            #define MOTION_DAMPING_KD_TWIST_Y  0.0f
+            #define MOTION_DAMPING_KD_TWIST_PITCH  0.0f
+            #define MOTION_DAMPING_KD_TWIST_ROLL  0.0f
 
     #endif
 

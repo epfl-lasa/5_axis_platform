@@ -15,15 +15,13 @@ namespace custom_msgs
     public:
       typedef ros::Time _stamp_type;
       _stamp_type stamp;
-      typedef uint8_t _id_type;
+      typedef int16_t _id_type;
       _id_type id;
       float position[5];
       float speed[5];
       float ctrl_efforts[5];
       float meas_efforts[5];
-      typedef uint8_t _controller_type_type;
-      _controller_type_type controller_type;
-      typedef uint8_t _machine_state_type;
+      typedef int16_t _machine_state_type;
       _machine_state_type machine_state;
 
     FootOutputMsg_v2():
@@ -33,7 +31,6 @@ namespace custom_msgs
       speed(),
       ctrl_efforts(),
       meas_efforts(),
-      controller_type(0),
       machine_state(0)
     {
     }
@@ -51,7 +48,13 @@ namespace custom_msgs
       *(outbuffer + offset + 2) = (this->stamp.nsec >> (8 * 2)) & 0xFF;
       *(outbuffer + offset + 3) = (this->stamp.nsec >> (8 * 3)) & 0xFF;
       offset += sizeof(this->stamp.nsec);
-      *(outbuffer + offset + 0) = (this->id >> (8 * 0)) & 0xFF;
+      union {
+        int16_t real;
+        uint16_t base;
+      } u_id;
+      u_id.real = this->id;
+      *(outbuffer + offset + 0) = (u_id.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_id.base >> (8 * 1)) & 0xFF;
       offset += sizeof(this->id);
       for( uint32_t i = 0; i < 5; i++){
       union {
@@ -101,9 +104,13 @@ namespace custom_msgs
       *(outbuffer + offset + 3) = (u_meas_effortsi.base >> (8 * 3)) & 0xFF;
       offset += sizeof(this->meas_efforts[i]);
       }
-      *(outbuffer + offset + 0) = (this->controller_type >> (8 * 0)) & 0xFF;
-      offset += sizeof(this->controller_type);
-      *(outbuffer + offset + 0) = (this->machine_state >> (8 * 0)) & 0xFF;
+      union {
+        int16_t real;
+        uint16_t base;
+      } u_machine_state;
+      u_machine_state.real = this->machine_state;
+      *(outbuffer + offset + 0) = (u_machine_state.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_machine_state.base >> (8 * 1)) & 0xFF;
       offset += sizeof(this->machine_state);
       return offset;
     }
@@ -121,7 +128,14 @@ namespace custom_msgs
       this->stamp.nsec |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
       this->stamp.nsec |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
       offset += sizeof(this->stamp.nsec);
-      this->id =  ((uint8_t) (*(inbuffer + offset)));
+      union {
+        int16_t real;
+        uint16_t base;
+      } u_id;
+      u_id.base = 0;
+      u_id.base |= ((uint16_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_id.base |= ((uint16_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      this->id = u_id.real;
       offset += sizeof(this->id);
       for( uint32_t i = 0; i < 5; i++){
       union {
@@ -175,15 +189,20 @@ namespace custom_msgs
       this->meas_efforts[i] = u_meas_effortsi.real;
       offset += sizeof(this->meas_efforts[i]);
       }
-      this->controller_type =  ((uint8_t) (*(inbuffer + offset)));
-      offset += sizeof(this->controller_type);
-      this->machine_state =  ((uint8_t) (*(inbuffer + offset)));
+      union {
+        int16_t real;
+        uint16_t base;
+      } u_machine_state;
+      u_machine_state.base = 0;
+      u_machine_state.base |= ((uint16_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_machine_state.base |= ((uint16_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      this->machine_state = u_machine_state.real;
       offset += sizeof(this->machine_state);
      return offset;
     }
 
     const char * getType(){ return "custom_msgs/FootOutputMsg_v2"; };
-    const char * getMD5(){ return "bdc2e1c2a3252f2109c35a5f1eeafcde"; };
+    const char * getMD5(){ return "42f59eb5410deef9d4f3824ae95bdb2d"; };
 
   };
 

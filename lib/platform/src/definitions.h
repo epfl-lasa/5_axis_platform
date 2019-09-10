@@ -3,10 +3,6 @@
 
 #define BAUDRATE 230400  //! For the serial communication
 
-#define NUCLEO32 1
-#define NUCLEO64 2
-#define BOARD NUCLEO64//! Nucleo 32 or Nucleo 64
-
 #define PI 3.14159265359F
 
 #define RIGHT_PLATFORM 1
