@@ -1,6 +1,6 @@
 {
     "terminal.integrated.env.linux": {
-        "PATH": "/home/jacob/.platformio/penv/bin:/home/jacob/.platformio/penv:/home/jacob/bin:/home/jacob/.local/bin:/opt/ros/kinetic/bin:/home/jacob/bin:/home/jacob/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/jacob/ARM_Toolchain/stm32/stlink:/home/jacob/workspace/stm32/stlink-master",
+        "PATH": "/home/lsrob107772/.platformio/penv/bin:/home/lsrob107772/.platformio/penv:/home/lsrob107772/bin:/home/lsrob107772/.local/bin:/opt/ros/kinetic/bin:/home/lsrob107772/bin:/home/lsrob107772/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
         "PLATFORMIO_CALLER": "vscode"
     },
     "C_Cpp.errorSquiggles": "Disabled",
