@@ -3,12 +3,9 @@
         "PATH": "/home/lsrob107772/.platformio/penv/bin:/home/lsrob107772/.platformio/penv:/home/lsrob107772/bin:/home/lsrob107772/.local/bin:/opt/ros/kinetic/bin:/home/lsrob107772/bin:/home/lsrob107772/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
         "PLATFORMIO_CALLER": "vscode"
     },
-    "C_Cpp.errorSquiggles": "Disabled",
-    "files.associations": {
-        "timer.h": "c",
-        "cmath": "cpp",
-        "limits": "cpp",
-        "*.tpp": "cpp",
-        "*.tcc": "cpp"
-    }
+    "python.autoComplete.extraPaths": [
+        "/home/lsrob107772/catkin_hasler/devel/lib/python2.7/dist-packages",
+        "/home/lsrob107772/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/kinetic/lib/python2.7/dist-packages"
+    ]
 }
