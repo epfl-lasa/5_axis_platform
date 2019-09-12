@@ -34,7 +34,7 @@ void QEC_1X::QEC_read(SPI *spi){
   _encoderCount = (long)(buff[0]<<24) + (long)(buff[1]<<16) + (long)(buff[2]<<8) + (long)buff[3] - _encoderOffset;
 }
 
-void QEC_1X::QEC_getPose(SPI *spi)
+void QEC_1X::QEC_getPosition(SPI *spi)
 
 {
   QEC_read(spi);

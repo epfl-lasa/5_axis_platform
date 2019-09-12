@@ -14,7 +14,7 @@ class QEC_1X
 		void QEC_init(int id_, float scale_, int sign_, SPI* spi);
 		float outDimension;  
 		void QEC_read(SPI* spi);
-		void QEC_getPose(SPI* spi);
+		void QEC_getPosition(SPI* spi);
 		void QEC_config(SPI* spi);
 		void QEC_clear(SPI* spi);
 		//void QEC_offset();

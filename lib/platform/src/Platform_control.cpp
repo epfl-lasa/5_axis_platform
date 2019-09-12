@@ -3,7 +3,7 @@
 #include <definitions_2.h>
 
 //! 1
-void Platform::poseControl(WrenchComp Component)
+void Platform::positionControl(EffortComp Component)
 {
   //Compute the PID
 
@@ -15,56 +15,56 @@ void Platform::poseControl(WrenchComp Component)
 }
 
 //! 2
-void Platform::posAxisControl(WrenchComp Component, int axis)
+void Platform::posAxisControl(EffortComp Component, int axis)
 {
 
-    if ((axis<2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
-      _pidPose[axis]->setOutputLimits(-25.0,25.0); //!N
+    if ((axis<2)&&((_controllerType==POSITION_ONLY)||(_controllerType==SPEED_POSITION_CASCADE))){
+      _pidPosition[axis]->setOutputLimits(-25.0,25.0); //!N
     }
 
-    if ((axis>=2)&&((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE))){
-      if (axis==PITCH) {_pidPose[axis]->setOutputLimits(-5.0,5.0);} //!Nm
-      if (axis==ROLL || axis==YAW){_pidPose[axis]->setOutputLimits(-5.0,5.0);} //!Nm
+    if ((axis>=2)&&((_controllerType==POSITION_ONLY)||(_controllerType==SPEED_POSITION_CASCADE))){
+      if (axis==PITCH) {_pidPosition[axis]->setOutputLimits(-5.0,5.0);} //!Nm
+      if (axis==ROLL || axis==YAW){_pidPosition[axis]->setOutputLimits(-5.0,5.0);} //!Nm
     }
 
-    if (_controllerType==TWIST_POSE_CASCADE){
-      _poseD[axis]=_twistCtrlOut[axis];
+    if (_controllerType==SPEED_POSITION_CASCADE){
+      _positionD[axis]=_speedCtrlOut[axis];
     }
 
-     _pidPose[axis]->setTunings(_kpPose[axis], _kiPose[axis], _kdPose[axis]);
-     _pidPose[axis]->compute();
+     _pidPosition[axis]->setTunings(_kpPosition[axis], _kiPosition[axis], _kdPosition[axis]);
+     _pidPosition[axis]->compute();
 
-    if ((_controllerType==POSE_ONLY)||(_controllerType==TWIST_POSE_CASCADE)){
-      _wrenchD_ADD[Component][axis]=_poseCtrlOut[axis];
+    if ((_controllerType==POSITION_ONLY)||(_controllerType==SPEED_POSITION_CASCADE)){
+      _effortD_ADD[Component][axis]=_positionCtrlOut[axis];
     }
 }
 
 //! 3
-void Platform::speedAxisControl(WrenchComp Component, int axis)
+void Platform::speedAxisControl(EffortComp Component, int axis)
 {
-    if ((axis<2)&&((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE))){
-      _pidTwist[axis]->setOutputLimits(-25,25); //!N
+    if ((axis<2)&&((_controllerType==SPEED_ONLY)||(_controllerType==POSITION_SPEED_CASCADE))){
+      _pidSpeed[axis]->setOutputLimits(-25,25); //!N
     }
 
-    if ((axis>=2)&&((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE))){
-      _pidTwist[axis]->setOutputLimits(-3,3); //!Nm
+    if ((axis>=2)&&((_controllerType==SPEED_ONLY)||(_controllerType==POSITION_SPEED_CASCADE))){
+      _pidSpeed[axis]->setOutputLimits(-3,3); //!Nm
     }
 
-    if (_controllerType==POSE_TWIST_CASCADE){
-      _twistD[axis]=_poseCtrlOut[axis];
+    if (_controllerType==POSITION_SPEED_CASCADE){
+      _speedD[axis]=_positionCtrlOut[axis];
     }
 
 
-     _pidTwist[axis]->setTunings(_kpTwist[axis], _kiTwist[axis], _kdTwist[axis]);
-     _pidTwist[axis]->compute();
+     _pidSpeed[axis]->setTunings(_kpSpeed[axis], _kiSpeed[axis], _kdSpeed[axis]);
+     _pidSpeed[axis]->compute();
 
-    if ((_controllerType==TWIST_ONLY)||(_controllerType==POSE_TWIST_CASCADE)){
-      _wrenchD_ADD[NORMAL][axis]=_twistCtrlOut[axis];
+    if ((_controllerType==SPEED_ONLY)||(_controllerType==POSITION_SPEED_CASCADE)){
+      _effortD_ADD[NORMAL][axis]=_speedCtrlOut[axis];
     }
 }
 
 //! 4
-void Platform::twistControl(WrenchComp Component)
+void Platform::speedControl(EffortComp Component)
 {
 
   for (int i = 0; i < NB_AXIS; i++)
@@ -77,21 +77,21 @@ void Platform::twistControl(WrenchComp Component)
 void Platform::gotoPointAxis(int axis_, float point)
 {
   if (_flagDefaultControl){ gotoPointGainsDefault(axis_);}
-  _poseD[axis_]=point;
+  _positionD[axis_]=point;
   posAxisControl(NORMAL,axis_);
 }
 
 //! 6
 void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW)
 {
-  _controllerType=POSE_ONLY;
-  _poseD[X]=pointX;
-  _poseD[Y]=pointY;
-  _poseD[PITCH]=pointPITCH;
-  _poseD[ROLL]=pointROLL;
-  _poseD[YAW]=pointYAW;
+  _controllerType=POSITION_ONLY;
+  _positionD[X]=pointX;
+  _positionD[Y]=pointY;
+  _positionD[PITCH]=pointPITCH;
+  _positionD[ROLL]=pointROLL;
+  _positionD[YAW]=pointYAW;
   gotoPointGainsDefault(-1);
-  poseControl(NORMAL);
+  positionControl(NORMAL);
 }
 
 //! 7
@@ -106,11 +106,11 @@ void Platform::gotoPointGainsDefault(int axis_)
 
   else{
     switch(axis_){
-        case(X): {_kpPose[X]=GT_KP_POSE_X;_kiPose[X]=GT_KI_POSE_X;_kdPose[X]=GT_KD_POSE_X; break;}
-        case(Y): {_kpPose[Y]=GT_KP_POSE_Y;_kiPose[Y]=GT_KI_POSE_Y;_kdPose[Y]=GT_KD_POSE_Y; break;}
-        case(PITCH): {_kpPose[PITCH]=GT_KP_POSE_PITCH;_kiPose[PITCH]=GT_KI_POSE_PITCH;_kdPose[PITCH]=GT_KD_POSE_PITCH;break;}
-        case(ROLL): {_kpPose[ROLL]=GT_KP_POSE_ROLL;_kiPose[ROLL]=GT_KI_POSE_ROLL;_kdPose[ROLL]=GT_KD_POSE_ROLL;break;}
-        case(YAW): {_kpPose[YAW]=GT_KP_POSE_YAW;_kiPose[YAW]=GT_KI_POSE_YAW;_kdPose[YAW]=GT_KD_POSE_YAW;break;}
+        case(X): {_kpPosition[X]=GT_KP_POSITION_X;_kiPosition[X]=GT_KI_POSITION_X;_kdPosition[X]=GT_KD_POSITION_X; break;}
+        case(Y): {_kpPosition[Y]=GT_KP_POSITION_Y;_kiPosition[Y]=GT_KI_POSITION_Y;_kdPosition[Y]=GT_KD_POSITION_Y; break;}
+        case(PITCH): {_kpPosition[PITCH]=GT_KP_POSITION_PITCH;_kiPosition[PITCH]=GT_KI_POSITION_PITCH;_kdPosition[PITCH]=GT_KD_POSITION_PITCH;break;}
+        case(ROLL): {_kpPosition[ROLL]=GT_KP_POSITION_ROLL;_kiPosition[ROLL]=GT_KI_POSITION_ROLL;_kdPosition[ROLL]=GT_KD_POSITION_ROLL;break;}
+        case(YAW): {_kpPosition[YAW]=GT_KP_POSITION_YAW;_kiPosition[YAW]=GT_KI_POSITION_YAW;_kdPosition[YAW]=GT_KD_POSITION_YAW;break;}
       }
   }
 }

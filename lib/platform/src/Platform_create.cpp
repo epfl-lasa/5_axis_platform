@@ -28,7 +28,7 @@ Platform::Platform()
     
     for (int k=0; k<NB_AXIS; k++)
     {
-      _maxWrench[k]=_torqueConstants[k]*_maxCurrent[k]*_transmisions[k];
+      _maxEffort[k]=_torqueConstants[k]*_maxCurrent[k]*_transmisions[k];
     }
 
   _encoderScale[X] =ENCODERSCALE_X;
@@ -57,32 +57,32 @@ Platform::Platform()
 
   for(int k = 0; k < NB_AXIS; k++)
   {
-    _pose[k] = 0.0f;
-    _poseOffsets[k] = 0.0f;
-    _posePrev[k] = 0.0f;
+    _position[k] = 0.0f;
+    _positionOffsets[k] = 0.0f;
+    _positionPrev[k] = 0.0f;
     
-    poseCtrlClear(k);
-    twistCtrlClear(k);
+    positionCtrlClear(k);
+    speedCtrlClear(k);
 
-    _wrench[k] = 0.0f;
-    totalWrenchDClear(k);
-    _wrenchM[k] = 0.0f;
-    _poseFilters[k] = new LP_Filter(0.6);
-    _twistFilters[k] = new LP_Filter(0.95);
-    _wrenchMFilters[k] = new LP_Filter(0.95);
+    _effort[k] = 0.0f;
+    totalEffortDClear(k);
+    _effortM[k] = 0.0f;
+    _positionFilters[k] = new LP_Filter(0.6);
+    _speedFilters[k] = new LP_Filter(0.95);
+    _effortMFilters[k] = new LP_Filter(0.95);
     limitSwitchesClear();
 
-    _commPoseSet[k]=0.0f;
-    _commTwistSet[k]=0.0f;
+    _rosPosition[k]=0.0f;
+    _rosSpeed[k]=0.0f;
     
-    _pidPose[k] = new PID(&_innerTimer, &_pose[k], &_poseCtrlOut[k], &_poseD[k], _kpPose[k], _kiPose[k], _kdPose[k],DIRECT);
-    _pidPose[k]->setMode(AUTOMATIC);
-    _pidTwist[k] = new PID(&_innerTimer, &_twist[k], &_twistCtrlOut[k], &_twistD[k], _kpTwist[k], _kiTwist[k], _kdTwist[k],DIRECT);
-    _pidTwist[k]->setMode(AUTOMATIC);
+    _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD[k], _kpPosition[k], _kiPosition[k], _kdPosition[k],DIRECT);
+    _pidPosition[k]->setMode(AUTOMATIC);
+    _pidSpeed[k] = new PID(&_innerTimer, &_speed[k], &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
+    _pidSpeed[k]->setMode(AUTOMATIC);
   }  
   _innerCounter=0;
   
-  _commControlledAxis=-1; //! all of them
+  _rosControlledAxis=-1; //! all of them
   _controllerType=TORQUE_ONLY;
   _flagClearLastState=false;
   _flagInWsConstrains=false;
@@ -91,8 +91,8 @@ Platform::Platform()
   
   for (int j=0; j<NB_WRENCH_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
   {
-    if (j<=1){ _desWrenchComponents[j]=1;}
-    else{_desWrenchComponents[j]=0;}
+    if (j<=1){ _rosEffortComponents[j]=1;}
+    else{_rosEffortComponents[j]=0;}
   }
 
   _tic=false;

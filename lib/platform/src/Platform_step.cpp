@@ -6,7 +6,7 @@
 void Platform::step()
 {
   getMotion(); //! SPI
-  readActualWrench(); //! Using the ESCON 50/5 Analog Output  
+  readActualEffort(); //! Using the ESCON 50/5 Analog Output  
 
   //Security Check  
   if (!_allEsconOk) {_state=EMERGENCY;}
@@ -28,7 +28,7 @@ void Platform::step()
       _nh.loginfo("MOVING TO STATE STANDBY");
       _enterStateOnceFlag[STANDBY]=true;
     }
-    totalWrenchDClear(-1);
+    totalEffortDClear(-1);
     _lastState=_state; 
     break;
     }    //Do nothing
@@ -45,21 +45,21 @@ void Platform::step()
         _enterStateOnceFlag[HOMING]=true;
       }
 
-      _controllerType=TWIST_ONLY;
+      _controllerType=SPEED_ONLY;
       
-      _twistD[X] = TWIST_D_HOMING_X; // m/s
-      _twistD[Y] = TWIST_D_HOMING_Y; // m/s
-      _twistD[PITCH] = TWIST_D_HOMING_PITCH; // °/s
+      _speedD[X] = SPEED_D_HOMING_X; // m/s
+      _speedD[Y] = SPEED_D_HOMING_Y; // m/s
+      _speedD[PITCH] = SPEED_D_HOMING_PITCH; // °/s
 
-      _kpTwist[X] = KP_HOMING_TWIST_X;
-      _kiTwist[X] = KI_HOMING_TWIST_X; 
-      _kpTwist[Y] = KP_HOMING_TWIST_Y;
-      _kiTwist[Y] = KI_HOMING_TWIST_Y; //
-      _kpTwist[PITCH] = KP_HOMING_TWIST_PITCH; //
-      _kiTwist[PITCH] = KI_HOMING_TWIST_PITCH; // 
+      _kpSpeed[X] = KP_HOMING_SPEED_X;
+      _kiSpeed[X] = KI_HOMING_SPEED_X; 
+      _kpSpeed[Y] = KP_HOMING_SPEED_Y;
+      _kiSpeed[Y] = KI_HOMING_SPEED_Y; //
+      _kpSpeed[PITCH] = KP_HOMING_SPEED_PITCH; //
+      _kiSpeed[PITCH] = KI_HOMING_SPEED_PITCH; // 
 
-      compWrenchClear(-1, NORMAL);
-      twistControl(NORMAL);
+      compEffortClear(-1, NORMAL);
+      speedControl(NORMAL);
 
       // Definition of the transition rule to the next state
       if ((_switchesState[X] == 1) && (_switchesState[Y] == 1) && (_switchesState[PITCH] == 1))
@@ -74,7 +74,7 @@ void Platform::step()
         if ((_innerTimer.read_us() - _toc) > 1500000)
         {
              
-            poseAllReset();
+            positionAllReset();
             _state = CENTERING;    
             _tic=false;
             clearLastState(); 
@@ -96,10 +96,10 @@ void Platform::step()
         _enterStateOnceFlag[CENTERING]=true;
       }
       // Main State
-      compWrenchClear(-1, NORMAL);
+      compEffortClear(-1, NORMAL);
       gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
 
-      if((fabs(_poseD[X]-_pose[X]) < 0.003f) && (fabs(_poseD[Y]-_pose[Y]) < 0.003f) && (fabs(_poseD[PITCH]-_pose[PITCH]) < 3.0f))
+      if((fabs(_positionD[X]-_position[X]) < 0.003f) && (fabs(_positionD[Y]-_position[Y]) < 0.003f) && (fabs(_positionD[PITCH]-_position[PITCH]) < 3.0f))
       {
         if(!_tic){
           _toc = _innerTimer.read_us();
@@ -118,7 +118,7 @@ void Platform::step()
       break;
     }
     case TELEOPERATION:
-        //NB In this state, the controller type (set from ROS) POSE AND TWIST WILL REFER TO WANTING TO HAVE CONSTRAINS 
+        //NB In this state, the controller type (set from ROS) POSITION AND SPEED WILL REFER TO WANTING TO HAVE CONSTRAINS 
     {
       // Init State
      if (!_enterStateOnceFlag[TELEOPERATION])
@@ -127,20 +127,20 @@ void Platform::step()
       _nh.loginfo("MOVING TO STATE TELEOPERATION");
       _enterStateOnceFlag[TELEOPERATION]=true;
      }
-      compWrenchClear(-1,CONSTRAINS);
-      compWrenchClear(-1,COMPENSATION);
-      compWrenchClear(-1,FEEDFORWARD);
+      compEffortClear(-1,CONSTRAINS);
+      compEffortClear(-1,COMPENSATION);
+      compEffortClear(-1,FEEDFORWARD);
       // Main State
-      //# In this context: e.g. CtrlType=POSE_ONLY-> "I should listen" to set_positions[k], 
-      if (_desWrenchComponents[CONSTRAINS]==1)
+      //# In this context: e.g. CtrlType=POSITION_ONLY-> "I should listen" to set_positions[k], 
+      if (_rosEffortComponents[CONSTRAINS]==1)
       {
-        if ((_controllerType!=TWIST_ONLY)&&(_controllerType!=TORQUE_ONLY))
+        if ((_controllerType!=SPEED_ONLY)&&(_controllerType!=TORQUE_ONLY))
         {
-          wsConstrains(_commControlledAxis); //! workspace constraints : soft limits, or joystick effect, etc
+          wsConstrains(_rosControlledAxis); //! workspace constraints : soft limits, or joystick effect, etc
         }
-        if ((_controllerType!=POSE_ONLY)&&(_controllerType!=TORQUE_ONLY))
+        if ((_controllerType!=POSITION_ONLY)&&(_controllerType!=TORQUE_ONLY))
         { 
-          motionDamping(_commControlledAxis); //! Motion damping, to make it easier to control the platform
+          motionDamping(_rosControlledAxis); //! Motion damping, to make it easier to control the platform
         }
       }
       _lastState=_state;
@@ -159,28 +159,28 @@ void Platform::step()
      }
 
      // Main state
-      compWrenchClear(-1,CONSTRAINS);
-      compWrenchClear(-1,COMPENSATION);
-      compWrenchClear(-1,FEEDFORWARD);
+      compEffortClear(-1,CONSTRAINS);
+      compEffortClear(-1,COMPENSATION);
+      compEffortClear(-1,FEEDFORWARD);
       for(int k=0; k<NB_AXIS; k++)
         {
-          if(_controllerType!=TWIST_ONLY && _controllerType!=TORQUE_ONLY)
+          if(_controllerType!=SPEED_ONLY && _controllerType!=TORQUE_ONLY)
           {
-            _poseD[k]=_commPoseSet[k];
+            _positionD[k]=_rosPosition[k];
                     //! Position Control
         
-            if (_commControlledAxis==-1)
+            if (_rosControlledAxis==-1)
             {
-              gotoPointAll(_poseD[X],_poseD[Y],_poseD[PITCH],_poseD[ROLL],_poseD[YAW]);
+              gotoPointAll(_positionD[X],_positionD[Y],_positionD[PITCH],_positionD[ROLL],_positionD[YAW]);
             }
             else 
             {
-              gotoPointAxis(_commControlledAxis,_poseD[_commControlledAxis]);
+              gotoPointAxis(_rosControlledAxis,_positionD[_rosControlledAxis]);
             }
           }
-          if(_controllerType!=POSE_ONLY && _controllerType!=TORQUE_ONLY)
+          if(_controllerType!=POSITION_ONLY && _controllerType!=TORQUE_ONLY)
           {
-            _twistD[k]=_commTwistSet[k];
+            _speedD[k]=_rosSpeed[k];
           }
         }
 
@@ -206,7 +206,7 @@ void Platform::step()
     }
   }
 
-  if (_allEsconOk) {setWrenches();}// Aply the forces and torques}  
+  if (_allEsconOk) {setEfforts();}// Aply the forces and torques}  
   
   //! Keep track of time
   _timestep=_innerTimer.read_us()-_timestamp;

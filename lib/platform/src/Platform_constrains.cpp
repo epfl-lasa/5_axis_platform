@@ -16,16 +16,16 @@ void Platform::wsConstrains(int axis_)
     if (_flagDefaultControl) {wsConstrainsDefault(axis_);}
     else
     {
-       _c_wsLimits[axis_]=fabs(_commPoseSet[axis_]); //! A symmetric wall will be built on the set position
-       _kiPose[axis_]=0.0f;
+       _c_wsLimits[axis_]=fabs(_rosPosition[axis_]); //! A symmetric wall will be built on the set position
+       _kiPosition[axis_]=0.0f;
     }
 
-    _poseD[axis_] = _pose[axis_] >= _c_wsLimits[axis_] ? _c_wsLimits[axis_] : (_pose[axis_] <= -_c_wsLimits[axis_] ? -_c_wsLimits[axis_]: 0.0f);
+    _positionD[axis_] = _position[axis_] >= _c_wsLimits[axis_] ? _c_wsLimits[axis_] : (_position[axis_] <= -_c_wsLimits[axis_] ? -_c_wsLimits[axis_]: 0.0f);
     
-    if ( _pose[axis_] >= _c_wsLimits[axis_] || _pose[axis_] <= -_c_wsLimits[axis_] )
+    if ( _position[axis_] >= _c_wsLimits[axis_] || _position[axis_] <= -_c_wsLimits[axis_] )
       {
         _flagInWsConstrains=true;
-        // if ( ((_pose[axis_] <= 0.0) && (_twist[axis_] <= 0.0)) || ((_pose[axis_] >= 0.0) && (_twist[axis_] >= 0.0)) ) 
+        // if ( ((_position[axis_] <= 0.0) && (_speed[axis_] <= 0.0)) || ((_position[axis_] >= 0.0) && (_speed[axis_] >= 0.0)) ) 
         // {
           posAxisControl(CONSTRAINS,axis_);
         // }
@@ -33,7 +33,7 @@ void Platform::wsConstrains(int axis_)
       else    
       {
         _flagInWsConstrains=false;
-        _wrenchD_ADD[CONSTRAINS][axis_]=0.0f;
+        _effortD_ADD[CONSTRAINS][axis_]=0.0f;
       }
   }
 }
@@ -57,10 +57,10 @@ void Platform::motionDamping(int axis_)
       if (_flagDefaultControl) {motionDampingGainsDefault(axis_);}
       else
       {
-        _kiTwist[axis_]=0.0f; //! overwrite the i and d constants sent from ROS (because it is teleoperation mode)
-        _kdTwist[axis_]=0.0f;
+        _kiSpeed[axis_]=0.0f; //! overwrite the i and d constants sent from ROS (because it is teleoperation mode)
+        _kdSpeed[axis_]=0.0f;
       }
-      _twistD[axis_]=0.0f; //! the target is zero speed
+      _speedD[axis_]=0.0f; //! the target is zero speed
       speedAxisControl(CONSTRAINS, axis_);
     }   
   }
@@ -77,11 +77,11 @@ void Platform::wsConstrainsDefault(int axis_)
   }
   else{
     switch(axis_){
-        case(X): {_c_wsLimits[X] = C_WS_RANGE_X;_kpPose[X]=C_WS_KP_POSE_X;_kiPose[X]=C_WS_KI_POSE_X;_kdPose[X]=C_WS_KD_POSE_X; break;}
-        case(Y): {_c_wsLimits[Y] = C_WS_RANGE_Y;_kpPose[Y]=C_WS_KP_POSE_Y;_kiPose[Y]=C_WS_KI_POSE_Y;_kdPose[Y]=C_WS_KD_POSE_Y; break;}
-        case(PITCH): {_c_wsLimits[PITCH] = C_WS_RANGE_PITCH;_kpPose[PITCH]=C_WS_KP_POSE_PITCH;_kiPose[PITCH]=C_WS_KI_POSE_PITCH;_kdPose[PITCH]=C_WS_KD_POSE_PITCH;break;}
-        case(ROLL): {_c_wsLimits[ROLL] = C_WS_RANGE_ROLL;_kpPose[ROLL]=C_WS_KP_POSE_ROLL;_kiPose[ROLL]=C_WS_KI_POSE_ROLL;_kdPose[ROLL]=C_WS_KD_POSE_ROLL;break;}
-        case(YAW): {_c_wsLimits[YAW] = C_WS_RANGE_YAW;_kpPose[YAW]=C_WS_KP_POSE_YAW;_kiPose[YAW]=C_WS_KI_POSE_YAW;_kdPose[YAW]=C_WS_KD_POSE_YAW;break;}
+        case(X): {_c_wsLimits[X] = C_WS_RANGE_X;_kpPosition[X]=C_WS_KP_POSITION_X;_kiPosition[X]=C_WS_KI_POSITION_X;_kdPosition[X]=C_WS_KD_POSITION_X; break;}
+        case(Y): {_c_wsLimits[Y] = C_WS_RANGE_Y;_kpPosition[Y]=C_WS_KP_POSITION_Y;_kiPosition[Y]=C_WS_KI_POSITION_Y;_kdPosition[Y]=C_WS_KD_POSITION_Y; break;}
+        case(PITCH): {_c_wsLimits[PITCH] = C_WS_RANGE_PITCH;_kpPosition[PITCH]=C_WS_KP_POSITION_PITCH;_kiPosition[PITCH]=C_WS_KI_POSITION_PITCH;_kdPosition[PITCH]=C_WS_KD_POSITION_PITCH;break;}
+        case(ROLL): {_c_wsLimits[ROLL] = C_WS_RANGE_ROLL;_kpPosition[ROLL]=C_WS_KP_POSITION_ROLL;_kiPosition[ROLL]=C_WS_KI_POSITION_ROLL;_kdPosition[ROLL]=C_WS_KD_POSITION_ROLL;break;}
+        case(YAW): {_c_wsLimits[YAW] = C_WS_RANGE_YAW;_kpPosition[YAW]=C_WS_KP_POSITION_YAW;_kiPosition[YAW]=C_WS_KI_POSITION_YAW;_kdPosition[YAW]=C_WS_KD_POSITION_YAW;break;}
       }
   }
 }
@@ -99,11 +99,11 @@ void Platform:: motionDampingGainsDefault(int axis_)
 
   else{
     switch(axis_){
-        case(X): {_kpTwist[X]=MOTION_DAMPING_KP_TWIST_X;_kiTwist[X]=MOTION_DAMPING_KI_TWIST_X;_kdTwist[X]=MOTION_DAMPING_KD_TWIST_X; break;}
-        case(Y): {_kpTwist[Y]=MOTION_DAMPING_KP_TWIST_Y;_kiTwist[Y]=MOTION_DAMPING_KI_TWIST_Y;_kdTwist[Y]=MOTION_DAMPING_KD_TWIST_Y; break;}
-        case(PITCH): {_kpTwist[PITCH]=MOTION_DAMPING_KP_TWIST_PITCH;_kiTwist[PITCH]=MOTION_DAMPING_KI_TWIST_PITCH;_kdTwist[PITCH]=MOTION_DAMPING_KD_TWIST_PITCH;break;}
-        case(ROLL): {_kpTwist[ROLL]=MOTION_DAMPING_KP_TWIST_ROLL;_kiTwist[ROLL]=MOTION_DAMPING_KI_TWIST_ROLL;_kdTwist[ROLL]=MOTION_DAMPING_KD_TWIST_ROLL;break;}
-        case(YAW): {_kpTwist[YAW]=MOTION_DAMPING_KP_TWIST_YAW;_kiTwist[YAW]=MOTION_DAMPING_KI_TWIST_YAW;_kdTwist[YAW]=MOTION_DAMPING_KD_TWIST_YAW;break;}
+        case(X): {_kpSpeed[X]=MOTION_DAMPING_KP_SPEED_X;_kiSpeed[X]=MOTION_DAMPING_KI_SPEED_X;_kdSpeed[X]=MOTION_DAMPING_KD_SPEED_X; break;}
+        case(Y): {_kpSpeed[Y]=MOTION_DAMPING_KP_SPEED_Y;_kiSpeed[Y]=MOTION_DAMPING_KI_SPEED_Y;_kdSpeed[Y]=MOTION_DAMPING_KD_SPEED_Y; break;}
+        case(PITCH): {_kpSpeed[PITCH]=MOTION_DAMPING_KP_SPEED_PITCH;_kiSpeed[PITCH]=MOTION_DAMPING_KI_SPEED_PITCH;_kdSpeed[PITCH]=MOTION_DAMPING_KD_SPEED_PITCH;break;}
+        case(ROLL): {_kpSpeed[ROLL]=MOTION_DAMPING_KP_SPEED_ROLL;_kiSpeed[ROLL]=MOTION_DAMPING_KI_SPEED_ROLL;_kdSpeed[ROLL]=MOTION_DAMPING_KD_SPEED_ROLL;break;}
+        case(YAW): {_kpSpeed[YAW]=MOTION_DAMPING_KP_SPEED_YAW;_kiSpeed[YAW]=MOTION_DAMPING_KI_SPEED_YAW;_kdSpeed[YAW]=MOTION_DAMPING_KD_SPEED_YAW;break;}
       }
   }
 }

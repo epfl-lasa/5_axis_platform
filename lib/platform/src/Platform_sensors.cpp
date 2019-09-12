@@ -6,30 +6,30 @@
 
 void Platform::getMotion()
 {
-  getPose();
-  getTwist();
+  getPosition();
+  getSpeed();
 }
 
 //! #2
-void Platform::readActualWrench() //! ADC
+void Platform::readActualEffort() //! ADC
 {
   if(_innerCounter<NB_AXIS && (_timestamp-_analogReadStamp)>=ANALOG_SAMPLING_TIME)
   {
     if (_innerCounter>=ROLL){
-      _wrenchM[_innerCounter+2]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxWrench[_innerCounter],_maxWrench[_innerCounter]);
+      _effortM[_innerCounter+2]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxEffort[_innerCounter],_maxEffort[_innerCounter]);
     }
     else
     {
-      _wrenchM[_innerCounter]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxWrench[_innerCounter],_maxWrench[_innerCounter]);
-      _wrenchM[_innerCounter]=_wrenchMFilters[_innerCounter]->update(_wrenchM[_innerCounter]);
+      _effortM[_innerCounter]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxEffort[_innerCounter],_maxEffort[_innerCounter]);
+      _effortM[_innerCounter]=_effortMFilters[_innerCounter]->update(_effortM[_innerCounter]);
     }
     
   if(_innerCounter==YAW){
     // Adapt roll and yaw angles due to differential mechanism
-    _wrenchM[ROLL]= (_wrenchM[ROLL+2]-_wrenchM[YAW+2])/2.0f;
-    _wrenchM[YAW] = (_wrenchM[ROLL+2]+_wrenchM[YAW+2])/2.0f;
-    _wrenchM[ROLL]=_wrenchMFilters[ROLL]->update(_wrenchM[ROLL]);
-    _wrenchM[YAW]=_wrenchMFilters[YAW]->update(_wrenchM[YAW]);
+    _effortM[ROLL]= (_effortM[ROLL+2]-_effortM[YAW+2])/2.0f;
+    _effortM[YAW] = (_effortM[ROLL+2]+_effortM[YAW+2])/2.0f;
+    _effortM[ROLL]=_effortMFilters[ROLL]->update(_effortM[ROLL]);
+    _effortM[YAW]=_effortMFilters[YAW]->update(_effortM[YAW]);
     _innerCounter=0;
   }
   
@@ -39,32 +39,32 @@ void Platform::readActualWrench() //! ADC
 }
 
 //! #3
-void Platform::getPose()
+void Platform::getPosition()
 {
   _spi->lock(); 
   for (int k = 0; k < NB_AXIS; k++)
   {
-    _encoders[k]->QEC_getPose(_spi);
-    _pose[k] = _encoders[k]->outDimension + _poseOffsets[k];
-    _pose[k] = _poseFilters[k]->update(_pose[k]);
+    _encoders[k]->QEC_getPosition(_spi);
+    _position[k] = _encoders[k]->outDimension + _positionOffsets[k];
+    _position[k] = _positionFilters[k]->update(_position[k]);
   }
   _spi->unlock(); 
   // Adapt roll and yaw angles due to differential mechanism
-  float enc1 = _pose[ROLL];
-  float enc2 = _pose[YAW];
-  _pose[ROLL]= (enc1-enc2)/2.0f;
-  _pose[YAW] = (enc1+enc2)/2.0f;
+  float enc1 = _position[ROLL];
+  float enc2 = _position[YAW];
+  _position[ROLL]= (enc1-enc2)/2.0f;
+  _position[YAW] = (enc1+enc2)/2.0f;
 }
 //! #4
-void Platform::getTwist()
+void Platform::getSpeed()
 {
   if ((_timestamp-_speedSamplingStamp)>=VELOCITY_PID_SAMPLE_P)
   {
     for (int k = 0; k < NB_AXIS; k++)
     {
-      _twist[k] = (_pose[k] - _posePrev[k]) / (VELOCITY_PID_SAMPLE_P * 1e-6f);
-      _twist[k] = _twistFilters[k]->update(_twist[k]);
-      _posePrev[k] = _pose[k];
+      _speed[k] = (_position[k] - _positionPrev[k]) / (VELOCITY_PID_SAMPLE_P * 1e-6f);
+      _speed[k] = _speedFilters[k]->update(_speed[k]);
+      _positionPrev[k] = _position[k];
       _speedSamplingStamp=_timestamp;
     }
   }

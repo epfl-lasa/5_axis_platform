@@ -5,8 +5,8 @@
 //! 1
 void Platform::resetEscons(){
 
-  totalWrenchDClear(-1);
-  setWrenches();
+  totalEffortDClear(-1);
+  setEfforts();
   wait_ms(250);
   _enableMotors->write(1);
   wait_ms(750);

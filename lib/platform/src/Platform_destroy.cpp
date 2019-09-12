@@ -7,13 +7,13 @@ Platform::~Platform()
   _innerTimer.~Timer();
   for(int k = 0; k <NB_AXIS; k++)
   {
-    delete (_poseFilters[k]);
-    delete (_wrenchMFilters[k]);
-    delete (_twistFilters[k]);
-    _pidPose[k]->~PID();
-    delete (_pidPose[k]);
-    _pidTwist[k]->~PID();
-    delete (_pidTwist[k]);
+    delete (_positionFilters[k]);
+    delete (_effortMFilters[k]);
+    delete (_speedFilters[k]);
+    _pidPosition[k]->~PID();
+    delete (_pidPosition[k]);
+    _pidSpeed[k]->~PID();
+    delete (_pidSpeed[k]);
     _encoders[k]->~QEC_1X();
     delete (_encoders[k]);
     delete (_motors[k]);

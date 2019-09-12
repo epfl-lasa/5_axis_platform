@@ -4,13 +4,13 @@
 
 
 //! 1
-void Platform::poseAllReset()
+void Platform::positionAllReset()
 {
   if (_switchesState[X] == 1 && _switchesState[Y] == 1 && _switchesState[PITCH] == 1)
   {
-    _poseOffsets[X] = HOMING_OFFSET_X;
-    _poseOffsets[Y] = HOMING_OFFSET_Y;
-    _poseOffsets[PITCH] = HOMING_OFFSET_PITCH;
+    _positionOffsets[X] = HOMING_OFFSET_X;
+    _positionOffsets[Y] = HOMING_OFFSET_Y;
+    _positionOffsets[PITCH] = HOMING_OFFSET_PITCH;
     _spi->lock();
       for(int k = 0; k <NB_AXIS; k++)
       {
@@ -39,9 +39,9 @@ void Platform::clearLastState()
         _nh.loginfo("LEAVING HOMING STATE"); 
         _enterStateOnceFlag[HOMING]=false;   
         limitSwitchesClear();       
-        //! Finally resets the wrench commands given by this controller. 
-        compWrenchClear(-1,NORMAL); //! Clear the normal dimension of the 
-        twistCtrlClear(-1);
+        //! Finally resets the effort commands given by this controller. 
+        compEffortClear(-1,NORMAL); //! Clear the normal dimension of the 
+        speedCtrlClear(-1);
         break; 
       }
 
@@ -49,17 +49,17 @@ void Platform::clearLastState()
       {
         _nh.loginfo("LEAVING CENTERING STATE"); 
         _enterStateOnceFlag[CENTERING]=false;
-        compWrenchClear(-1,NORMAL);
-        poseCtrlClear(-1);
+        compEffortClear(-1,NORMAL);
+        positionCtrlClear(-1);
         break;
       }
       case(TELEOPERATION):
       {
         _nh.loginfo("LEAVING TELEOPERATION STATE"); 
         _enterStateOnceFlag[TELEOPERATION]=false;
-        totalWrenchDClear(-1);
-        poseCtrlClear(-1);
-        twistCtrlClear(-1);
+        totalEffortDClear(-1);
+        positionCtrlClear(-1);
+        speedCtrlClear(-1);
         break;
       }
 
@@ -67,9 +67,9 @@ void Platform::clearLastState()
       {
         _nh.loginfo("LEAVING ROBOT_STATE_CONTROL STATE"); 
         _enterStateOnceFlag[ROBOT_STATE_CONTROL]=false;
-        totalWrenchDClear(-1);
-        poseCtrlClear(-1);
-        twistCtrlClear(-1);
+        totalEffortDClear(-1);
+        positionCtrlClear(-1);
+        speedCtrlClear(-1);
         break;
       }
 
@@ -82,78 +82,78 @@ void Platform::clearLastState()
 }
 
 //! 4
-void Platform::poseCtrlClear(int axis_)
+void Platform::positionCtrlClear(int axis_)
 {
   if (axis_==-1){
     for (int k=0; k<NB_AXIS; k++ )
     {
-      poseCtrlClear(k);
+      positionCtrlClear(k);
     }
   }
   else
   {
-    _poseD[axis_]=0.0f;
-    _kpPose[axis_]=0.0f;
-    _kiPose[axis_]=0.0f;
-    _kdPose[axis_]=0.0f;
-    _poseCtrlOut[axis_]=0.0f;
+    _positionD[axis_]=0.0f;
+    _kpPosition[axis_]=0.0f;
+    _kiPosition[axis_]=0.0f;
+    _kdPosition[axis_]=0.0f;
+    _positionCtrlOut[axis_]=0.0f;
   }
   
 }
 
 //! 5
-void Platform::twistCtrlClear(int axis_)
+void Platform::speedCtrlClear(int axis_)
 {
   if (axis_==-1){
     for (int k=0; k<NB_AXIS; k++ )
     {
-      twistCtrlClear(k);
+      speedCtrlClear(k);
     }
   }
   else
   {
-    _twistD[axis_]=0.0f;
-    _kpTwist[axis_]=0.0f;
-    _kiTwist[axis_]=0.0f;
-    _kdTwist[axis_]=0.0f;
-    _twistCtrlOut[axis_]=0.0f;
+    _speedD[axis_]=0.0f;
+    _kpSpeed[axis_]=0.0f;
+    _kiSpeed[axis_]=0.0f;
+    _kdSpeed[axis_]=0.0f;
+    _speedCtrlOut[axis_]=0.0f;
   }
   
 }
 
 //! 6
-void Platform::compWrenchClear(int axis_, Platform::WrenchComp component_)
+void Platform::compEffortClear(int axis_, Platform::EffortComp component_)
 {
   if (axis_==-1)
   {
     for (int k=0; k<NB_AXIS; k++) 
     { 
-      compWrenchClear(k, component_); 
+      compEffortClear(k, component_); 
     }
     return;
   }
   else
   {
-    _wrenchD_ADD[component_][axis_]=0.0f;
+    _effortD_ADD[component_][axis_]=0.0f;
   }
 }
 
 //! 7
-void Platform::totalWrenchDClear(int axis_)
+void Platform::totalEffortDClear(int axis_)
 {
   if (axis_==-1)
     {
       for (int k=0; k<NB_AXIS; k++) 
       { 
-        totalWrenchDClear(k); 
-        _wrenchD[k] = 0.0f;
+        totalEffortDClear(k); 
+        _effortD[k] = 0.0f;
       }
     }
   else
   {  
     for (int j=0; j<NB_WRENCH_COMPONENTS; j++)
     {
-      compWrenchClear(axis_, (Platform::WrenchComp) j);
+      compEffortClear(axis_, (Platform::EffortComp) j);
     }
   }
 }

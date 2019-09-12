@@ -1,6 +1,11 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
+#define NB_AXIS 5
+#define NB_SWITCHES 3
+#define NB_WRENCH_COMPONENTS 4
+#define NB_MACHINE_STATES 7
+
 #define BAUDRATE 230400  //! For the serial communication
 
 #define PI 3.14159265359F
@@ -18,7 +23,7 @@
 #define CTRL_LOOP 500 //! [us] -> 500us = 2KHz
 #define VELOCITY_PID_SAMPLE_P 5 * CTRL_LOOP             //!  [us]
 #define ANALOG_SAMPLING_TIME 10 * CTRL_LOOP
-#define POSE_PID_SAMPLE_P 20 * VELOCITY_PID_SAMPLE_P //! [us]
+#define POSITION_PID_SAMPLE_P 20 * VELOCITY_PID_SAMPLE_P //! [us]
 
 #define MY_PWM_RESOLUTION 16 // Bits
 #define MY_PWM_FREQUENCY 5000 //Hz

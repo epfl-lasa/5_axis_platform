@@ -4,34 +4,34 @@
 
 
 //! 1
-void Platform::setWrenches()
+void Platform::setEfforts()
 {
-  float wrenchSum;
+  float effortSum;
 
   for(int k = 0; k < NB_AXIS; k++)
   { 
-     wrenchSum = 0.0f;
+     effortSum = 0.0f;
       for(int j = 0; j < NB_WRENCH_COMPONENTS; j++)
       {
-        if (_desWrenchComponents[j]==1) {wrenchSum+= _wrenchD_ADD[j][k];}
+        if (_rosEffortComponents[j]==1) {effortSum+= _effortD_ADD[j][k];}
       }
-    _wrenchD[k]=wrenchSum;
+    _effortD[k]=effortSum;
   } 
   
 
-  setWrenchAxis(_wrenchD[X],_motors[X],_motorSign[X],(int)X);
-  setWrenchAxis(_wrenchD[Y],_motors[Y],_motorSign[Y],(int)Y);
-  setWrenchAxis(_wrenchD[PITCH],_motors[PITCH],_motorSign[PITCH],(int)PITCH);
+  setEffortAxis(_effortD[X],_motors[X],_motorSign[X],(int)X);
+  setEffortAxis(_effortD[Y],_motors[Y],_motorSign[Y],(int)Y);
+  setEffortAxis(_effortD[PITCH],_motors[PITCH],_motorSign[PITCH],(int)PITCH);
   // Adapt roll and yaw commands due to differential mechanism
-  setWrenchAxis((_wrenchD[YAW]+_wrenchD[ROLL])/2.0f, _motors[ROLL], _motorSign[ROLL], (int)ROLL);
-  setWrenchAxis((_wrenchD[YAW]-_wrenchD[ROLL])/2.0f, _motors[YAW], _motorSign[YAW], (int)YAW);
+  setEffortAxis((_effortD[YAW]+_effortD[ROLL])/2.0f, _motors[ROLL], _motorSign[ROLL], (int)ROLL);
+  setEffortAxis((_effortD[YAW]-_effortD[ROLL])/2.0f, _motors[YAW], _motorSign[YAW], (int)YAW);
 
 }
 
 //! 2
-void Platform::setWrenchAxis(float wrench, PwmOut *pin, int sign, int axis)
+void Platform::setEffortAxis(float effort, PwmOut *pin, int sign, int axis)
 {
-  float escon_torque = wrench/_transmisions[axis];
+  float escon_torque = effort/_transmisions[axis];
   setCurrentAxis(escon_torque, pin, sign, axis);
 }
 

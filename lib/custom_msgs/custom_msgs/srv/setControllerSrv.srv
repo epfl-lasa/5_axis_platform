@@ -1,14 +1,15 @@
-uint8 set_ctrlType # {TORQUE_ONLY, POSE_ONLY, TWIST_ONLY, POSE_TWIST_CASCADE, TWIST_POSE_CASCADE}
-bool default_ctrl # 1: use values from definitions_2.h in firmware, 0: use the values
+uint8 ros_controllerType # {TORQUE_ONLY, POSITION_ONLY, SPEED_ONLY, POSITION_SPEED_CASCADE, SPEED_POSITION_CASCADE}
 
-int8 set_axis # -1:all, 0-4: X Y PITCH ROLL YAW
+bool ros_defaultControl # 1: use values from definitions_2.h in firmware, 0: use the values
 
-float32[5] pos_p
-float32[5] pos_i
-float32[5] pos_d
+int8 ros_controlledAxis # -1:all, 0-4: X Y PITCH ROLL YAW
 
-float32[5] speed_p
-float32[5] speed_i
-float32[5] speed_d
+float32[5] ros_posP
+float32[5] ros_posI
+float32[5] ros_posD
+
+float32[5] ros_speedP
+float32[5] ros_speedI
+float32[5] ros_speedD
 ---
-bool sC_ok
+bool platform_controlOk

@@ -14,17 +14,17 @@ void Platform::init()
      _esconEnabled[k]->fall(&emergencyCallback);
 
     if (k<2){
-     _pidPose[k]->setOutputLimits(-25.0, 25.0);
-     _pidTwist[k]->setOutputLimits(-25.0, 25.0);  
+     _pidPosition[k]->setOutputLimits(-25.0, 25.0);
+     _pidSpeed[k]->setOutputLimits(-25.0, 25.0);  
     }
      else {
-     _pidPose[k]->setOutputLimits(-3.0, 3.0); //! For the moment 
-     _pidTwist[k]->setOutputLimits(-3.0, 3.0);    
+     _pidPosition[k]->setOutputLimits(-3.0, 3.0); //! For the moment 
+     _pidSpeed[k]->setOutputLimits(-3.0, 3.0);    
       }
 
     //}
-    _pidPose[k]->setSampleTime(POSE_PID_SAMPLE_P*1e-6); //! [us]
-    _pidTwist[k]->setSampleTime(VELOCITY_PID_SAMPLE_P*1e-6);
+    _pidPosition[k]->setSampleTime(POSITION_PID_SAMPLE_P*1e-6); //! [us]
+    _pidSpeed[k]->setSampleTime(VELOCITY_PID_SAMPLE_P*1e-6);
     }
 
   //! Attach interruptions to callbacks on falling edge 

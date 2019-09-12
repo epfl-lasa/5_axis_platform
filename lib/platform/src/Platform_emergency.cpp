@@ -13,14 +13,14 @@ void Platform::emergencyCallback()
 //! 2
 void Platform::releasePlatform()
 {
-    totalWrenchDClear(-1);
-    poseCtrlClear(-1);
-    twistCtrlClear(-1);
+    totalEffortDClear(-1);
+    positionCtrlClear(-1);
+    speedCtrlClear(-1);
   for(int k = 0; k < NB_AXIS; k++)
   {
-    _poseFilters[k]->reset();
-    _twistFilters[k]->reset();
-    _wrenchMFilters[k]->reset();
+    _positionFilters[k]->reset();
+    _speedFilters[k]->reset();
+    _effortMFilters[k]->reset();
   }
 
 }
