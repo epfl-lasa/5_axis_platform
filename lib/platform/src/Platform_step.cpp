@@ -16,7 +16,7 @@ void Platform::step()
   if(_flagClearLastState)
   {
     clearLastState();
-    _state= _newState; 
+    _state= _ros_newState; 
     _flagClearLastState=false;
   }
   switch (_state)
@@ -45,7 +45,7 @@ void Platform::step()
         _enterStateOnceFlag[HOMING]=true;
       }
 
-      _controllerType=SPEED_ONLY;
+      _ros_controllerType=SPEED_ONLY;
       
       _speedD[X] = SPEED_D_HOMING_X; // m/s
       _speedD[Y] = SPEED_D_HOMING_Y; // m/s
@@ -132,15 +132,15 @@ void Platform::step()
       compEffortClear(-1,FEEDFORWARD);
       // Main State
       //# In this context: e.g. CtrlType=POSITION_ONLY-> "I should listen" to set_positions[k], 
-      if (_rosEffortComponents[CONSTRAINS]==1)
+      if (_ros_effortComp[CONSTRAINS]==1)
       {
-        if ((_controllerType!=SPEED_ONLY)&&(_controllerType!=TORQUE_ONLY))
+        if ((_ros_controllerType!=SPEED_ONLY)&&(_ros_controllerType!=TORQUE_ONLY))
         {
-          wsConstrains(_rosControlledAxis); //! workspace constraints : soft limits, or joystick effect, etc
+          wsConstrains(_ros_ControlledAxis); //! workspace constraints : soft limits, or joystick effect, etc
         }
-        if ((_controllerType!=POSITION_ONLY)&&(_controllerType!=TORQUE_ONLY))
+        if ((_ros_controllerType!=POSITION_ONLY)&&(_ros_controllerType!=TORQUE_ONLY))
         { 
-          motionDamping(_rosControlledAxis); //! Motion damping, to make it easier to control the platform
+          motionDamping(_ros_ControlledAxis); //! Motion damping, to make it easier to control the platform
         }
       }
       _lastState=_state;
@@ -164,23 +164,23 @@ void Platform::step()
       compEffortClear(-1,FEEDFORWARD);
       for(int k=0; k<NB_AXIS; k++)
         {
-          if(_controllerType!=SPEED_ONLY && _controllerType!=TORQUE_ONLY)
+          if(_ros_controllerType!=SPEED_ONLY && _ros_controllerType!=TORQUE_ONLY)
           {
-            _positionD[k]=_rosPosition[k];
+            _positionD[k]=_ros_position[k];
                     //! Position Control
         
-            if (_rosControlledAxis==-1)
+            if (_ros_ControlledAxis==-1)
             {
               gotoPointAll(_positionD[X],_positionD[Y],_positionD[PITCH],_positionD[ROLL],_positionD[YAW]);
             }
             else 
             {
-              gotoPointAxis(_rosControlledAxis,_positionD[_rosControlledAxis]);
+              gotoPointAxis(_ros_ControlledAxis,_positionD[_ros_ControlledAxis]);
             }
           }
-          if(_controllerType!=POSITION_ONLY && _controllerType!=TORQUE_ONLY)
+          if(_ros_controllerType!=POSITION_ONLY && _ros_controllerType!=TORQUE_ONLY)
           {
-            _speedD[k]=_rosSpeed[k];
+            _speedD[k]=_ros_speed[k];
           }
         }
 

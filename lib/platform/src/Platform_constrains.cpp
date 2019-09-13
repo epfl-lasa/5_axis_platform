@@ -13,10 +13,10 @@ void Platform::wsConstrains(int axis_)
   }
   else
   {
-    if (_flagDefaultControl) {wsConstrainsDefault(axis_);}
+    if (_ros_flagDefaultControl) {wsConstrainsDefault(axis_);}
     else
     {
-       _c_wsLimits[axis_]=fabs(_rosPosition[axis_]); //! A symmetric wall will be built on the set position
+       _c_wsLimits[axis_]=fabs(_ros_position[axis_]); //! A symmetric wall will be built on the set position
        _kiPosition[axis_]=0.0f;
     }
 
@@ -54,7 +54,7 @@ void Platform::motionDamping(int axis_)
 
     if (!_flagInWsConstrains) //! The motion damping only applies outside the walls (constrains)
     {
-      if (_flagDefaultControl) {motionDampingGainsDefault(axis_);}
+      if (_ros_flagDefaultControl) {motionDampingGainsDefault(axis_);}
       else
       {
         _kiSpeed[axis_]=0.0f; //! overwrite the i and d constants sent from ROS (because it is teleoperation mode)

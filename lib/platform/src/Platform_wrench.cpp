@@ -13,7 +13,7 @@ void Platform::setEfforts()
      effortSum = 0.0f;
       for(int j = 0; j < NB_WRENCH_COMPONENTS; j++)
       {
-        if (_rosEffortComponents[j]==1) {effortSum+= _effortD_ADD[j][k];}
+        if (_ros_effortComp[j]==1) {effortSum+= _effortD_ADD[j][k];}
       }
     _effortD[k]=effortSum;
   } 

@@ -18,23 +18,23 @@ void Platform::positionControl(EffortComp Component)
 void Platform::posAxisControl(EffortComp Component, int axis)
 {
 
-    if ((axis<2)&&((_controllerType==POSITION_ONLY)||(_controllerType==SPEED_POSITION_CASCADE))){
+    if ((axis<2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
       _pidPosition[axis]->setOutputLimits(-25.0,25.0); //!N
     }
 
-    if ((axis>=2)&&((_controllerType==POSITION_ONLY)||(_controllerType==SPEED_POSITION_CASCADE))){
+    if ((axis>=2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
       if (axis==PITCH) {_pidPosition[axis]->setOutputLimits(-5.0,5.0);} //!Nm
       if (axis==ROLL || axis==YAW){_pidPosition[axis]->setOutputLimits(-5.0,5.0);} //!Nm
     }
 
-    if (_controllerType==SPEED_POSITION_CASCADE){
+    if (_ros_controllerType==SPEED_POSITION_CASCADE){
       _positionD[axis]=_speedCtrlOut[axis];
     }
 
      _pidPosition[axis]->setTunings(_kpPosition[axis], _kiPosition[axis], _kdPosition[axis]);
      _pidPosition[axis]->compute();
 
-    if ((_controllerType==POSITION_ONLY)||(_controllerType==SPEED_POSITION_CASCADE)){
+    if ((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE)){
       _effortD_ADD[Component][axis]=_positionCtrlOut[axis];
     }
 }
@@ -42,15 +42,15 @@ void Platform::posAxisControl(EffortComp Component, int axis)
 //! 3
 void Platform::speedAxisControl(EffortComp Component, int axis)
 {
-    if ((axis<2)&&((_controllerType==SPEED_ONLY)||(_controllerType==POSITION_SPEED_CASCADE))){
+    if ((axis<2)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
       _pidSpeed[axis]->setOutputLimits(-25,25); //!N
     }
 
-    if ((axis>=2)&&((_controllerType==SPEED_ONLY)||(_controllerType==POSITION_SPEED_CASCADE))){
+    if ((axis>=2)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
       _pidSpeed[axis]->setOutputLimits(-3,3); //!Nm
     }
 
-    if (_controllerType==POSITION_SPEED_CASCADE){
+    if (_ros_controllerType==POSITION_SPEED_CASCADE){
       _speedD[axis]=_positionCtrlOut[axis];
     }
 
@@ -58,7 +58,7 @@ void Platform::speedAxisControl(EffortComp Component, int axis)
      _pidSpeed[axis]->setTunings(_kpSpeed[axis], _kiSpeed[axis], _kdSpeed[axis]);
      _pidSpeed[axis]->compute();
 
-    if ((_controllerType==SPEED_ONLY)||(_controllerType==POSITION_SPEED_CASCADE)){
+    if ((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE)){
       _effortD_ADD[NORMAL][axis]=_speedCtrlOut[axis];
     }
 }
@@ -76,7 +76,7 @@ void Platform::speedControl(EffortComp Component)
 //! 5
 void Platform::gotoPointAxis(int axis_, float point)
 {
-  if (_flagDefaultControl){ gotoPointGainsDefault(axis_);}
+  if (_ros_flagDefaultControl){ gotoPointGainsDefault(axis_);}
   _positionD[axis_]=point;
   posAxisControl(NORMAL,axis_);
 }
@@ -84,7 +84,7 @@ void Platform::gotoPointAxis(int axis_, float point)
 //! 6
 void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW)
 {
-  _controllerType=POSITION_ONLY;
+  _ros_controllerType=POSITION_ONLY;
   _positionD[X]=pointX;
   _positionD[Y]=pointY;
   _positionD[PITCH]=pointPITCH;

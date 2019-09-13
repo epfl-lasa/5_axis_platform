@@ -17,12 +17,12 @@ void Platform::communicateToRos()
 //! 1
 void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 {
-  me->_rosControlledAxis=msg.ros_controlledAxis; 
+  me->_ros_ControlledAxis=msg.ros_controlledAxis; 
   for (int k=0; k<NB_AXIS; k++)
   {
       me->_effortD_ADD[NORMAL][k]=msg.ros_effort[k];
-      me->_rosPosition[k]=msg.ros_position[k];
-      me->_rosSpeed[k]=msg.ros_speed[k];
+      me->_ros_position[k]=msg.ros_position[k];
+      me->_ros_speed[k]=msg.ros_speed[k];
   }
 }
 
@@ -35,14 +35,14 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
   Platform::State newState = (Platform::State) req.ros_machineState;
   //! Update the dimensions of the motor commands -> reflected force (normal) + compensation , etc
   for (int j=0; j<NB_WRENCH_COMPONENTS; j++){
-      me->_rosEffortComponents[j]=req.ros_effortComp[j];
+      me->_ros_effortComp[j]=req.ros_effortComp[j];
   }  
   
   if (!(newState==me->_state)) // If I want to go to a new state
   { 
     resp.platform_newState=true;
     me->_flagClearLastState=true;
-    me->_newState = newState;
+    me->_ros_newState = newState;
   } 
   else{ resp.platform_newState=false; } //! You are already in the desired state 
 }
@@ -50,9 +50,9 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
 //! 3
 void Platform::updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp )
 {
-  me->_controllerType=(Platform::Controller) req.ros_controllerType; 
-  me->_flagDefaultControl=req.ros_defaultControl;
-  me->_rosControlledAxis=req.ros_controlledAxis; 
+  me->_ros_controllerType=(Platform::Controller) req.ros_controllerType; 
+  me->_ros_flagDefaultControl=req.ros_defaultControl;
+  me->_ros_ControlledAxis=req.ros_controlledAxis; 
   
   if ((me->_state!=TELEOPERATION) && (me->_state!=ROBOT_STATE_CONTROL))
     { resp.platform_controlOk=false; }
@@ -84,7 +84,7 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_effortsD[k] =_effortD[k];
     _msgFootOutput.platform_effortsM[k] =_effortM[k];
   }
-    _msgFootOutput.platform_controllerType= (uint8_t)_controllerType; 
+    _msgFootOutput.platform_controllerType= (uint8_t)_ros_controllerType; 
     _msgFootOutput.platform_machineState=(uint8_t)_state;
   _pubFootOutput->publish(&_msgFootOutput);
 }

@@ -72,8 +72,8 @@ Platform::Platform()
     _effortMFilters[k] = new LP_Filter(0.95);
     limitSwitchesClear();
 
-    _rosPosition[k]=0.0f;
-    _rosSpeed[k]=0.0f;
+    _ros_position[k]=0.0f;
+    _ros_speed[k]=0.0f;
     
     _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD[k], _kpPosition[k], _kiPosition[k], _kdPosition[k],DIRECT);
     _pidPosition[k]->setMode(AUTOMATIC);
@@ -82,23 +82,23 @@ Platform::Platform()
   }  
   _innerCounter=0;
   
-  _rosControlledAxis=-1; //! all of them
-  _controllerType=TORQUE_ONLY;
+  _ros_ControlledAxis=-1; //! all of them
+  _ros_controllerType=TORQUE_ONLY;
   _flagClearLastState=false;
   _flagInWsConstrains=false;
-  _flagDefaultControl=true;
+  _ros_flagDefaultControl=true;
    wsConstrainsDefault(-1);
   
   for (int j=0; j<NB_WRENCH_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
   {
-    if (j<=1){ _rosEffortComponents[j]=1;}
-    else{_rosEffortComponents[j]=0;}
+    if (j<=1){ _ros_effortComp[j]=1;}
+    else{_ros_effortComp[j]=0;}
   }
 
   _tic=false;
   _state = HOMING;
   _lastState=_state;
-  _newState=_state;
+  _ros_newState=_state;
     
   // Reset the flags that acknowledge when the state is entered for the first time 
   _enterStateOnceFlag[HOMING]=false;
@@ -107,7 +107,7 @@ Platform::Platform()
   _enterStateOnceFlag[STANDBY]=false;
   _enterStateOnceFlag[ROBOT_STATE_CONTROL]=false;
 
-  _controllerType= TORQUE_ONLY;
+  _ros_controllerType= TORQUE_ONLY;
 
   /*******DESIGNATIONS OF PINS IN THE MICROCONTROLLER NUCLEO L476RG */
 

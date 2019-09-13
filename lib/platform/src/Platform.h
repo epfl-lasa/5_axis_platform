@@ -41,7 +41,7 @@ class Platform
     // Enum for axis ID
     enum Axis {X,Y,PITCH,ROLL,YAW};
 
-    enum RobotState {POSITION, SPEED, ACCELERATION}; 
+    enum JointState {POSITION, SPEED, ACCELERATION}; 
 
     enum EffortComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD}; //! Count := 4
 
@@ -51,8 +51,6 @@ class Platform
     // Enum for the controller that is directly ouput for the motors
     enum Controller {TORQUE_ONLY, POSITION_ONLY, SPEED_ONLY, SPEED_POSITION_CASCADE, POSITION_SPEED_CASCADE}; //! F= D(K(x-xd)-x_dot) SPEED_POSITION_CASCADE IS AN IMPEDANCE CTRL MODULATED BY DYNAMICAL SYSTEM
     
-    // NB. FOR THE MOMENT ONLY POSITION_ONLY AND SPEED ONLY ARE USED
-
     // ROS variables  
 
       ros::Subscriber<custom_msgs::FootInputMsg_v2>*  _subFootInput;
@@ -63,13 +61,13 @@ class Platform
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 
       //CLIENT VARIABLES FROM (ROS)
-        volatile double _rosPosition[NB_AXIS];// TODO: Expand this to speed and acceleration
-        volatile double _rosSpeed[NB_AXIS];
-        volatile bool _flagDefaultControl;
-        volatile int8_t _rosControlledAxis;
-        volatile Controller _controllerType;
-        volatile uint8_t _rosEffortComponents[NB_WRENCH_COMPONENTS];
-        volatile State _newState;
+        volatile float _ros_position[NB_AXIS];// TODO: Expand this to speed and acceleration
+        volatile float _ros_speed[NB_AXIS];
+        volatile bool _ros_flagDefaultControl;
+        volatile int8_t _ros_ControlledAxis;
+        volatile Controller _ros_controllerType;
+        volatile uint8_t _ros_effortComp[NB_WRENCH_COMPONENTS];
+        volatile State _ros_newState;
 
 
     // State variables
