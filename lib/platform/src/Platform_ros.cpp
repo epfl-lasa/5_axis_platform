@@ -59,14 +59,22 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
   else
   {
     resp.platform_controlOk=true;
+    float scale=0.0f; 
     for (int k=0; k<NB_AXIS; k++)
-    {
-       me->_kpPosition[k]=req.ros_posP[k];
-       me->_kiPosition[k]=req.ros_posI[k];
-       me->_kdPosition[k]=req.ros_posD[k]; 
-       me->_kpSpeed[k]=req.ros_speedP[k];
-       me->_kiSpeed[k]=req.ros_speedI[k];
-       me->_kdSpeed[k]=req.ros_speedD[k]; 
+    { 
+       if(k<PITCH) {scale=SCALE_GAINS_LINEAR_POSITION;}
+       else{scale=SCALE_GAINS_ANGULAR_POSITION;}
+
+       me->_kpPosition[k]=req.ros_posP[k] * scale;
+       me->_kiPosition[k]=req.ros_posI[k] * scale;
+       me->_kdPosition[k]=req.ros_posD[k] * scale; 
+
+       if(k<PITCH) {scale=SCALE_GAINS_LINEAR_SPEED;}
+       else{scale=SCALE_GAINS_ANGULAR_SPEED;}
+
+       me->_kpSpeed[k]=req.ros_speedP[k] * scale;
+       me->_kiSpeed[k]=req.ros_speedI[k] * scale;
+       me->_kdSpeed[k]=req.ros_speedD[k] * scale; 
     }
   }
 }
