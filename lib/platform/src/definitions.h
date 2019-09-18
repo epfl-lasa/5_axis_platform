@@ -10,8 +10,8 @@
 
 #define PI 3.14159265359F
 
-#define RIGHT_PLATFORM 0
-#define LEFT_PLATFORM 1
+#define RIGHT_PLATFORM 1
+#define LEFT_PLATFORM 2
 #define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
 
 #define PITCH_REDUCTION_R 12.0F //! Pulley Big [mm] / Pulley Belt [mm]
