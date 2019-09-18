@@ -17,7 +17,6 @@ void Platform::communicateToRos()
 //! 1
 void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 {
-  me->_ros_ControlledAxis=msg.ros_controlledAxis; 
   for (int k=0; k<NB_AXIS; k++)
   {
       me->_effortD_ADD[NORMAL][k]=msg.ros_effort[k];

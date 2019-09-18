@@ -17,11 +17,10 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   DIRECTORY msg
 	FILES 
-	FootInputMsg.msg
 	FootInputMsg_v2.msg
-	FootOutputMsg.msg
 	FootOutputMsg_v2.msg
-	FeetOutputMsg.msg)
+	FeetOutputMsg_v2.msg
+)
 
 add_service_files(
   FILES
@@ -29,9 +28,8 @@ add_service_files(
   setStateSrv.srv
 )
 
-generate_messages(DEPENDENCIES std_msgs)
 
-#generate_dynamic_reconfigure_options( cfg/frictionID.cfg) 
+generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
   INCLUDE_DIRS
@@ -39,9 +37,7 @@ catkin_package(
   CATKIN_DEPENDS roscpp rospy std_msgs message_generation
  )
 
+include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Generate added messages and services
-
-#add dynamic reconfigure api
-
-include_directories(${catkin_INCLUDE_DIRS})
