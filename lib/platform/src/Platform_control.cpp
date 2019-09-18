@@ -3,19 +3,19 @@
 #include <definitions_2.h>
 
 //! 1
-void Platform::positionControl(EffortComp Component)
+void Platform::positionAllControl(EffortComp Component)
 {
   //Compute the PID
 
   for (int i = 0; i < NB_AXIS; i++)
   { 
-    posAxisControl(Component,i);
+    positionAxisControl(Component,i);
   }
  
 }
 
 //! 2
-void Platform::posAxisControl(EffortComp Component, int axis)
+void Platform::positionAxisControl(EffortComp Component, int axis)
 {
 
     if ((axis<2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
@@ -64,7 +64,7 @@ void Platform::speedAxisControl(EffortComp Component, int axis)
 }
 
 //! 4
-void Platform::speedControl(EffortComp Component)
+void Platform::speedAllControl(EffortComp Component)
 {
 
   for (int i = 0; i < NB_AXIS; i++)
@@ -78,20 +78,19 @@ void Platform::gotoPointAxis(int axis_, float point)
 {
   if (_ros_flagDefaultControl){ gotoPointGainsDefault(axis_);}
   _positionD[axis_]=point;
-  posAxisControl(NORMAL,axis_);
+  positionAxisControl(NORMAL,axis_);
 }
 
 //! 6
 void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW)
 {
-  _ros_controllerType=POSITION_ONLY;
+  if (_ros_flagDefaultControl){ gotoPointGainsDefault(-1);}
   _positionD[X]=pointX;
   _positionD[Y]=pointY;
   _positionD[PITCH]=pointPITCH;
   _positionD[ROLL]=pointROLL;
   _positionD[YAW]=pointYAW;
-  gotoPointGainsDefault(-1);
-  positionControl(NORMAL);
+  positionAllControl(NORMAL);
 }
 
 //! 7

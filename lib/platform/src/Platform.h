@@ -61,7 +61,7 @@ class Platform
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 
       //CLIENT VARIABLES FROM (ROS)
-        volatile float _ros_position[NB_AXIS];// TODO: Expand this to speed and acceleration
+        volatile float _ros_position[NB_AXIS];
         volatile float _ros_speed[NB_AXIS];
         volatile bool _ros_flagDefaultControl;
         volatile int8_t _ros_ControlledAxis;
@@ -200,10 +200,10 @@ class Platform
   //! Platform_control.cpp
   private:
       // Position and Speed control
-      void positionControl(EffortComp Component);                             //! 1
-      void posAxisControl(EffortComp Component, int axis);                //! 2
+      void positionAllControl(EffortComp Component);                             //! 1
+      void positionAxisControl(EffortComp Component, int axis);                //! 2
       void speedAxisControl(EffortComp Component, int axis);              //! 3
-      void speedControl(EffortComp Component);                            //! 4
+      void speedAllControl(EffortComp Component);                            //! 4
       void gotoPointAxis(int axis_, float point);                         //! 5
       void gotoPointAll(float pointX, float pointY, float pointPITCH,     
       float pointROLL, float pointYAW);                                   //! 6

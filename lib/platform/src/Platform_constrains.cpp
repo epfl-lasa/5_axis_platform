@@ -27,7 +27,7 @@ void Platform::wsConstrains(int axis_)
         _flagInWsConstrains=true;
         // if ( ((_position[axis_] <= 0.0) && (_speed[axis_] <= 0.0)) || ((_position[axis_] >= 0.0) && (_speed[axis_] >= 0.0)) ) 
         // {
-          posAxisControl(CONSTRAINS,axis_);
+          positionAxisControl(CONSTRAINS,axis_);
         // }
       }
       else    

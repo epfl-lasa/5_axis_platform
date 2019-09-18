@@ -59,7 +59,7 @@ void Platform::step()
       _kiSpeed[PITCH] = KI_HOMING_SPEED_PITCH; // 
 
       compEffortClear(-1, NORMAL);
-      speedControl(NORMAL);
+      speedAllControl(NORMAL);
 
       // Definition of the transition rule to the next state
       if ((_switchesState[X] == 1) && (_switchesState[Y] == 1) && (_switchesState[PITCH] == 1))
