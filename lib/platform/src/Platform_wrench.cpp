@@ -11,7 +11,7 @@ void Platform::setEfforts()
   for(int k = 0; k < NB_AXIS; k++)
   { 
      effortSum = 0.0f;
-      for(int j = 0; j < NB_WRENCH_COMPONENTS; j++)
+      for(int j = 0; j < NB_EFFORT_COMPONENTS; j++)
       {
         if (_ros_effortComp[j]==1) {effortSum+= _effortD_ADD[j][k];}
       }

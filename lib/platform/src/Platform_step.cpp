@@ -96,6 +96,7 @@ void Platform::step()
         _enterStateOnceFlag[CENTERING]=true;
       }
       // Main State
+      _ros_controllerType = POSITION_ONLY;
       compEffortClear(-1, NORMAL);
       gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
 
@@ -124,6 +125,7 @@ void Platform::step()
      if (!_enterStateOnceFlag[TELEOPERATION])
      {
       //
+      _ros_controllerType = POSITION_ONLY;
       _nh.loginfo("MOVING TO STATE TELEOPERATION");
       _enterStateOnceFlag[TELEOPERATION]=true;
      }

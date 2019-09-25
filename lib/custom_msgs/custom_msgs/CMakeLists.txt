@@ -37,7 +37,6 @@ catkin_package(
   CATKIN_DEPENDS roscpp rospy std_msgs message_generation
  )
 
-include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Generate added messages and services

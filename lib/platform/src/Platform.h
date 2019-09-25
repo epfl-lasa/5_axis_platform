@@ -66,7 +66,7 @@ class Platform
         volatile bool _ros_flagDefaultControl;
         volatile int8_t _ros_ControlledAxis;
         volatile Controller _ros_controllerType;
-        volatile uint8_t _ros_effortComp[NB_WRENCH_COMPONENTS];
+        volatile uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
         volatile State _ros_newState;
 
 
@@ -88,7 +88,7 @@ class Platform
     double _effort[NB_AXIS];
     double _effortD[NB_AXIS];
     double _effortM[NB_AXIS+2]; //The last two elements are temporary variables
-    volatile double _effortD_ADD[NB_WRENCH_COMPONENTS][NB_AXIS];
+    volatile double _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
     LP_Filter* _positionFilters[NB_AXIS];
     LP_Filter* _speedFilters[NB_AXIS];
     LP_Filter* _effortMFilters[NB_AXIS];

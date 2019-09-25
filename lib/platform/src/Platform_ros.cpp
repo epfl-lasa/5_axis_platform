@@ -19,9 +19,9 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 {
   for (int k=0; k<NB_AXIS; k++)
   {
-      me->_effortD_ADD[NORMAL][k]=msg.ros_effort[k];
       me->_ros_position[k]=msg.ros_position[k];
       me->_ros_speed[k]=msg.ros_speed[k];
+      me->_effortD_ADD[NORMAL][k]=msg.ros_effort[k];
   }
 }
 
@@ -33,7 +33,7 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
 {
   Platform::State newState = (Platform::State) req.ros_machineState;
   //! Update the dimensions of the motor commands -> reflected force (normal) + compensation , etc
-  for (int j=0; j<NB_WRENCH_COMPONENTS; j++){
+  for (int j=0; j<NB_EFFORT_COMPONENTS; j++){
       me->_ros_effortComp[j]=req.ros_effortComp[j];
   }  
   
@@ -88,8 +88,8 @@ void Platform::pubFootOutput()
   {
     _msgFootOutput.platform_position[k] = _position[k];
     _msgFootOutput.platform_speed[k]= _speed[k];
-    _msgFootOutput.platform_effortsD[k] =_effortD[k];
-    _msgFootOutput.platform_effortsM[k] =_effortM[k];
+    _msgFootOutput.platform_effortD[k] =_effortD[k];
+    _msgFootOutput.platform_effortM[k] =_effortM[k];
   }
     _msgFootOutput.platform_controllerType= (uint8_t)_ros_controllerType; 
     _msgFootOutput.platform_machineState=(uint8_t)_state;

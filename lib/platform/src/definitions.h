@@ -3,7 +3,7 @@
 
 #define NB_AXIS 5
 #define NB_SWITCHES 3
-#define NB_WRENCH_COMPONENTS 4
+#define NB_EFFORT_COMPONENTS 4
 #define NB_MACHINE_STATES 7
 
 #define BAUDRATE 230400  //! For the serial communication
@@ -12,7 +12,7 @@
 
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
 
 #define PITCH_REDUCTION_R 12.0F //! Pulley Big [mm] / Pulley Belt [mm]
 #define ROLL_YAW_REDUCTION_R 12.96f  //! Pulley Big [mm] / Pulley Belt [mm]

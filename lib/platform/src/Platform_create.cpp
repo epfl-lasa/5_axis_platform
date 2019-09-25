@@ -89,7 +89,7 @@ Platform::Platform()
   _ros_flagDefaultControl=true;
    wsConstrainsDefault(-1);
   
-  for (int j=0; j<NB_WRENCH_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
+  for (int j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
   {
     if (j<=1){ _ros_effortComp[j]=1;}
     else{_ros_effortComp[j]=0;}

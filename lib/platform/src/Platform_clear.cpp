@@ -42,7 +42,7 @@ void Platform::clearLastState()
         //! Finally resets the effort commands given by this controller. 
         compEffortClear(-1,NORMAL); //! Clear the normal dimension of the 
         speedCtrlClear(-1);
-        break; 
+        break;
       }
 
       case(CENTERING):
@@ -74,11 +74,11 @@ void Platform::clearLastState()
       }
 
 
-      case(EMERGENCY):{ _nh.loginfo("LEAVING EMERGENCY STATE"); break;}
+      case(EMERGENCY):{_enterStateOnceFlag[EMERGENCY]=false; _nh.loginfo("LEAVING EMERGENCY STATE"); break;}
       case(STANDBY): {_enterStateOnceFlag[STANDBY]=false; _nh.loginfo("LEAVING STANDBY STATE");  break;} 
-      
       case(RESET):{break;}
     }
+    _flagClearLastState = false;
 }
 
 //! 4
@@ -151,7 +151,7 @@ void Platform::totalEffortDClear(int axis_)
     }
   else
   {  
-    for (int j=0; j<NB_WRENCH_COMPONENTS; j++)
+    for (int j=0; j<NB_EFFORT_COMPONENTS; j++)
     {
       compEffortClear(axis_, (Platform::EffortComp) j);
     }
