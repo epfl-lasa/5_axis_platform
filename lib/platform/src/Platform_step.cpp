@@ -16,9 +16,11 @@ void Platform::step()
   if(_flagClearLastState)
   {
     clearLastState();
-    _state= _ros_newState; 
     _flagClearLastState=false;
   }
+  
+  _state = _ros_newState;
+
   switch (_state)
   {
 

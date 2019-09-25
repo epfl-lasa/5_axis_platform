@@ -78,7 +78,6 @@ void Platform::clearLastState()
       case(STANDBY): {_enterStateOnceFlag[STANDBY]=false; _nh.loginfo("LEAVING STANDBY STATE");  break;} 
       case(RESET):{break;}
     }
-    _flagClearLastState = false;
 }
 
 //! 4
