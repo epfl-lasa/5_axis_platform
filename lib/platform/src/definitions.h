@@ -5,6 +5,7 @@
 #define NB_SWITCHES 3
 #define NB_EFFORT_COMPONENTS 4
 #define NB_MACHINE_STATES 7
+#define NB_FI_CATEGORY 3
 
 #define AXES  \
 ListofAxes(X,"X Joint") \
@@ -14,11 +15,10 @@ ListofAxes(ROLL,"ROLL Joint") \
 ListofAxes(YAW,"YAW Joint")
 
 #define ListofAxes(enumeration, names) enumeration,
-enum Axis : size_t
-{
-    AXES
-};
+enum Axis : size_t { AXES };
 #undef ListofAxes
+
+enum FootInput_Category {MSG_POSITION, MSG_SPEED, MSG_TORQUE};
 
 extern const char *Axis_names[];
 
@@ -39,7 +39,7 @@ extern const char *Axis_names[];
 #define CTRL_LOOP 500 //! [us] -> 500us = 2KHz
 #define VELOCITY_PID_SAMPLE_P 5 * CTRL_LOOP             //!  [us]
 #define ANALOG_SAMPLING_TIME 10 * CTRL_LOOP
-#define POSITION_PID_SAMPLE_P 20 * VELOCITY_PID_SAMPLE_P //! [us]
+#define POSITION_PID_SAMPLE_P 1 * CTRL_LOOP //! [us]
 
 #define MY_PWM_RESOLUTION 16 // Bits
 #define MY_PWM_FREQUENCY 5000 //Hz

@@ -97,7 +97,7 @@
 
         #define GT_KP_POSITION_X  2000.0f * SCALE_GAINS_LINEAR_POSITION                   //[N/m]
         #define GT_KP_POSITION_Y  2500.0f * SCALE_GAINS_LINEAR_POSITION                   //[N/m]
-        #define GT_KP_POSITION_PITCH  4250.0f * SCALE_GAINS_ANGULAR_POSITION              //[Nm/deg]
+        #define GT_KP_POSITION_PITCH  7000.0f * SCALE_GAINS_ANGULAR_POSITION              //[Nm/deg]
         #define GT_KP_POSITION_ROLL  4250.0f * SCALE_GAINS_ANGULAR_POSITION               //[Nm/deg]
         #define GT_KP_POSITION_YAW 4250.0f * SCALE_GAINS_ANGULAR_POSITION                 //[Nm/deg]
             

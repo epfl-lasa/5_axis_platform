@@ -34,12 +34,12 @@ class Platform
     uint32_t _analogReadStamp;
     uint32_t _speedSamplingStamp;
     Timer _innerTimer; //! micros()
-    int _innerCounter;
+    uint _innerCounter;
 
   private:
     // Enum for axis ID
     
-    // enum Axis {X,Y,PITCH,ROLL,YAW};
+    // enum Axis {X,Y,PITCH,ROLL,YAW} -> Move to definitions 
 
     enum JointState {POSITION, SPEED, ACCELERATION}; 
 
@@ -61,24 +61,23 @@ class Platform
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 
       //CLIENT VARIABLES FROM (ROS)
-        float _ros_position[NB_AXIS];
-        float _ros_speed[NB_AXIS];
-        float _ros_effort[NB_AXIS];
+        volatile float _ros_position[NB_AXIS];
+        volatile float _ros_speed[NB_AXIS];
+        volatile float _ros_effort[NB_AXIS];
 
-        bool _ros_flagDefaultControl;
-        int8_t _ros_ControlledAxis;
-        Controller _ros_controllerType;
-        uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
-        State _state;
+        volatile bool _ros_flagDefaultControl;
+        volatile int8_t _ros_ControlledAxis;
+        volatile Controller _ros_controllerType;
+        volatile uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
+        volatile State _state;
         
 
 
     // State variables
     State _lastState;
     
-    bool _flagClearLastState; 
-    bool _flagInputReceived;
-
+    volatile bool _flagClearLastState;
+    volatile bool _flagInputReceived[NB_FI_CATEGORY];
     bool _enterStateOnceFlag[NB_MACHINE_STATES];
 
     double _position[NB_AXIS];
@@ -96,7 +95,7 @@ class Platform
     LP_Filter* _positionFilters[NB_AXIS];
     LP_Filter* _speedFilters[NB_AXIS];
     LP_Filter* _effortMFilters[NB_AXIS];
-    volatile int _switchesState[NB_AXIS];
+    volatile uint _switchesState[NB_AXIS];
     float _maxEffort[NB_AXIS];
     float _maxCurrent[NB_AXIS];
     float _transmisions[NB_AXIS];
@@ -124,12 +123,12 @@ class Platform
 
     // PID variables
       //General Variables
-    double _kpPosition[NB_AXIS];
-    double _kiPosition[NB_AXIS];
-    double _kdPosition[NB_AXIS];
-    double _kpSpeed[NB_AXIS];
-    double _kiSpeed[NB_AXIS];
-    double _kdSpeed[NB_AXIS];
+    volatile double _kpPosition[NB_AXIS];
+    volatile double _kiPosition[NB_AXIS];
+    volatile double _kdPosition[NB_AXIS];
+    volatile double _kpSpeed[NB_AXIS];
+    volatile double _kiSpeed[NB_AXIS];
+    volatile double _kdSpeed[NB_AXIS];
 
 
 
@@ -157,7 +156,11 @@ class Platform
     static void switchCallbackX();      //! 5
     static void switchCallbackY();      //! 6
     static void switchCallbackPitch();  //! 7
-  //! Platform_reset.cpp
+    //! ROS verification
+    bool flagPositionInControl();
+    bool flagSpeedInControl();
+    bool flagTorqueInControl();
+    //! Platform_reset.cpp
   private:
       void resetEscons(); //! 1
       void softReset();   //!2
@@ -211,10 +214,9 @@ class Platform
       void gotoPointAxis(int axis_, float point);                         //! 5
       void gotoPointAll(float pointX, float pointY, float pointPITCH,     
       float pointROLL, float pointYAW);                                   //! 6
-      void gotoPointGainsDefault(int axis_);                              //! 7  
-      
-  //! Platform_constrains.cpp
-  private:    
+      void gotoPointGainsDefault(int axis_);                              //! 7
+      //! Platform_constrains.cpp
+    private:    
       //Constrains 
       void wsConstrains(int axis_); //! -1 := all of them                 //! 1
       void motionDamping(int axis_); //! -1:= all of them                 //! 2

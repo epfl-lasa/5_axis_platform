@@ -7,7 +7,7 @@ void Platform::wsConstrains(int axis_)
 {
   if (axis_==-1) //! All axis constrained
   {
-    for (int k = 0; k<NB_AXIS; k++){
+    for (uint k = 0; k<NB_AXIS; k++){
       wsConstrains(k);
     }
   }
@@ -48,7 +48,7 @@ void Platform::motionDamping(int axis_)
 { 
   if (axis_==-1) //! All axis constrained
   {
-    for (int k = 0; k<NB_AXIS; k++){
+    for (uint k = 0; k<NB_AXIS; k++){
       motionDamping(k);
     }
     return;
@@ -74,7 +74,7 @@ void Platform::motionDamping(int axis_)
 void Platform::wsConstrainsDefault(int axis_)
 {
   if (axis_==-1){
-    for (int k=0; k<NB_AXIS; k++ )
+    for (uint k=0; k<NB_AXIS; k++ )
     {
       wsConstrainsDefault(k);
     }
@@ -94,7 +94,7 @@ void Platform::wsConstrainsDefault(int axis_)
 void Platform:: motionDampingGainsDefault(int axis_)
 {
   if (axis_==-1){
-    for (int k=0; k<NB_AXIS; k++ )
+    for (uint k=0; k<NB_AXIS; k++ )
     {
       motionDampingGainsDefault(k);
     }

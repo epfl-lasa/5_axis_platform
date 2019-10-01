@@ -49,7 +49,7 @@ class PID
 										  //   means the output will increase when error is positive. REVERSE
 										  //   means the opposite.  it's very unlikely that this will be needed
 										  //   once it is set in the constructor.
-    void setSampleTime(int);              // * sets the frequency, in Milliseconds, with which 
+    void setSampleTime(int);              // * sets the frequency, in Microseconds, with which 
                                           //   the PID calculation is performed.  default is 100
 										  
 										  
@@ -58,6 +58,7 @@ class PID
 	double getKp();						  // These functions query the pid for interal values.
 	double getKi();						  //  they were created mainly for the pid front-end,
 	double getKd();						  // where it's important to know what is actually 
+  double getIntegralTerm();
 	int getMode();						  //  inside the PID.
 	int getDirection();					  //
   void reset();

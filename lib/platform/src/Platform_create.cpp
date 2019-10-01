@@ -26,7 +26,7 @@ Platform::Platform()
     _torqueConstants[ROLL]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;//[Nm/A]
     _torqueConstants[YAW]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;
     
-    for (int k=0; k<NB_AXIS; k++)
+    for (uint k=0; k<NB_AXIS; k++)
     {
       _maxEffort[k]=_torqueConstants[k]*_maxCurrent[k]*_transmisions[k];
     }
@@ -87,11 +87,17 @@ Platform::Platform()
   _ros_controllerType=TORQUE_ONLY;
   _flagClearLastState=false;
   _flagInWsConstrains=false;
+
   _ros_flagDefaultControl=true;
-  _flagInputReceived = false; //! To be used specially for the telemanipulation state
+  
+  for(int c = 0; c<NB_FI_CATEGORY; c++)
+  {
+    _flagInputReceived[c] = false; //! To be used specially for the telemanipulation state
+  }
+  
    wsConstrainsDefault(-1);
   
-  for (int j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
+  for (uint j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
   {
     if (j<=1){ _ros_effortComp[j]=1;}
     else{_ros_effortComp[j]=0;}
@@ -110,7 +116,6 @@ Platform::Platform()
   _enterStateOnceFlag[ROBOT_STATE_CONTROL]=false;
 
   _ros_controllerType= TORQUE_ONLY;
-
   /*******DESIGNATIONS OF PINS IN THE MICROCONTROLLER NUCLEO L476RG */
 
   _csPins[X] = PA_10;  //! CS1 -> Lateral NOT as PWMX/XN

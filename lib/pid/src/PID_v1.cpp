@@ -22,10 +22,10 @@ PID::PID(Timer* timer_, double* Input, double* Output, double* Setpoint,
     myTimer = timer_;
     inAuto = false;
 
-    PID::setOutputLimits(0, 255);				//default output limit corresponds to
+   // PID::setOutputLimits(0, 255);				//default output limit corresponds to
 												//the arduino pwm limits
 
-    SampleTime = 100;							//default Controller Sample Time is 0.1 seconds
+    SampleTime = 100;							//default Controller Sample Time is 100 microseconds
 
     PID::setControllerDirection(ControllerDirection);
 
@@ -71,13 +71,10 @@ bool PID::compute()
       double input = *myInput;
       double error = *mySetpoint - input;
       double dInput = (input - lastInput);
-      outputSum+=(ki * error);
+      outputSum += (ki * error);
 
       /*Add Proportional on Measurement, if P_ON_M is specified*/
       if(!pOnE) outputSum-= kp * dInput;
-
-       if(outputSum > outMax) outputSum= outMax;
-       else if(outputSum < outMin) outputSum= outMin;
 
       /*Add Proportional on Error, if P_ON_E is specified*/
 	   double output;
@@ -87,16 +84,20 @@ bool PID::compute()
       /*Compute Rest of PID Output*/
       output += outputSum - kd * dInput;
 
+
       if (output >= outMax)
       {
-         //outputSum -= output - outMax;
+         outputSum-=output-outMax;
          output = outMax;
       }
       else if (output <= outMin)
       {
-         //outputSum += outMin - output;
-         output = outMin;
+        outputSum-= output - outMin;
+        output = outMin;
       }
+      
+      if(outputSum > outMax) outputSum = outMax;
+	   else if(outputSum < outMin) outputSum = outMin;
 
 	   *myOutput = output; 
 
@@ -152,8 +153,7 @@ void PID::setSampleTime(int NewSampleTime)
 {
    if (NewSampleTime > 0)
    {
-      double ratio  = (double)NewSampleTime
-                      / (double)SampleTime;
+      double ratio  = NewSampleTime/SampleTime;
       ki *= ratio;
       kd /= ratio;
       SampleTime = (unsigned long)NewSampleTime;
@@ -236,9 +236,11 @@ void PID::setControllerDirection(int Direction)
 double PID::getKp(){ return  dispKp; }
 double PID::getKi(){ return  dispKi;}
 double PID::getKd(){ return  dispKd;}
+double PID::getIntegralTerm(){return outputSum;}
 int PID::getMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int PID::getDirection(){ return controllerDirection;}
 
 void PID::reset() {
-   outputSum = *myOutput;
+   initialize();
+   outputSum=0.0;
 }

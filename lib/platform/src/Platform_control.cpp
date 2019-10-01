@@ -7,7 +7,7 @@ void Platform::positionAllControl(EffortComp Component)
 {
   //Compute the PID
 
-  for (int i = 0; i < NB_AXIS; i++)
+  for (uint i = 0; i < NB_AXIS; i++)
   { 
     positionAxisControl(Component,i);
   }
@@ -17,7 +17,6 @@ void Platform::positionAllControl(EffortComp Component)
 //! 2
 void Platform::positionAxisControl(EffortComp Component, int axis)
 {
-
     if ((axis<2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
       _pidPosition[axis]->setOutputLimits(-25.0,25.0); //!N
     }
@@ -67,7 +66,7 @@ void Platform::speedAxisControl(EffortComp Component, int axis)
 void Platform::speedAllControl(EffortComp Component)
 {
 
-  for (int i = 0; i < NB_AXIS; i++)
+  for (uint i = 0; i < NB_AXIS; i++)
   {  
     speedAxisControl(Component,i);
   }
@@ -97,7 +96,7 @@ void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float 
 void Platform::gotoPointGainsDefault(int axis_)
 {
   if (axis_==-1){
-    for (int k=0; k<NB_AXIS; k++ )
+    for (uint k=0; k<NB_AXIS; k++ )
     {
       gotoPointGainsDefault(k);
     }

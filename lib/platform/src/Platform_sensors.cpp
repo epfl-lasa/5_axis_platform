@@ -4,12 +4,17 @@
 
 //! #1
 
+#define ADC 1
+#define INTEGRAL_TERM 2
+#define EFFORT_M INTEGRAL_TERM 
+
 void Platform::getMotion()
 {
   getPosition();
   getSpeed();
 }
 
+#if (EFFORT_M == ADC)
 //! #2
 void Platform::readActualEffort() //! ADC
 {
@@ -37,12 +42,29 @@ void Platform::readActualEffort() //! ADC
   }
 
 }
+#else
+void Platform::readActualEffort() 
+{
+  for (uint k=0; k<NB_AXIS; k++)
+  {
+    // if (flagPositionInControl())
+    //  { _effortM[k]=_pidPosition[k]->getIntegralTerm();}
+    // else if (flagSpeedInControl())
+    //   { _effortM[k]=_pidSpeed[k]->getIntegralTerm();}
+    // else
+    // {
+    //   _effortM[k] = 0.0;
+    // }
+    _effortM[k] = _pidPosition[k]->getIntegralTerm();
+  }
+} 
+#endif
 
 //! #3
 void Platform::getPosition()
 {
   _spi->lock(); 
-  for (int k = 0; k < NB_AXIS; k++)
+  for (uint k = 0; k < NB_AXIS; k++)
   {
     _encoders[k]->QEC_getPosition(_spi);
     _position[k] = _encoders[k]->outDimension + _positionOffsets[k];
@@ -60,7 +82,7 @@ void Platform::getSpeed()
 {
   if ((_timestamp-_speedSamplingStamp)>=VELOCITY_PID_SAMPLE_P)
   {
-    for (int k = 0; k < NB_AXIS; k++)
+    for (uint k = 0; k < NB_AXIS; k++)
     {
       _speed[k] = (_position[k] - _positionPrev[k]) / (VELOCITY_PID_SAMPLE_P * 1e-6f);
       _speed[k] = _speedFilters[k]->update(_speed[k]);

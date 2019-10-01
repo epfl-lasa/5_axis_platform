@@ -23,7 +23,7 @@ void Platform::positionAllReset()
 //! 2
 void Platform::limitSwitchesClear()
 {
-  for (int k=0; k<NB_SWITCHES; k++) 
+  for (uint k=0; k<NB_SWITCHES; k++) 
   {
     _switchesState[k] = 0;
   }
@@ -84,7 +84,7 @@ void Platform::clearLastState()
 void Platform::positionCtrlClear(int axis_)
 {
   if (axis_==-1){
-    for (int k=0; k<NB_AXIS; k++ )
+    for (uint k=0; k<NB_AXIS; k++ )
     {
       positionCtrlClear(k);
     }
@@ -104,7 +104,7 @@ void Platform::positionCtrlClear(int axis_)
 void Platform::speedCtrlClear(int axis_)
 {
   if (axis_==-1){
-    for (int k=0; k<NB_AXIS; k++ )
+    for (uint k=0; k<NB_AXIS; k++ )
     {
       speedCtrlClear(k);
     }
@@ -126,7 +126,7 @@ void Platform::compEffortClear(int axis_, Platform::EffortComp component_)
 {
   if (axis_==-1)
   {
-    for (int k=0; k<NB_AXIS; k++) 
+    for (uint k=0; k<NB_AXIS; k++) 
     { 
       compEffortClear(k, component_); 
     }
@@ -143,7 +143,7 @@ void Platform::totalEffortDClear(int axis_)
 {
   if (axis_==-1)
     {
-      for (int k=0; k<NB_AXIS; k++) 
+      for (uint k=0; k<NB_AXIS; k++) 
       { 
         totalEffortDClear(k); 
         _effortD[k] = 0.0f;
@@ -151,7 +151,7 @@ void Platform::totalEffortDClear(int axis_)
     }
   else
   {  
-    for (int j=0; j<NB_EFFORT_COMPONENTS; j++)
+    for (uint j=0; j<NB_EFFORT_COMPONENTS; j++)
     {
       compEffortClear(axis_, (Platform::EffortComp) j);
     }

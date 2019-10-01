@@ -5,21 +5,20 @@
 
 void Platform::step()
 {
+  
   getMotion(); //! SPI
   readActualEffort(); //! Using the ESCON 50/5 Analog Output  
 
   //Security Check  
   if (!_allEsconOk) {_state=EMERGENCY;}
   _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
-  for (int k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
   //
   if(_flagClearLastState)
   {
     clearLastState();
     _flagClearLastState=false;
   }
- 
-
   switch (_state)
   {
 
@@ -40,7 +39,7 @@ void Platform::step()
       // Init
       if(!_enterStateOnceFlag[HOMING])
       {
-        for (int k = 0; k < NB_AXIS; k++) {
+        for (uint k = 0; k < NB_AXIS; k++) {
           _pidSpeed[k]->reset();
         }
         _nh.loginfo("MOVING TO STATE HOMING");
@@ -51,11 +50,6 @@ void Platform::step()
       }
 
       _ros_controllerType=SPEED_ONLY;
-
-      if (_flagInputReceived) {
-        // DO NOTHING;
-        _flagInputReceived=false;
-      }
 
       _speedD[X] = SPEED_D_HOMING_X; // m/s
       _speedD[Y] = SPEED_D_HOMING_Y; // m/s
@@ -101,7 +95,7 @@ void Platform::step()
       // Init State
       if (!_enterStateOnceFlag[CENTERING])
       {
-        for (int k = 0; k < NB_AXIS; k++) {
+        for (uint k = 0; k < NB_AXIS; k++) {
           _pidPosition[k]->reset();
         }
         _nh.loginfo("MOVING TO STATE CENTERING");
@@ -111,10 +105,7 @@ void Platform::step()
       }
       // Main State
       _ros_controllerType = POSITION_ONLY;
-      if (_flagInputReceived) {
-        // DO NOTHING;
-        _flagInputReceived = false;
-      }
+
       compEffortClear(-1, NORMAL);
       gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
 
@@ -143,7 +134,7 @@ void Platform::step()
      if (!_enterStateOnceFlag[TELEOPERATION])
      {
       //
-      for (int k = 0; k < NB_AXIS; k++) {
+      for (uint k = 0; k < NB_AXIS; k++) {
         _pidPosition[k]->reset();
         _pidSpeed[k]->reset();
       }
@@ -156,13 +147,13 @@ void Platform::step()
     //! Clear the vector of efforts
      totalEffortDClear(-1);
 
-     if (_flagInputReceived) {
-       if (_ros_controllerType == TORQUE_ONLY)
+     if (_flagInputReceived[MSG_TORQUE]) {
+       if (flagTorqueInControl())
        { 
-         for (int k=0; k<NB_AXIS; k++) {
+         for (uint k=0; k<NB_AXIS; k++) {
            _effortD_ADD[NORMAL][k] = _ros_effort[k];
          }
-         _flagInputReceived = false;
+         _flagInputReceived[MSG_TORQUE] = false;
        }
      }
 
@@ -170,13 +161,12 @@ void Platform::step()
      //# In this context: e.g. CtrlType=POSITION_ONLY-> "I should listen" to
      //set_positions[k],
      if (_ros_effortComp[CONSTRAINS] == 1) {
-       if ((_ros_controllerType != SPEED_ONLY) &&
-           (_ros_controllerType != TORQUE_ONLY)) {
+      if (flagPositionInControl()) {
          wsConstrains(_ros_ControlledAxis); //! workspace constraints : soft
                                             //! limits, or joystick effect, etc
        }
-       if ((_ros_controllerType != POSITION_ONLY) &&
-           (_ros_controllerType != TORQUE_ONLY)) {
+      else if (flagSpeedInControl()) 
+      {
          motionDamping(_ros_ControlledAxis); //! Motion damping, to make it
                                              //! easier to control the platform
        }
@@ -191,7 +181,7 @@ void Platform::step()
      
      if (!_enterStateOnceFlag[ROBOT_STATE_CONTROL])
      {
-       for (int k = 0; k<NB_AXIS; k++)
+       for (uint k = 0; k<NB_AXIS; k++)
        {
          _ros_controllerType=TORQUE_ONLY;
          _pidPosition[k]->reset();
@@ -206,26 +196,37 @@ void Platform::step()
      // Main state
       totalEffortDClear(-1);
 
-      for(int k=0; k<NB_AXIS; k++)
+      if (flagPositionInControl()) {
+        if (_flagInputReceived[MSG_POSITION]) {
+          for (uint k = 0; k < NB_AXIS; k++) {
+            _positionD[k] = _ros_position[k];
+          }
+          _flagInputReceived[MSG_POSITION] = false;
+        }
+
+        if (_ros_ControlledAxis == -1) 
         {
-          if(_ros_controllerType!=SPEED_ONLY && _ros_controllerType!=TORQUE_ONLY)
-          {
-            _positionD[k]=_ros_position[k];
-                    //! Position Control
+          gotoPointAll(_positionD[X], _positionD[Y], _positionD[PITCH],
+                       _positionD[ROLL], _positionD[YAW]);
+        } 
         
-            if (_ros_ControlledAxis==-1)
-            {
-              gotoPointAll(_positionD[X],_positionD[Y],_positionD[PITCH],_positionD[ROLL],_positionD[YAW]);
-            }
-            else 
-            {
-              gotoPointAxis(_ros_ControlledAxis,_positionD[_ros_ControlledAxis]);
-            }
+        else 
+        {
+          gotoPointAxis(_ros_ControlledAxis, _positionD[_ros_ControlledAxis]);
+        }
+        
+      }
+      else if (flagSpeedInControl())
+      {
+        if (_flagInputReceived[MSG_SPEED]) {
+          for (uint k = 0; k < NB_AXIS; k++) {
+            _speedD[k] = _ros_speed[k];
           }
-          if(_ros_controllerType!=POSITION_ONLY && _ros_controllerType!=TORQUE_ONLY)
-          {
-            _speedD[k]=_ros_speed[k];
-          }
+          _flagInputReceived[MSG_SPEED] = false;
+        }
+          
+          // SPEED CONTROl TO BE IMPLEMENTED
+
         }
 
      _lastState=_state;
@@ -236,7 +237,7 @@ void Platform::step()
     {
       _enableMotors->write(0);
       if(!_enterStateOnceFlag[EMERGENCY]){
-        for (int k = 0; k < NB_AXIS; k++) {
+        for (uint k = 0; k < NB_AXIS; k++) {
           _pidPosition[k]->reset();
           _pidSpeed[k]->reset();
         }
@@ -262,4 +263,17 @@ void Platform::step()
   //! Keep track of time
   _timestep=_innerTimer.read_us()-_timestamp;
   _timestamp=_innerTimer.read_us();
+}
+
+bool Platform::flagTorqueInControl()
+ {
+   return _ros_controllerType == TORQUE_ONLY;
+ }
+
+bool Platform::flagPositionInControl() {
+  return (_ros_controllerType != SPEED_ONLY) && !flagTorqueInControl();
+}
+
+bool Platform::flagSpeedInControl() {
+  return (_ros_controllerType != POSITION_ONLY) && !flagTorqueInControl();
 }

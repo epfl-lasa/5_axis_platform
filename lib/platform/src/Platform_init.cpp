@@ -13,18 +13,9 @@ void Platform::init()
      _motors[k]->period_us(200); // PWM (to ESCON) PERIOD 200 us-> 1kHz    
      _esconEnabled[k]->fall(&emergencyCallback);
 
-    if (k<2){
-     _pidPosition[k]->setOutputLimits(-25.0, 25.0);
-     _pidSpeed[k]->setOutputLimits(-25.0, 25.0);  
-    }
-     else {
-     _pidPosition[k]->setOutputLimits(-3.0, 3.0); //! For the moment 
-     _pidSpeed[k]->setOutputLimits(-3.0, 3.0);    
-      }
-
     //}
-    _pidPosition[k]->setSampleTime(POSITION_PID_SAMPLE_P*1e-6); //! [us]
-    _pidSpeed[k]->setSampleTime(VELOCITY_PID_SAMPLE_P*1e-6);
+    _pidPosition[k]->setSampleTime(POSITION_PID_SAMPLE_P); //! [us]
+    _pidSpeed[k]->setSampleTime(VELOCITY_PID_SAMPLE_P);
     }
 
   //! Attach interruptions to callbacks on falling edge 
@@ -33,7 +24,7 @@ void Platform::init()
   _limitSwitches[PITCH]->fall(&switchCallbackPitch);
   
   _spi->lock();
-  for (int k = 0; k<NB_AXIS; k++)
+  for (uint k = 0; k<NB_AXIS; k++)
   {
      _encoders[k]->QEC_init((int)k, _encoderScale[k], _encoderSign[k],_spi);
   }
