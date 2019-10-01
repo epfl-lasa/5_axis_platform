@@ -18,8 +18,7 @@ void Platform::step()
     clearLastState();
     _flagClearLastState=false;
   }
-  
-  _state = _ros_newState;
+ 
 
   switch (_state)
   {
@@ -28,6 +27,7 @@ void Platform::step()
     if (!_enterStateOnceFlag[STANDBY]){
       // TODO
       _nh.loginfo("MOVING TO STATE STANDBY");
+      _enableMotors->write(0);
       _enterStateOnceFlag[STANDBY]=true;
     }
     totalEffortDClear(-1);
@@ -40,6 +40,9 @@ void Platform::step()
       // Init
       if(!_enterStateOnceFlag[HOMING])
       {
+        for (int k = 0; k < NB_AXIS; k++) {
+          _pidSpeed[k]->reset();
+        }
         _nh.loginfo("MOVING TO STATE HOMING");
         _enableMotors->write(1);
         limitSwitchesClear();
@@ -48,7 +51,12 @@ void Platform::step()
       }
 
       _ros_controllerType=SPEED_ONLY;
-      
+
+      if (_flagInputReceived) {
+        // DO NOTHING;
+        _flagInputReceived=false;
+      }
+
       _speedD[X] = SPEED_D_HOMING_X; // m/s
       _speedD[Y] = SPEED_D_HOMING_Y; // m/s
       _speedD[PITCH] = SPEED_D_HOMING_PITCH; // °/s
@@ -93,12 +101,20 @@ void Platform::step()
       // Init State
       if (!_enterStateOnceFlag[CENTERING])
       {
+        for (int k = 0; k < NB_AXIS; k++) {
+          _pidPosition[k]->reset();
+        }
         _nh.loginfo("MOVING TO STATE CENTERING");
+        _enableMotors->write(1);
         gotoPointGainsDefault(-1);
         _enterStateOnceFlag[CENTERING]=true;
       }
       // Main State
       _ros_controllerType = POSITION_ONLY;
+      if (_flagInputReceived) {
+        // DO NOTHING;
+        _flagInputReceived = false;
+      }
       compEffortClear(-1, NORMAL);
       gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
 
@@ -127,25 +143,43 @@ void Platform::step()
      if (!_enterStateOnceFlag[TELEOPERATION])
      {
       //
-      _ros_controllerType = POSITION_ONLY;
+      for (int k = 0; k < NB_AXIS; k++) {
+        _pidPosition[k]->reset();
+        _pidSpeed[k]->reset();
+      }
+      _ros_controllerType = TORQUE_ONLY;
       _nh.loginfo("MOVING TO STATE TELEOPERATION");
+      _enableMotors->write(1);
       _enterStateOnceFlag[TELEOPERATION]=true;
      }
-      compEffortClear(-1,CONSTRAINS);
-      compEffortClear(-1,COMPENSATION);
-      compEffortClear(-1,FEEDFORWARD);
-      // Main State
-      //# In this context: e.g. CtrlType=POSITION_ONLY-> "I should listen" to set_positions[k], 
-      if (_ros_effortComp[CONSTRAINS]==1)
-      {
-        if ((_ros_controllerType!=SPEED_ONLY)&&(_ros_controllerType!=TORQUE_ONLY))
-        {
-          wsConstrains(_ros_ControlledAxis); //! workspace constraints : soft limits, or joystick effect, etc
-        }
-        if ((_ros_controllerType!=POSITION_ONLY)&&(_ros_controllerType!=TORQUE_ONLY))
-        { 
-          motionDamping(_ros_ControlledAxis); //! Motion damping, to make it easier to control the platform
-        }
+
+    //! Clear the vector of efforts
+     totalEffortDClear(-1);
+
+     if (_flagInputReceived) {
+       if (_ros_controllerType == TORQUE_ONLY)
+       { 
+         for (int k=0; k<NB_AXIS; k++) {
+           _effortD_ADD[NORMAL][k] = _ros_effort[k];
+         }
+         _flagInputReceived = false;
+       }
+     }
+
+     // Main State
+     //# In this context: e.g. CtrlType=POSITION_ONLY-> "I should listen" to
+     //set_positions[k],
+     if (_ros_effortComp[CONSTRAINS] == 1) {
+       if ((_ros_controllerType != SPEED_ONLY) &&
+           (_ros_controllerType != TORQUE_ONLY)) {
+         wsConstrains(_ros_ControlledAxis); //! workspace constraints : soft
+                                            //! limits, or joystick effect, etc
+       }
+       if ((_ros_controllerType != POSITION_ONLY) &&
+           (_ros_controllerType != TORQUE_ONLY)) {
+         motionDamping(_ros_ControlledAxis); //! Motion damping, to make it
+                                             //! easier to control the platform
+       }
       }
       _lastState=_state;
       break;
@@ -157,15 +191,21 @@ void Platform::step()
      
      if (!_enterStateOnceFlag[ROBOT_STATE_CONTROL])
      {
-      //
-      _nh.loginfo("MOVING TO STATE ROBOT_STATE_CONTROL");
-      _enterStateOnceFlag[ROBOT_STATE_CONTROL]=true;
+       for (int k = 0; k<NB_AXIS; k++)
+       {
+         _ros_controllerType=TORQUE_ONLY;
+         _pidPosition[k]->reset();
+         _pidSpeed[k]->reset();
+       }
+       //
+       _nh.loginfo("MOVING TO STATE ROBOT_STATE_CONTROL");
+       _enableMotors->write(1);
+       _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
      }
 
      // Main state
-      compEffortClear(-1,CONSTRAINS);
-      compEffortClear(-1,COMPENSATION);
-      compEffortClear(-1,FEEDFORWARD);
+      totalEffortDClear(-1);
+
       for(int k=0; k<NB_AXIS; k++)
         {
           if(_ros_controllerType!=SPEED_ONLY && _ros_controllerType!=TORQUE_ONLY)
@@ -194,16 +234,23 @@ void Platform::step()
     
     case EMERGENCY:
     {
+      _enableMotors->write(0);
       if(!_enterStateOnceFlag[EMERGENCY]){
+        for (int k = 0; k < NB_AXIS; k++) {
+          _pidPosition[k]->reset();
+          _pidSpeed[k]->reset();
+        }
+        if(!_allEsconOk) {_nh.logerror("The servoamplifiers are not doing fine. Try restarting the microcontroller or rebooting the power supply");}
         _nh.loginfo("MOVING TO STATE EMERGENCY");
         _enterStateOnceFlag[EMERGENCY]=true;
       }
       releasePlatform();
-      _enableMotors->write(0);
+      _lastState = _state;
       break;
     }
     case RESET:
     {
+      _lastState = _state;
       _nh.loginfo("ABOUT TO RESTART THE PLATFORM CONTROLLER");
       softReset();
       break;

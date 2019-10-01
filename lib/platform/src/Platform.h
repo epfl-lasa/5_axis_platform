@@ -16,7 +16,6 @@
 
 #include <PID_v1.h>
 
-
 class Platform
 {
   public:    
@@ -39,7 +38,8 @@ class Platform
 
   private:
     // Enum for axis ID
-    enum Axis {X,Y,PITCH,ROLL,YAW};
+    
+    // enum Axis {X,Y,PITCH,ROLL,YAW};
 
     enum JointState {POSITION, SPEED, ACCELERATION}; 
 
@@ -61,21 +61,25 @@ class Platform
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 
       //CLIENT VARIABLES FROM (ROS)
-        volatile float _ros_position[NB_AXIS];
-        volatile float _ros_speed[NB_AXIS];
-        volatile bool _ros_flagDefaultControl;
-        volatile int8_t _ros_ControlledAxis;
-        volatile Controller _ros_controllerType;
-        volatile uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
-        volatile State _ros_newState;
+        float _ros_position[NB_AXIS];
+        float _ros_speed[NB_AXIS];
+        float _ros_effort[NB_AXIS];
+
+        bool _ros_flagDefaultControl;
+        int8_t _ros_ControlledAxis;
+        Controller _ros_controllerType;
+        uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
+        State _state;
+        
 
 
     // State variables
-    State _state;
     State _lastState;
     
-    volatile bool _flagClearLastState; 
-    volatile bool _enterStateOnceFlag[NB_MACHINE_STATES];
+    bool _flagClearLastState; 
+    bool _flagInputReceived;
+
+    bool _enterStateOnceFlag[NB_MACHINE_STATES];
 
     double _position[NB_AXIS];
     double _positionOffsets[NB_AXIS];
@@ -88,7 +92,7 @@ class Platform
     double _effort[NB_AXIS];
     double _effortD[NB_AXIS];
     double _effortM[NB_AXIS+2]; //The last two elements are temporary variables
-    volatile double _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
+    double _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
     LP_Filter* _positionFilters[NB_AXIS];
     LP_Filter* _speedFilters[NB_AXIS];
     LP_Filter* _effortMFilters[NB_AXIS];
@@ -120,12 +124,12 @@ class Platform
 
     // PID variables
       //General Variables
-    volatile double _kpPosition[NB_AXIS];
-    volatile double _kiPosition[NB_AXIS];
-    volatile double _kdPosition[NB_AXIS];
-    volatile double _kpSpeed[NB_AXIS];
-    volatile double _kiSpeed[NB_AXIS];
-    volatile double _kdSpeed[NB_AXIS];
+    double _kpPosition[NB_AXIS];
+    double _kiPosition[NB_AXIS];
+    double _kdPosition[NB_AXIS];
+    double _kpSpeed[NB_AXIS];
+    double _kiSpeed[NB_AXIS];
+    double _kdSpeed[NB_AXIS];
 
 
 

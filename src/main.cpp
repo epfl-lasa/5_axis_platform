@@ -6,6 +6,11 @@
   #include <rtos.h>
 #endif
 
+#define ListofAxes(enumeration, names) names,
+char const *Axis_names[]{
+    AXES};
+#undef ListofAxes
+
 Platform platform;
 
 int main() 
@@ -17,3 +22,4 @@ int main()
   }
   return 0;
 }
+

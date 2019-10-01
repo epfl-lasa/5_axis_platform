@@ -3,6 +3,7 @@
 
 #include <../../5_axis_platform/lib/platform/src/definitions.h>
 
+
 #define SCALE_GAINS_LINEAR_POSITION 1
 #define SCALE_GAINS_LINEAR_SPEED 1e-2f   
 #define SCALE_GAINS_ANGULAR_POSITION 1e-4f

@@ -116,6 +116,7 @@ void Platform::speedCtrlClear(int axis_)
     _kiSpeed[axis_]=0.0f;
     _kdSpeed[axis_]=0.0f;
     _speedCtrlOut[axis_]=0.0f;
+    
   }
   
 }

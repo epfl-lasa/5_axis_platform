@@ -13,16 +13,20 @@ void Platform::wsConstrains(int axis_)
   }
   else
   {
-    if (_ros_flagDefaultControl) {wsConstrainsDefault(axis_);}
+    float wall = _c_wsLimits[axis_];
+    
+    if (_ros_flagDefaultControl) {
+      wsConstrainsDefault(axis_);
+    }
     else
     {
-       _c_wsLimits[axis_]=fabs(_ros_position[axis_]); //! A symmetric wall will be built on the set position
+       wall=fabs(_ros_position[axis_]); //! A symmetric wall will be built on the set position
        _kiPosition[axis_]=0.0f;
     }
 
-    _positionD[axis_] = _position[axis_] >= _c_wsLimits[axis_] ? _c_wsLimits[axis_] : (_position[axis_] <= -_c_wsLimits[axis_] ? -_c_wsLimits[axis_]: 0.0f);
+    _positionD[axis_] = _position[axis_] >= wall ? wall : (_position[axis_] <= -wall ? -wall: 0.0f);
     
-    if ( _position[axis_] >= _c_wsLimits[axis_] || _position[axis_] <= -_c_wsLimits[axis_] )
+    if ( _position[axis_] >= wall || _position[axis_] <= -wall )
       {
         _flagInWsConstrains=true;
         // if ( ((_position[axis_] <= 0.0) && (_speed[axis_] <= 0.0)) || ((_position[axis_] >= 0.0) && (_speed[axis_] >= 0.0)) ) 

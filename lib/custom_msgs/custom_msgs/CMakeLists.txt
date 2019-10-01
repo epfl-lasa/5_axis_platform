@@ -11,23 +11,23 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
-  dynamic_reconfigure
 )
 
 add_message_files(
   DIRECTORY msg
 	FILES 
-	FootInputMsg_v2.msg
-	FootOutputMsg_v2.msg
-	FeetOutputMsg_v2.msg
-)
+	FootInputMsg.msg
+  FootInputMsg_v2.msg
+	FootOutputMsg.msg
+  FootOutputMsg_v2.msg
+	FeetOutputMsg.msg
+  FeetOutputMsg_v2.msg)
 
 add_service_files(
   FILES
   setControllerSrv.srv
   setStateSrv.srv
 )
-
 
 generate_messages(DEPENDENCIES std_msgs)
 
@@ -37,6 +37,14 @@ catkin_package(
   CATKIN_DEPENDS roscpp rospy std_msgs message_generation
  )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Generate added messages and services
+include_directories(${catkin_INCLUDE_DIRS})
+
+add_executable(feet_output_publisher src/feet_output_publisher.cpp)
+target_link_libraries(feet_output_publisher ${catkin_LIBRARIES})
+add_dependencies(feet_output_publisher ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(feet_output_publisher ${PROJECT_NAME}_gencpp)
+
+add_library(${PROJECT_NAME} src/feet_output_publisher.cpp)
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)

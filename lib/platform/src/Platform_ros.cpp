@@ -17,11 +17,13 @@ void Platform::communicateToRos()
 //! 1
 void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 {
+  me->_flagInputReceived=true;
   for (int k=0; k<NB_AXIS; k++)
   {
       me->_ros_position[k]=msg.ros_position[k];
       me->_ros_speed[k]=msg.ros_speed[k];
-      me->_effortD_ADD[NORMAL][k]=msg.ros_effort[k];
+      me->_ros_effort[k] = msg.ros_effort[k];
+      // me->_effortD_ADD[NORMAL][k]=msg.ros_effort[k];
   }
 }
 
@@ -41,7 +43,7 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
   { 
     resp.platform_newState=true;
     me->_flagClearLastState=true;
-    me->_ros_newState = newState;
+    me->_state = newState;
   } 
   else{ resp.platform_newState=false; } //! You are already in the desired state 
 }

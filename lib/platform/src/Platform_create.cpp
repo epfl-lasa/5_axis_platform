@@ -74,7 +74,8 @@ Platform::Platform()
 
     _ros_position[k]=0.0f;
     _ros_speed[k]=0.0f;
-    
+    _ros_effort[k] = 0.0f;
+
     _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD[k], _kpPosition[k], _kiPosition[k], _kdPosition[k],DIRECT);
     _pidPosition[k]->setMode(AUTOMATIC);
     _pidSpeed[k] = new PID(&_innerTimer, &_speed[k], &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
@@ -87,6 +88,7 @@ Platform::Platform()
   _flagClearLastState=false;
   _flagInWsConstrains=false;
   _ros_flagDefaultControl=true;
+  _flagInputReceived = false; //! To be used specially for the telemanipulation state
    wsConstrainsDefault(-1);
   
   for (int j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
@@ -96,9 +98,9 @@ Platform::Platform()
   }
 
   _tic=false;
-  _state = HOMING;
+  _state = EMERGENCY;
   _lastState=_state;
-  _ros_newState=_state;
+  
     
   // Reset the flags that acknowledge when the state is entered for the first time 
   _enterStateOnceFlag[HOMING]=false;

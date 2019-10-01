@@ -6,6 +6,22 @@
 #define NB_EFFORT_COMPONENTS 4
 #define NB_MACHINE_STATES 7
 
+#define AXES  \
+ListofAxes(X,"X Joint") \
+ListofAxes(Y,"Y Joint") \
+ListofAxes(PITCH,"PITCH Joint") \
+ListofAxes(ROLL,"ROLL Joint") \
+ListofAxes(YAW,"YAW Joint")
+
+#define ListofAxes(enumeration, names) enumeration,
+enum Axis : size_t
+{
+    AXES
+};
+#undef ListofAxes
+
+extern const char *Axis_names[];
+
 #define BAUDRATE 230400  //! For the serial communication
 
 #define PI 3.14159265359F
