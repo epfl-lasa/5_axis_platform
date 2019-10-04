@@ -6,6 +6,7 @@
 #include <SPI.h>
 #include <QEC_1X_SPI.h>
 #include <LP_Filter.h>
+#include <pid_interpolator.h>
 #include <Platform.h>
 #include <definitions.h>
 #include <definitions_2.h>
@@ -25,7 +26,7 @@ class Platform
     //Power Electronics Variables
     PinName _esconEnabledPins[NB_AXIS];
     InterruptIn* _esconEnabled[NB_AXIS];
-    volatile int _allEsconOk;
+    volatile unsigned int _allEsconOk;
     DigitalOut* _enableMotors;
 
     //Public Time
@@ -34,7 +35,7 @@ class Platform
     uint32_t _analogReadStamp;
     uint32_t _speedSamplingStamp;
     Timer _innerTimer; //! micros()
-    uint _innerCounter;
+    uint64_t _innerCounterADC;
 
   private:
     // Enum for axis ID
@@ -69,29 +70,31 @@ class Platform
         volatile int8_t _ros_ControlledAxis;
         volatile Controller _ros_controllerType;
         volatile uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
-        volatile State _state;
+        volatile State _ros_state;
         
 
 
     // State variables
-    State _lastState;
-    
+    State _platform_state;
+    Controller _platform_controllerType;
+
     volatile bool _flagClearLastState;
+    volatile bool _flagControllerTypeChanged;
     volatile bool _flagInputReceived[NB_FI_CATEGORY];
     bool _enterStateOnceFlag[NB_MACHINE_STATES];
 
-    double _position[NB_AXIS];
-    double _positionOffsets[NB_AXIS];
-    double _positionPrev[NB_AXIS];
-    double _positionD[NB_AXIS];
-    double _positionCtrlOut[NB_AXIS];
-    double _speed[NB_AXIS];
-    double _speedD[NB_AXIS];
-    double _speedCtrlOut[NB_AXIS];
-    double _effort[NB_AXIS];
-    double _effortD[NB_AXIS];
-    double _effortM[NB_AXIS+2]; //The last two elements are temporary variables
-    double _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
+    float _position[NB_AXIS];
+    float _positionOffsets[NB_AXIS];
+    float _positionPrev[NB_AXIS];
+    float _positionD[NB_AXIS];
+    float _positionCtrlOut[NB_AXIS];
+    float _speed[NB_AXIS];
+    float _speedD[NB_AXIS];
+    float _speedCtrlOut[NB_AXIS];
+    float _effort[NB_AXIS];
+    float _effortD[NB_AXIS];
+    float _effortM[NB_AXIS + 2]; //The last two elements are temporary variables
+    float _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
     LP_Filter* _positionFilters[NB_AXIS];
     LP_Filter* _speedFilters[NB_AXIS];
     LP_Filter* _effortMFilters[NB_AXIS];
@@ -105,9 +108,10 @@ class Platform
     float _encoderScale[NB_AXIS];
     float _c_wsLimits[NB_AXIS];
     bool _flagInWsConstrains;
-    double _wsRange[NB_AXIS];
-    double _effortLimits[NB_AXIS];
-    
+    float _wsRange[NB_AXIS];
+    float _effortLimits[NB_AXIS];
+    // PIDInterpolator *_positionPIDIn[NB_AXIS];
+    // PIDInterpolator *_speedPIDIn[NB_AXIS];
 
     // Hardware variables
     PinName _csPins[NB_AXIS];
@@ -123,12 +127,12 @@ class Platform
 
     // PID variables
       //General Variables
-    volatile double _kpPosition[NB_AXIS];
-    volatile double _kiPosition[NB_AXIS];
-    volatile double _kdPosition[NB_AXIS];
-    volatile double _kpSpeed[NB_AXIS];
-    volatile double _kiSpeed[NB_AXIS];
-    volatile double _kdSpeed[NB_AXIS];
+    volatile float _kpPosition[NB_AXIS];
+    volatile float _kiPosition[NB_AXIS];
+    volatile float _kdPosition[NB_AXIS];
+    volatile float _kpSpeed[NB_AXIS];
+    volatile float _kiSpeed[NB_AXIS];
+    volatile float _kdSpeed[NB_AXIS];
 
 
 
@@ -232,9 +236,8 @@ class Platform
       void speedCtrlClear(int axis_); //! Put gains and set point to zero of the Speed Control
       void totalEffortDClear(int axis_);
       void compEffortClear(int axis_, Platform::EffortComp comp_);
-      void clearLastState(); 
-
-  
+      void clearLastState();
+      void resetControllers();
 };
 
 #endif //PLATFORM_H

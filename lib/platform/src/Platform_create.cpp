@@ -8,27 +8,26 @@ Platform::Platform()
 {
   me = this;
 
-    _transmisions[X]=(1.0f/BELT_PULLEY_R)/cos(PI/3.0f); 
-    _transmisions[Y]=1.0f/BELT_PULLEY_R; 
-    _transmisions[PITCH]=PITCH_REDUCTION_R;
-    _transmisions[ROLL]=ROLL_YAW_REDUCTION_R;
-    _transmisions[YAW]=ROLL_YAW_REDUCTION_R;
+  _transmisions[X] = X_TRANSMISSION;
+  _transmisions[Y] = Y_TRANSMISSION;
+  _transmisions[PITCH] = PITCH_REDUCTION_R;
+  _transmisions[ROLL] = ROLL_YAW_REDUCTION_R;
+  _transmisions[YAW] = ROLL_YAW_REDUCTION_R;
 
-    _maxCurrent[X]=MAX_CURRENT_X;
-    _maxCurrent[Y]=MAX_CURRENT_Y;
-    _maxCurrent[PITCH]=MAX_CURRENT_PITCH_ROLL_YAW;
-    _maxCurrent[ROLL]=MAX_CURRENT_PITCH_ROLL_YAW;
-    _maxCurrent[YAW]=MAX_CURRENT_PITCH_ROLL_YAW;
+  _maxCurrent[X] = MAX_CURRENT_X;
+  _maxCurrent[Y] = MAX_CURRENT_Y;
+  _maxCurrent[PITCH] = MAX_CURRENT_PITCH_ROLL_YAW;
+  _maxCurrent[ROLL] = MAX_CURRENT_PITCH_ROLL_YAW;
+  _maxCurrent[YAW] = MAX_CURRENT_PITCH_ROLL_YAW;
 
-    _torqueConstants[X]=TORQUE_CONSTANT_X/1000; 
-    _torqueConstants[Y]=TORQUE_CONSTANT_Y/1000;
-    _torqueConstants[PITCH]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;
-    _torqueConstants[ROLL]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;//[Nm/A]
-    _torqueConstants[YAW]=TORQUE_CONSTANT_PITCH_ROLL_YAW/1000;
-    
-    for (uint k=0; k<NB_AXIS; k++)
-    {
-      _maxEffort[k]=_torqueConstants[k]*_maxCurrent[k]*_transmisions[k];
+  _torqueConstants[X] = TORQUE_CONSTANT_X / 1000;
+  _torqueConstants[Y] = TORQUE_CONSTANT_Y / 1000;
+  _torqueConstants[PITCH] = TORQUE_CONSTANT_PITCH_ROLL_YAW / 1000;
+  _torqueConstants[ROLL] = TORQUE_CONSTANT_PITCH_ROLL_YAW / 1000; //[Nm/A]
+  _torqueConstants[YAW] = TORQUE_CONSTANT_PITCH_ROLL_YAW / 1000;
+
+  for (uint k = 0; k < NB_AXIS; k++) {
+    _maxEffort[k] = _torqueConstants[k] * _maxCurrent[k] * _transmisions[k];
     }
 
   _encoderScale[X] =ENCODERSCALE_X;
@@ -68,8 +67,11 @@ Platform::Platform()
     totalEffortDClear(k);
     _effortM[k] = 0.0f;
     _positionFilters[k] = new LP_Filter(0.6);
-    _speedFilters[k] = new LP_Filter(0.95);
-    _effortMFilters[k] = new LP_Filter(0.95);
+    _speedFilters[k] =  new LP_Filter(0.95);
+    _effortMFilters[k] =  new LP_Filter(0.95);
+    // _positionPIDIn[k] = new PIDInterpolator(1,1,&_positionD[k]);
+    // _speedPIDIn[k] = new PIDInterpolator(6,10,&_speedD[k]);
+
     limitSwitchesClear();
 
     _ros_position[k]=0.0f;
@@ -81,12 +83,14 @@ Platform::Platform()
     _pidSpeed[k] = new PID(&_innerTimer, &_speed[k], &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
     _pidSpeed[k]->setMode(AUTOMATIC);
   }  
-  _innerCounter=0;
-  
-  _ros_ControlledAxis=-1; //! all of them
+  _innerCounterADC=0;
+
+  _ros_ControlledAxis = -1; //! all of them
   _ros_controllerType=TORQUE_ONLY;
+  _platform_controllerType=_ros_controllerType;
   _flagClearLastState=false;
-  _flagInWsConstrains=false;
+  _flagControllerTypeChanged=false;
+  _flagInWsConstrains = false;
 
   _ros_flagDefaultControl=true;
   
@@ -104,8 +108,8 @@ Platform::Platform()
   }
 
   _tic=false;
-  _state = EMERGENCY;
-  _lastState=_state;
+  _ros_state = EMERGENCY;
+  _platform_state=_ros_state;
   
     
   // Reset the flags that acknowledge when the state is entered for the first time 

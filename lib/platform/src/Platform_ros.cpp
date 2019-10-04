@@ -42,11 +42,11 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
       me->_ros_effortComp[j]=req.ros_effortComp[j];
   }  
   
-  if (!(newState==me->_state)) // If I want to go to a new state
+  if (!(newState==me->_ros_state)) // If I want to go to a new state
   { 
     resp.platform_newState=true;
     me->_flagClearLastState=true;
-    me->_state = newState;
+    me->_ros_state = newState;
   } 
   else{ resp.platform_newState=false; } //! You are already in the desired state 
 }
@@ -54,11 +54,19 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
 //! 3
 void Platform::updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp )
 {
-  me->_ros_controllerType=(Platform::Controller) req.ros_controllerType; 
-  me->_ros_flagDefaultControl=req.ros_defaultControl;
+
+
+  Platform::Controller newController = (Platform::Controller) req.ros_controllerType;
+  if (me->_ros_controllerType != newController)
+  {
+    me->_flagControllerTypeChanged = true;
+    me->_ros_controllerType = newController;
+  }
+
+  me->_ros_flagDefaultControl = req.ros_defaultControl;
   me->_ros_ControlledAxis=req.ros_controlledAxis; 
   
-  if ((me->_state!=TELEOPERATION) && (me->_state!=ROBOT_STATE_CONTROL))
+  if ((me->_ros_state!=TELEOPERATION) && (me->_ros_state!=ROBOT_STATE_CONTROL))
     { resp.platform_controlOk=false; }
   else
   {
@@ -97,6 +105,6 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_effortM[k] =_effortM[k];
   }
     _msgFootOutput.platform_controllerType= (uint8_t)_ros_controllerType; 
-    _msgFootOutput.platform_machineState=(uint8_t)_state;
+    _msgFootOutput.platform_machineState=(uint8_t)_ros_state;
   _pubFootOutput->publish(&_msgFootOutput);
 }

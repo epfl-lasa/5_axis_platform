@@ -7,7 +7,7 @@
 void Platform::emergencyCallback()
 {
   me->_allEsconOk=0;
-  me->_state=EMERGENCY; 
+  me->_ros_state=EMERGENCY; 
 }
 
 //! 2

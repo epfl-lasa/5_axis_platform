@@ -17,8 +17,12 @@ void Platform::positionAllControl(EffortComp Component)
 //! 2
 void Platform::positionAxisControl(EffortComp Component, int axis)
 {
-    if ((axis<2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
-      _pidPosition[axis]->setOutputLimits(-25.0,25.0); //!N
+    if ((axis==X)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
+      _pidPosition[X]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_X,EFFORT_LIMIT_DEFAULT_X); //!N
+    }
+
+    if ((axis==Y)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
+      _pidPosition[Y]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_Y,EFFORT_LIMIT_DEFAULT_Y); //!N
     }
 
     if ((axis>=2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
@@ -33,16 +37,21 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
      _pidPosition[axis]->setTunings(_kpPosition[axis], _kiPosition[axis], _kdPosition[axis]);
      _pidPosition[axis]->compute();
 
-    if ((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE)){
-      _effortD_ADD[Component][axis]=_positionCtrlOut[axis];
+     if ((_ros_controllerType == POSITION_ONLY) ||
+         (_ros_controllerType == SPEED_POSITION_CASCADE)) {
+       _effortD_ADD[Component][axis] = _positionCtrlOut[axis];
     }
 }
 
 //! 3
 void Platform::speedAxisControl(EffortComp Component, int axis)
 {
-    if ((axis<2)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
-      _pidSpeed[axis]->setOutputLimits(-25,25); //!N
+    if ((axis==X)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
+      _pidSpeed[X]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_X,EFFORT_LIMIT_DEFAULT_X); //!N
+    }
+
+     if ((axis==Y)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
+      _pidSpeed[Y]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_Y,EFFORT_LIMIT_DEFAULT_Y); //!N
     }
 
     if ((axis>=2)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){

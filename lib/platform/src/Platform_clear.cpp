@@ -32,7 +32,7 @@ void Platform::limitSwitchesClear()
 //! 3
 void Platform::clearLastState()
 {
-  switch(_lastState)
+  switch(_platform_state)
     {
       case(HOMING):
       {
@@ -80,9 +80,48 @@ void Platform::clearLastState()
     }
 }
 
-//! 4
-void Platform::positionCtrlClear(int axis_)
+
+
+void Platform::resetControllers()
 {
+  switch(_platform_controllerType)
+  {
+    case(TORQUE_ONLY):
+    {
+      compEffortClear(-1, NORMAL);
+      break;
+    }
+    case(POSITION_ONLY):
+      {
+        for (uint k=0; k<NB_AXIS; k++)
+        {
+          _pidPosition[k]->reset();
+          // _positionPIDIn[k]->reset();
+        }
+        break;
+      }
+    case (SPEED_ONLY): {
+        for (uint k = 0; k < NB_AXIS; k++) {
+          _pidSpeed[k]->reset();
+          // _speedPIDIn[k]->reset();
+        }
+        break;
+      }
+    case (SPEED_POSITION_CASCADE):
+    case (POSITION_SPEED_CASCADE): {
+      for (uint k = 0; k < NB_AXIS; k++) {
+        _pidPosition[k]->reset();
+        _pidSpeed[k]->reset();
+        // _positionPIDIn[k]->reset();
+        // _speedPIDIn[k]->reset();
+      }
+      break;
+      }
+  }
+}
+
+    //! 4
+void Platform::positionCtrlClear(int axis_) {
   if (axis_==-1){
     for (uint k=0; k<NB_AXIS; k++ )
     {

@@ -18,27 +18,27 @@ void Platform::getMotion()
 //! #2
 void Platform::readActualEffort() //! ADC
 {
-  if(_innerCounter<NB_AXIS && (_timestamp-_analogReadStamp)>=ANALOG_SAMPLING_TIME)
+  if(_innerCounterADC<NB_AXIS && (_timestamp-_analogReadStamp)>=ANALOG_SAMPLING_TIME)
   {
-    if (_innerCounter>=ROLL){
-      _effortM[_innerCounter+2]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxEffort[_innerCounter],_maxEffort[_innerCounter]);
+    if (_innerCounterADC>=ROLL){
+      _effortM[_innerCounterADC+2]=map(_motorCurrents[_innerCounterADC]->read()*_motorSign[_innerCounterADC],0.1,0.9,-_maxEffort[_innerCounterADC],_maxEffort[_innerCounterADC]);
     }
     else
     {
-      _effortM[_innerCounter]=map(_motorCurrents[_innerCounter]->read()*_motorSign[_innerCounter],0.1,0.9,-_maxEffort[_innerCounter],_maxEffort[_innerCounter]);
-      _effortM[_innerCounter]=_effortMFilters[_innerCounter]->update(_effortM[_innerCounter]);
+      _effortM[_innerCounterADC]=map(_motorCurrents[_innerCounterADC]->read()*_motorSign[_innerCounterADC],0.1,0.9,-_maxEffort[_innerCounterADC],_maxEffort[_innerCounterADC]);
+      _effortM[_innerCounterADC]=_effortMFilters[_innerCounterADC]->update(_effortM[_innerCounterADC]);
     }
     
-  if(_innerCounter==YAW){
+  if(_innerCounterADC==YAW){
     // Adapt roll and yaw angles due to differential mechanism
     _effortM[ROLL]= (_effortM[ROLL+2]-_effortM[YAW+2])/2.0f;
     _effortM[YAW] = (_effortM[ROLL+2]+_effortM[YAW+2])/2.0f;
     _effortM[ROLL]=_effortMFilters[ROLL]->update(_effortM[ROLL]);
     _effortM[YAW]=_effortMFilters[YAW]->update(_effortM[YAW]);
-    _innerCounter=0;
+    _innerCounterADC=0;
   }
   
-  _innerCounter++;
+  _innerCounterADC++;
   }
 
 }

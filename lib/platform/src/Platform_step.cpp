@@ -5,12 +5,17 @@
 
 void Platform::step()
 {
-  
+  if (_ros_state == RESET)
+  {
+    _nh.loginfo("ABOUT TO RESTART THE PLATFORM CONTROLLER");
+    softReset();
+  }
+
   getMotion(); //! SPI
   readActualEffort(); //! Using the ESCON 50/5 Analog Output  
 
   //Security Check  
-  if (!_allEsconOk) {_state=EMERGENCY;}
+  if (!_allEsconOk) {_ros_state=EMERGENCY;}
   _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
   for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
   //
@@ -19,7 +24,14 @@ void Platform::step()
     clearLastState();
     _flagClearLastState=false;
   }
-  switch (_state)
+
+  if (_flagControllerTypeChanged)
+  {
+    resetControllers();
+    _flagControllerTypeChanged=false;
+  }
+
+  switch (_ros_state)
   {
 
   case STANDBY:{ 
@@ -30,7 +42,6 @@ void Platform::step()
       _enterStateOnceFlag[STANDBY]=true;
     }
     totalEffortDClear(-1);
-    _lastState=_state; 
     break;
     }    //Do nothing
 
@@ -79,13 +90,12 @@ void Platform::step()
         {
              
             positionAllReset();
-            _state = CENTERING;    
+            _ros_state = CENTERING;    
             _tic=false;
             clearLastState(); 
         }
       }
 
-      _lastState=_state;
       break;
       }
     
@@ -119,12 +129,11 @@ void Platform::step()
         // After a second and a half move to next state
         if ((_innerTimer.read_us() - _toc) > 1500000)
         {
-          _state = TELEOPERATION;
+          _ros_state = TELEOPERATION;
           _tic=false;
           clearLastState();
         }
       }
-      _lastState=_state;
       break;
     }
     case TELEOPERATION:
@@ -134,6 +143,7 @@ void Platform::step()
      if (!_enterStateOnceFlag[TELEOPERATION])
      {
       //
+
       for (uint k = 0; k < NB_AXIS; k++) {
         _pidPosition[k]->reset();
         _pidSpeed[k]->reset();
@@ -171,7 +181,6 @@ void Platform::step()
                                              //! easier to control the platform
        }
       }
-      _lastState=_state;
       break;
     }
     
@@ -181,15 +190,15 @@ void Platform::step()
      
      if (!_enterStateOnceFlag[ROBOT_STATE_CONTROL])
      {
+       _enableMotors->write(1);
        for (uint k = 0; k<NB_AXIS; k++)
        {
-         _ros_controllerType=TORQUE_ONLY;
          _pidPosition[k]->reset();
          _pidSpeed[k]->reset();
        }
+       _ros_controllerType=TORQUE_ONLY;
        //
        _nh.loginfo("MOVING TO STATE ROBOT_STATE_CONTROL");
-       _enableMotors->write(1);
        _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
      }
 
@@ -198,12 +207,19 @@ void Platform::step()
 
       if (flagPositionInControl()) {
         if (_flagInputReceived[MSG_POSITION]) {
-          for (uint k = 0; k < NB_AXIS; k++) {
-            _positionD[k] = _ros_position[k];
+          if (_ros_ControlledAxis == -1)
+          {   
+            for (uint k = 0; k < NB_AXIS; k++) {
+              _positionD[k]=_ros_position[k];
+            }
           }
-          _flagInputReceived[MSG_POSITION] = false;
+          else 
+          {
+            _positionD[_ros_ControlledAxis] = _ros_position[_ros_ControlledAxis];
+          }
+            _flagInputReceived[MSG_POSITION] = false;
         }
-
+      
         if (_ros_ControlledAxis == -1) 
         {
           gotoPointAll(_positionD[X], _positionD[Y], _positionD[PITCH],
@@ -219,17 +235,20 @@ void Platform::step()
       else if (flagSpeedInControl())
       {
         if (_flagInputReceived[MSG_SPEED]) {
-          for (uint k = 0; k < NB_AXIS; k++) {
-            _speedD[k] = _ros_speed[k];
+          if (_ros_ControlledAxis==-1)
+          {
+            for (uint k = 0; k < NB_AXIS; k++) {
+              _speedD[k] = _ros_speed[k];
+            }
           }
-          _flagInputReceived[MSG_SPEED] = false;
+          else {
+            _speedD[_ros_ControlledAxis] = _ros_speed[_ros_ControlledAxis];
+          }
+              _flagInputReceived[MSG_SPEED] = false;
         }
           
-          // SPEED CONTROl TO BE IMPLEMENTED
+      }
 
-        }
-
-     _lastState=_state;
       break;
     }
     
@@ -246,21 +265,20 @@ void Platform::step()
         _enterStateOnceFlag[EMERGENCY]=true;
       }
       releasePlatform();
-      _lastState = _state;
       break;
     }
     case RESET:
     {
-      _lastState = _state;
-      _nh.loginfo("ABOUT TO RESTART THE PLATFORM CONTROLLER");
-      softReset();
+      //defined upstairs
       break;
     }
   }
 
   if (_allEsconOk) {setEfforts();}// Aply the forces and torques}  
   
-  //! Keep track of time
+  //! Keep track of variables
+  _platform_state = _ros_state;
+  _platform_controllerType=_ros_controllerType;
   _timestep=_innerTimer.read_us()-_timestamp;
   _timestamp=_innerTimer.read_us();
 }
