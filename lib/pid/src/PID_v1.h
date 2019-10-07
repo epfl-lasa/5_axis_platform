@@ -93,6 +93,7 @@ class PID
 
 	unsigned long SampleTime;
 	float outMin, outMax;
+  float outSumMin, outSumMax;
 	bool inAuto, pOnE;
 };
 #endif

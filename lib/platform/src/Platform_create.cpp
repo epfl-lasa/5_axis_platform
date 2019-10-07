@@ -180,4 +180,7 @@ Platform::Platform()
       
    }
 _timestamp=0; // We don't read the timer until the platform is initialized
+
+_recoveringFromError=false;
+_allEsconOk = 1;
 }

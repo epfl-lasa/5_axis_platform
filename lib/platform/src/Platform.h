@@ -27,6 +27,7 @@ class Platform
     PinName _esconEnabledPins[NB_AXIS];
     InterruptIn* _esconEnabled[NB_AXIS];
     volatile unsigned int _allEsconOk;
+    bool _recoveringFromError;
     DigitalOut* _enableMotors;
 
     //Public Time
@@ -82,6 +83,8 @@ class Platform
     volatile bool _flagControllerTypeChanged;
     volatile bool _flagInputReceived[NB_FI_CATEGORY];
     bool _enterStateOnceFlag[NB_MACHINE_STATES];
+
+    bool _workspaceLimitReached[NB_AXIS];
 
     float _position[NB_AXIS];
     float _positionOffsets[NB_AXIS];
@@ -208,6 +211,11 @@ class Platform
     static void emergencyCallback();  //! 1
     void releasePlatform();           //! 2
 
+  //! Platform_security.cpp
+
+  private:
+    void workspaceCheck(int axis_);
+
   //! Platform_control.cpp
   private:
       // Position and Speed control
@@ -238,6 +246,7 @@ class Platform
       void compEffortClear(int axis_, Platform::EffortComp comp_);
       void clearLastState();
       void resetControllers();
+      
 };
 
 #endif //PLATFORM_H

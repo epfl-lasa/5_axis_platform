@@ -1,6 +1,10 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
+#define RIGHT_PLATFORM 1
+#define LEFT_PLATFORM 2
+#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
+
 #define NB_AXIS 5
 #define NB_SWITCHES 3
 #define NB_EFFORT_COMPONENTS 4
@@ -26,16 +30,19 @@ extern const char *Axis_names[];
 
 #define PI 3.14159265359F
 
-#define RIGHT_PLATFORM 1
-#define LEFT_PLATFORM 2
-#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
+
 
 #define BELT_PULLEY_R 0.00915F     //! Torque/Force
 
-const float X_TRANSMISSION = (1.0f / BELT_PULLEY_R) * cos(PI / 3.0f);
-const float Y_TRANSMISSION = 1.0f / BELT_PULLEY_R;
-#define PITCH_REDUCTION_R 12.0F //! Pulley Big [mm] / Pulley Belt [mm]
-#define ROLL_YAW_REDUCTION_R 12.96f  //! Pulley Big [mm] / Pulley Belt [mm]
+#define  RAD_TO_DEG 57.295779513082323f
+const float X_TRANSMISSION = (1.0f / BELT_PULLEY_R); //!
+const float X_RESOLUTION = (2 * PI / (4 * 500) ) /  X_TRANSMISSION; //! 28.5 um
+const float Y_TRANSMISSION = 1.0f / BELT_PULLEY_R; //!
+const float Y_RESOLUTION = (2 * PI / (4 * 1024) ) / Y_TRANSMISSION; //! 14.03 um
+const float PITCH_REDUCTION_R = 12.0F; //! Pulley Big [mm] / Pulley Belt [mm]
+const float PITCH_RESOLUTION = (2 * PI / (4 * 4096)) / PITCH_REDUCTION_R * RAD_TO_DEG; //! 32 urad -> 1.8 e-3 deg
+const float ROLL_YAW_REDUCTION_R = 12.96f;  //! Pulley Big [mm] / Pulley Belt [mm]
+const float ROLL_YAW_RESOLUTION = 2 * ((2 * PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //! 
 
 #define COMM_LOOP 2000 //! [us] -> 2ms = 500Hz
 #define CTRL_LOOP 500 //! [us] -> 500us = 2KHz
@@ -64,7 +71,7 @@ const float POSITION_PID_SAMPLE_P =  1 * CTRL_LOOP;  //! [us]
 #define ROLL_RANGE 40.0F  //! [deg]
 #define YAW_RANGE 50.0F  //! [deg]
 
-const float WS_LIMITS[NB_AXIS] = {X_RANGE / 2.0, Y_RANGE / 2.0, PITCH_RANGE / 2.0f, ROLL_RANGE / 2.0f,
+const float WS_LIMITS[NB_AXIS] = {0.95* X_RANGE / 2.0, Y_RANGE / 2.0, PITCH_RANGE / 2.0f, ROLL_RANGE / 2.0f,
     YAW_RANGE / 2.0f}; 
 
 const float C_WS_RANGE_X =  X_RANGE*0.7/2;
@@ -114,8 +121,8 @@ const float HOMING_OFFSET_PITCH = 19.0f;  //! [deg]
 
 const float ENCODERSCALE_X = (X_RANGE / 7310.0f * (0.195f/0.180f));
 const float ENCODERSCALE_Y = (Y_RANGE / 12400.0f * (0.180f/0.1767f));
-const float ENCODERSCALE_PITCH  = 60.F / PITCH_REDUCTION_R / (4 * 4095.0F);
-const float ENCODERSCALE_ROLL = const float.0f/53000.0f;
+const float ENCODERSCALE_PITCH  = 360.F / PITCH_REDUCTION_R / (4 * 4095.0F);
+const float ENCODERSCALE_ROLL = 90.0f/53000.0f;
 const float ENCODERSCALE_YAW = 90.0f/53000.0f;
 
 #else

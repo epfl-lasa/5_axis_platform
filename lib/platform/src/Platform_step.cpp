@@ -5,19 +5,22 @@
 
 void Platform::step()
 {
-  if (_ros_state == RESET)
+
+  getMotion(); //! SPI
+  readActualEffort(); //! Using the ESCON 50/5 Analog Output  
+  
+    _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
+  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  
+  if (!_allEsconOk) {_ros_state=EMERGENCY; _recoveringFromError=true;}
+
+  if ((_ros_state == RESET) || 
+      (_allEsconOk==1 && _recoveringFromError)) //! If we just recovered from an error then restart the microcontroller
   {
     _nh.loginfo("ABOUT TO RESTART THE PLATFORM CONTROLLER");
     softReset();
   }
 
-  getMotion(); //! SPI
-  readActualEffort(); //! Using the ESCON 50/5 Analog Output  
-
-  //Security Check  
-  if (!_allEsconOk) {_ros_state=EMERGENCY;}
-  _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
-  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
   //
   if(_flagClearLastState)
   {
@@ -224,11 +227,23 @@ void Platform::step()
         {
           gotoPointAll(_positionD[X], _positionD[Y], _positionD[PITCH],
                        _positionD[ROLL], _positionD[YAW]);
+          for (uint k=0; k<NB_AXIS; k++)
+          {
+             if (_workspaceLimitReached[k])
+             {
+              _pidPosition[k]->reset();
+             }
+            
+          }
         } 
         
         else 
         {
           gotoPointAxis(_ros_ControlledAxis, _positionD[_ros_ControlledAxis]);
+          if (_workspaceLimitReached[_ros_ControlledAxis])
+          {
+          _pidPosition[_ros_ControlledAxis]->reset();
+          }
         }
         
       }
@@ -273,6 +288,8 @@ void Platform::step()
       break;
     }
   }
+
+  workspaceCheck(_ros_ControlledAxis);
 
   if (_allEsconOk) {setEfforts();}// Aply the forces and torques}  
   

@@ -97,8 +97,8 @@ bool PID::compute()
         output = outMin;
       }
       
-      if(outputSum > outMax) outputSum = outMax;
-	   else if(outputSum < outMin) outputSum = outMin;
+      if(outputSum > outMax) outputSum = outSumMax;
+	   else if(outputSum < outMin) outputSum = outSumMin;
 
 	   *myOutput = output; 
 
@@ -176,14 +176,17 @@ void PID::setOutputLimits(float Min, float Max)
    if(Min >= Max) return;
    outMin = Min;
    outMax = Max;
+   outSumMax = 0.5f*outMax;
+   outSumMin = 0.5f*outMin;
+
 
    if(inAuto)
    {
 	   if(*myOutput > outMax) *myOutput = outMax;
 	   else if(*myOutput < outMin) *myOutput = outMin;
 
-	   if(outputSum > outMax) outputSum= outMax;
-	   else if(outputSum < outMin) outputSum= outMin;
+	   if(outputSum > outSumMax) outputSum= outSumMax;
+	   else if(outputSum < outSumMin) outputSum= outSumMin;
    }
 }
 
@@ -210,8 +213,8 @@ void PID::initialize()
 {
    outputSum = *myOutput;
    lastInput = *myInput;
-   if(outputSum > outMax) outputSum = outMax;
-   else if(outputSum < outMin) outputSum = outMin;
+   if(outputSum > outSumMax) outputSum = outSumMax;
+   else if(outputSum < outSumMin) outputSum = outSumMin;
 }
 
 /* SetControllerDirection(...)*************************************************
