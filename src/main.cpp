@@ -6,17 +6,12 @@
   #include <rtos.h>
 #endif
 
-#define ListofAxes(enumeration, names) names,
-char const *Axis_names[]{
-    AXES};
-#undef ListofAxes
-
 Platform platform;
 
 int main() 
 {
   platform.init();  
-  while(1) {   
+  while(!platform._stop) {   
       platform.step();
       platform.communicateToRos(); 
   }

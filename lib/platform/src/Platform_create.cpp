@@ -2,12 +2,19 @@
 #include <definitions.h>
 #include <definitions_2.h>
 
+const char *Platform_Names[]{"UNKNOWN", "RIGHT PLATFORM", "LEFT PLATFORM"};
+
+#define ListofAxes(enumeration, names) names,
+char const *Axis_names[]{
+    AXES};
+#undef ListofAxes
+
 Platform *Platform::me = NULL;
 
 Platform::Platform()
 {
   me = this;
-
+  _stop=false;
   _transmisions[X] = X_TRANSMISSION;
   _transmisions[Y] = Y_TRANSMISSION;
   _transmisions[PITCH] = PITCH_REDUCTION_R;

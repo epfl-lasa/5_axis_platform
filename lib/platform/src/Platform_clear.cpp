@@ -36,7 +36,8 @@ void Platform::clearLastState()
     {
       case(HOMING):
       {
-        _nh.loginfo("LEAVING HOMING STATE"); 
+        sprintf(_logMsg, "%s : LEAVING HOMING STATE", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
         _enterStateOnceFlag[HOMING]=false;   
         limitSwitchesClear();       
         //! Finally resets the effort commands given by this controller. 
@@ -47,7 +48,8 @@ void Platform::clearLastState()
 
       case(CENTERING):
       {
-        _nh.loginfo("LEAVING CENTERING STATE"); 
+        sprintf(_logMsg, "%s : LEAVING CENTERING STATE", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg); 
         _enterStateOnceFlag[CENTERING]=false;
         compEffortClear(-1,NORMAL);
         positionCtrlClear(-1);
@@ -55,7 +57,8 @@ void Platform::clearLastState()
       }
       case(TELEOPERATION):
       {
-        _nh.loginfo("LEAVING TELEOPERATION STATE"); 
+        sprintf(_logMsg, "%s : LEAVING TELEOPERATION STATE", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
         _enterStateOnceFlag[TELEOPERATION]=false;
         totalEffortDClear(-1);
         positionCtrlClear(-1);
@@ -65,7 +68,8 @@ void Platform::clearLastState()
 
       case(ROBOT_STATE_CONTROL):
       {
-        _nh.loginfo("LEAVING ROBOT_STATE_CONTROL STATE"); 
+        sprintf(_logMsg, "%s : LEAVING ROBOT_STATE_CONTROL STATE", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
         _enterStateOnceFlag[ROBOT_STATE_CONTROL]=false;
         totalEffortDClear(-1);
         positionCtrlClear(-1);
@@ -74,8 +78,17 @@ void Platform::clearLastState()
       }
 
 
-      case(EMERGENCY):{_enterStateOnceFlag[EMERGENCY]=false; _nh.loginfo("LEAVING EMERGENCY STATE"); break;}
-      case(STANDBY): {_enterStateOnceFlag[STANDBY]=false; _nh.loginfo("LEAVING STANDBY STATE");  break;} 
+      case(EMERGENCY):{
+        _enterStateOnceFlag[EMERGENCY]=false;
+        sprintf(_logMsg, "%s : LEAVING EMERGENCY STATE", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
+        break;
+      }
+      case(STANDBY): {_enterStateOnceFlag[STANDBY]=false;
+        sprintf(_logMsg, "%s : LEAVING STANDBY STATE", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
+        break;
+      }
       case(RESET):{break;}
     }
 }

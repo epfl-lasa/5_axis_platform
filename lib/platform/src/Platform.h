@@ -17,11 +17,14 @@
 
 #include <PID_v1.h>
 
+
 class Platform
 {
   public:    
     // ROS variables
     ros::NodeHandle _nh;
+    char _logMsg[50];
+    bool _stop;
 
     //Power Electronics Variables
     PinName _esconEnabledPins[NB_AXIS];

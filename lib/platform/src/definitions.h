@@ -5,6 +5,8 @@
 #define LEFT_PLATFORM 2
 #define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
 
+extern const char *Platform_Names[];
+
 #define NB_AXIS 5
 #define NB_SWITCHES 3
 #define NB_EFFORT_COMPONENTS 4

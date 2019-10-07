@@ -1,7 +1,7 @@
 #include <Platform.h>
 #include <definitions.h>
 #include <definitions_2.h>
-
+#include <string>
 
 void Platform::step()
 {
@@ -17,8 +17,11 @@ void Platform::step()
   if ((_ros_state == RESET) || 
       (_allEsconOk==1 && _recoveringFromError)) //! If we just recovered from an error then restart the microcontroller
   {
-    _nh.loginfo("ABOUT TO RESTART THE PLATFORM CONTROLLER");
+    sprintf(_logMsg, "%s : ABOUT TO RESTART THE PLATFORM CONTROLLER", Platform_Names[PLATFORM_ID]);
+    _nh.loginfo(_logMsg);
     softReset();
+    _stop=true;
+    return;
   }
 
   //
@@ -40,7 +43,8 @@ void Platform::step()
   case STANDBY:{ 
     if (!_enterStateOnceFlag[STANDBY]){
       // TODO
-      _nh.loginfo("MOVING TO STATE STANDBY");
+      sprintf(_logMsg, "%s : MOVING TO STATE STANDBY", Platform_Names[PLATFORM_ID]);
+      _nh.loginfo(_logMsg);
       _enableMotors->write(0);
       _enterStateOnceFlag[STANDBY]=true;
     }
@@ -56,7 +60,8 @@ void Platform::step()
         for (uint k = 0; k < NB_AXIS; k++) {
           _pidSpeed[k]->reset();
         }
-        _nh.loginfo("MOVING TO STATE HOMING");
+        sprintf(_logMsg, "%s : MOVING TO STATE HOMING", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
         _enableMotors->write(1);
         limitSwitchesClear();
         // Set commanded forces and torques for homing
@@ -111,7 +116,8 @@ void Platform::step()
         for (uint k = 0; k < NB_AXIS; k++) {
           _pidPosition[k]->reset();
         }
-        _nh.loginfo("MOVING TO STATE CENTERING");
+        sprintf(_logMsg, "%s : MOVING TO STATE CENTERING", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
         _enableMotors->write(1);
         gotoPointGainsDefault(-1);
         _enterStateOnceFlag[CENTERING]=true;
@@ -152,7 +158,8 @@ void Platform::step()
         _pidSpeed[k]->reset();
       }
       _ros_controllerType = TORQUE_ONLY;
-      _nh.loginfo("MOVING TO STATE TELEOPERATION");
+      sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
+      _nh.loginfo(_logMsg);
       _enableMotors->write(1);
       _enterStateOnceFlag[TELEOPERATION]=true;
      }
@@ -201,7 +208,8 @@ void Platform::step()
        }
        _ros_controllerType=TORQUE_ONLY;
        //
-       _nh.loginfo("MOVING TO STATE ROBOT_STATE_CONTROL");
+       sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL", Platform_Names[PLATFORM_ID]);
+       _nh.loginfo(_logMsg);
        _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
      }
 
@@ -276,7 +284,8 @@ void Platform::step()
           _pidSpeed[k]->reset();
         }
         if(!_allEsconOk) {_nh.logerror("The servoamplifiers are not doing fine. Try restarting the microcontroller or rebooting the power supply");}
-        _nh.loginfo("MOVING TO STATE EMERGENCY");
+        sprintf(_logMsg,"%s MOVING TO STATE EMERGENCY",Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
         _enterStateOnceFlag[EMERGENCY]=true;
       }
       releasePlatform();
