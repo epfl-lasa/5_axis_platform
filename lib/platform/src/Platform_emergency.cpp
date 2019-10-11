@@ -6,8 +6,7 @@
 //! 1
 void Platform::emergencyCallback()
 {
-  me->_allEsconOk=0;
-  me->_ros_state=EMERGENCY; 
+  me->_flagEmergencyCalled=true;
 }
 
 //! 2

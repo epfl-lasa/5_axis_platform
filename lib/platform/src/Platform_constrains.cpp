@@ -26,13 +26,14 @@ void Platform::wsConstrains(int axis_)
 
     _positionD[axis_] = _position[axis_] >= wall ? wall : (_position[axis_] <= -wall ? -wall: 0.0f);
     
-    if ( _position[axis_] >= wall || _position[axis_] <= -wall )
+    if (( _position[axis_] >= wall || _position[axis_] <= -wall ) //&&
+        // ((_position[axis_] <= 0.0 && _speed[axis_] <= 0.0) || ((_position[axis_] >= 0.0) && (_speed[axis_] >= 0.0)))) 
+      )
       {
-        _flagInWsConstrains=true;
-        // if ( ((_position[axis_] <= 0.0) && (_speed[axis_] <= 0.0)) || ((_position[axis_] >= 0.0) && (_speed[axis_] >= 0.0)) ) 
-        // {
-          positionAxisControl(CONSTRAINS,axis_);
-        // }
+          _flagInWsConstrains=true;
+           _pidPosition[axis_]->reset();
+           positionAxisControl(CONSTRAINS, axis_);
+           
       }
       else    
       {

@@ -40,7 +40,7 @@
 
     #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
 
-        #define SPEED_D_HOMING_X -2.7                                                //[m/s]                         
+        #define SPEED_D_HOMING_X -1.0                                                //[m/s]                         
         #define SPEED_D_HOMING_Y 1.0                                                 //[deg/s]
         #define SPEED_D_HOMING_PITCH 300.0                                           //[deg/s]                             
         

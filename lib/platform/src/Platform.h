@@ -23,7 +23,7 @@ class Platform
   public:    
     // ROS variables
     ros::NodeHandle _nh;
-    char _logMsg[50];
+    char _logMsg[512];
     bool _stop;
 
     //Power Electronics Variables
@@ -85,6 +85,7 @@ class Platform
     volatile bool _flagClearLastState;
     volatile bool _flagControllerTypeChanged;
     volatile bool _flagInputReceived[NB_FI_CATEGORY];
+    volatile bool _flagEmergencyCalled;
     bool _enterStateOnceFlag[NB_MACHINE_STATES];
 
     bool _workspaceLimitReached[NB_AXIS];
@@ -198,6 +199,8 @@ class Platform
   //! Platform_utils.cpp
   public:  
     float map(float x, float in_min, float in_max, float out_min, float out_max); //! 1    
+    float clamp(float x, float out_min, float out_max);
+
 
   //!Platform_sensors.cpp
   public:  

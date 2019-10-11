@@ -88,13 +88,19 @@ bool PID::compute()
 
       if (output >= outMax)
       {
-         outputSum-=output-outMax;
+         if (ki!=0.0f)
+         {
+            outputSum -= output - outMax;
+         }
          output = outMax;
       }
       else if (output <= outMin)
       {
-        outputSum-= output - outMin;
-        output = outMin;
+         if (ki != 0.0)
+         {
+            outputSum -= output - outMin;
+         }
+         output = outMin;
       }
       
       if(outputSum > outMax) outputSum = outSumMax;

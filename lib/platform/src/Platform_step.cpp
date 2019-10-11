@@ -5,23 +5,28 @@
 
 void Platform::step()
 {
+  memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
+
+  if ((_ros_state == RESET) || (_allEsconOk && _recoveringFromError))
+  {
+    sprintf(_logMsg, "%s : ABOUT TO RESTART THE PLATFORM CONTROLLER", Platform_Names[PLATFORM_ID]);
+    _nh.loginfo(_logMsg);
+    NVIC_SystemReset();
+    _stop = true;
+    wait_ms(5000);
+    return;
+  }
 
   getMotion(); //! SPI
   readActualEffort(); //! Using the ESCON 50/5 Analog Output  
   
-    _allEsconOk=1; //! In principle all the motor servo drives are doing fine until proved otherwise
+  _allEsconOk=1;
   for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
-  
-  if (!_allEsconOk) {_ros_state=EMERGENCY; _recoveringFromError=true;}
 
-  if ((_ros_state == RESET) || 
-      (_allEsconOk==1 && _recoveringFromError)) //! If we just recovered from an error then restart the microcontroller
+  if (!_allEsconOk || _flagEmergencyCalled)
   {
-    sprintf(_logMsg, "%s : ABOUT TO RESTART THE PLATFORM CONTROLLER", Platform_Names[PLATFORM_ID]);
-    _nh.loginfo(_logMsg);
-    softReset();
-    _stop=true;
-    return;
+    _ros_state = EMERGENCY;
+    _recoveringFromError=true;
   }
 
   //
@@ -208,9 +213,9 @@ void Platform::step()
        }
        _ros_controllerType=TORQUE_ONLY;
        //
-       sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL", Platform_Names[PLATFORM_ID]);
-       _nh.loginfo(_logMsg);
-       _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
+        sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL", Platform_Names[PLATFORM_ID]);
+        _nh.loginfo(_logMsg);
+        _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
      }
 
      // Main state

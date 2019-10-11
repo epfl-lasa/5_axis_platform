@@ -3,7 +3,7 @@
 
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
 
 extern const char *Platform_Names[];
 
@@ -47,7 +47,7 @@ const float ROLL_YAW_REDUCTION_R = 12.96f;  //! Pulley Big [mm] / Pulley Belt [m
 const float ROLL_YAW_RESOLUTION = 2 * ((2 * PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //! 
 
 #define COMM_LOOP 2000 //! [us] -> 2ms = 500Hz
-#define CTRL_LOOP 500 //! [us] -> 500us = 2KHz
+#define CTRL_LOOP 500 //! [us] -> 500us = 2KHz  /50
 const float VELOCITY_PID_SAMPLE_P =  5 * CTRL_LOOP;              //!  [us]
 const float ANALOG_SAMPLING_TIME =  10 * CTRL_LOOP; 
 const float POSITION_PID_SAMPLE_P =  1 * CTRL_LOOP;  //! [us]
@@ -95,7 +95,13 @@ const float EFFORT_LIMIT_DEFAULT_YAW= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (M
 #define EFFORT_LIMIT_HOMING_ROLL 3
 #define EFFORT_LIMIT_HOMING_YAW 3
 
-const float SPEED_LIMIT_X = X_RANGE/0.5; //! s^-1
+const float EFFORT_LIMITS[NB_AXIS] = {EFFORT_LIMIT_HOMING_X,
+                                      EFFORT_LIMIT_HOMING_Y,
+                                      EFFORT_LIMIT_HOMING_PITCH,
+                                      EFFORT_LIMIT_HOMING_ROLL,
+                                      EFFORT_LIMIT_HOMING_YAW};
+
+const float SPEED_LIMIT_X = X_RANGE / 0.5; //! s^-1
 const float SPEED_LIMIT_Y = Y_RANGE/0.5;
 const float SPEED_LIMIT_PITCH =  PITCH_RANGE/0.5;
 const float SPEED_LIMIT_ROLL =  ROLL_RANGE/0.5;
@@ -105,7 +111,7 @@ const float SPEED_LIMIT_YAW = YAW_RANGE/0.5;
 
 const float HOMING_OFFSET_X = -X_RANGE / 2; 
 const float HOMING_OFFSET_Y = Y_RANGE / 2; 
-const float HOMING_OFFSET_PITCH = 19.0f;  //! [deg]
+const float HOMING_OFFSET_PITCH = 17.0f;  //! [deg]
 
 #define ENCODERSIGN_X 1 //! LEFT
 #define ENCODERSIGN_Y 1 //! LEFT

@@ -15,6 +15,7 @@ Platform::Platform()
 {
   me = this;
   _stop=false;
+  _flagEmergencyCalled = false;
   _transmisions[X] = X_TRANSMISSION;
   _transmisions[Y] = Y_TRANSMISSION;
   _transmisions[PITCH] = PITCH_REDUCTION_R;
