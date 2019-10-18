@@ -3,7 +3,7 @@
 
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
 
 extern const char *Platform_Names[];
 
@@ -73,8 +73,8 @@ const float POSITION_PID_SAMPLE_P =  1 * CTRL_LOOP;  //! [us]
 #define ROLL_RANGE 40.0F  //! [deg]
 #define YAW_RANGE 50.0F  //! [deg]
 
-const float WS_LIMITS[NB_AXIS] = {0.95* X_RANGE / 2.0, Y_RANGE / 2.0, PITCH_RANGE / 2.0f, ROLL_RANGE / 2.0f,
-    YAW_RANGE / 2.0f}; 
+const float WS_LIMITS[NB_AXIS] = {0.95* X_RANGE / 2.0, 0.9* Y_RANGE / 2.0, PITCH_RANGE / 2.0f, 1.25*ROLL_RANGE / 2.0f,
+    1.25*YAW_RANGE / 2.0f}; 
 
 const float C_WS_RANGE_X =  X_RANGE*0.7/2;
 const float C_WS_RANGE_Y = Y_RANGE * 0.7 / 2;
