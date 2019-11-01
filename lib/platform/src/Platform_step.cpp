@@ -173,13 +173,10 @@ void Platform::step()
      totalEffortDClear(-1);
 
      if (_flagInputReceived[MSG_TORQUE]) {
-       if (flagTorqueInControl())
-       { 
          for (uint k=0; k<NB_AXIS; k++) {
            _effortD_ADD[NORMAL][k] = _ros_effort[k];
          }
          _flagInputReceived[MSG_TORQUE] = false;
-       }
      }
 
      // Main State
