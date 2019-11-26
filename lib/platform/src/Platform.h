@@ -98,7 +98,6 @@ class Platform
     float _speed[NB_AXIS];
     float _speedD[NB_AXIS];
     float _speedCtrlOut[NB_AXIS];
-    float _effort[NB_AXIS];
     float _effortD[NB_AXIS];
     float _effortM[NB_AXIS + 2]; //The last two elements are temporary variables
     float _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];

@@ -70,8 +70,6 @@ Platform::Platform()
     
     positionCtrlClear(k);
     speedCtrlClear(k);
-
-    _effort[k] = 0.0f;
     totalEffortDClear(k);
     _effortM[k] = 0.0f;
     _positionFilters[k] = new LP_Filter(0.6);
