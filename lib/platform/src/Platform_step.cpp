@@ -13,7 +13,7 @@ void Platform::step()
     _nh.loginfo(_logMsg);
     NVIC_SystemReset();
     _stop = true;
-    wait_ms(5000);
+    wait_us(5000000);
     return;
   }
 

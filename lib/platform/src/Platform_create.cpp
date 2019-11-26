@@ -166,7 +166,7 @@ Platform::Platform()
   // _spi->frequency(1000000); // Default
   /************************************************************* */
 
-  wait_ms(10); //! Wait a bit after the SPI starts
+  wait_us(10000); //! Wait a bit after the SPI starts
 
   for(int k = 0; k < NB_AXIS; k++)
   {

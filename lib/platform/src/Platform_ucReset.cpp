@@ -7,9 +7,9 @@ void Platform::resetEscons(){
 
   totalEffortDClear(-1);
   setEfforts();
-  wait_ms(250);
+  wait_us(250000);
   _enableMotors->write(1);
-  wait_ms(750);
+  wait_us(750000);
   _enableMotors->write(0);
 }
 

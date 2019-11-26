@@ -39,12 +39,12 @@ void Platform::init()
 
   _nh.getHardware()->setBaud(BAUDRATE);
   _nh.initNode();
-   wait_ms(10);
+   wait_us(10000);
   _nh.advertise(*_pubFootOutput);
   _nh.advertiseService(*_servChangeState);
   _nh.advertiseService(*_servChangeCtrl);
   _nh.subscribe(*_subFootInput);
-  wait_ms(10);
+  wait_us(10000);
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _timestamp = _innerTimer.read_us();
   _speedSamplingStamp=_timestamp;
