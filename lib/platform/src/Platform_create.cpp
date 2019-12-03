@@ -35,8 +35,10 @@ Platform::Platform()
   _torqueConstants[YAW] = TORQUE_CONSTANT_PITCH_ROLL_YAW / 1000;
 
   for (uint k = 0; k < NB_AXIS; k++) {
-    _maxEffort[k] = _torqueConstants[k] * _maxCurrent[k] * _transmisions[k];
+    _maxEffort[k] = _torqueConstants[k] * _maxCurrent[k] * _transmisions[k]; //DO NOT USE IN A CONTROLLER, JUST IN A MEASUREMENT FOR MAPPING
     }
+
+    
 
   _encoderScale[X] =ENCODERSCALE_X;
   _encoderScale[Y] =ENCODERSCALE_Y;
@@ -64,6 +66,7 @@ Platform::Platform()
 
   for(int k = 0; k < NB_AXIS; k++)
   {
+    _effortD[k] = 0.0f;
     _position[k] = 0.0f;
     _positionOffsets[k] = 0.0f;
     _positionPrev[k] = 0.0f;
@@ -73,10 +76,9 @@ Platform::Platform()
     totalEffortDClear(k);
     _effortM[k] = 0.0f;
     _positionFilters[k] = new LP_Filter(0.6);
-    _speedFilters[k] =  new LP_Filter(0.95);
-    _effortMFilters[k] =  new LP_Filter(0.95);
-    // _positionPIDIn[k] = new PIDInterpolator(1,1,&_positionD[k]);
-    // _speedPIDIn[k] = new PIDInterpolator(6,10,&_speedD[k]);
+    _posDesiredFilters[k] = new LP_Filter(0.85);
+    _effortMFilters[k] =  new LP_Filter(0.7);
+    _adc_sum[k]=0.0f;
 
     limitSwitchesClear();
 
@@ -84,11 +86,18 @@ Platform::Platform()
     _ros_speed[k]=0.0f;
     _ros_effort[k] = 0.0f;
 
-    _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD[k], _kpPosition[k], _kiPosition[k], _kdPosition[k],DIRECT);
+        _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD_filtered[k], _kpPosition[k], _kiPosition[k], _kdPosition[k], DIRECT);
     _pidPosition[k]->setMode(AUTOMATIC);
     _pidSpeed[k] = new PID(&_innerTimer, &_speed[k], &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
     _pidSpeed[k]->setMode(AUTOMATIC);
-  }  
+  }
+
+  _speedFilters[X] = new LP_Filter(0.96);
+  _speedFilters[Y] = new LP_Filter(0.96);
+  _speedFilters[PITCH] = new LP_Filter(0.96);
+  _speedFilters[ROLL] = new LP_Filter(0.97);
+  _speedFilters[YAW] = new LP_Filter(0.97);
+
   _innerCounterADC=0;
 
   _ros_ControlledAxis = -1; //! all of them
@@ -154,8 +163,14 @@ Platform::Platform()
   _motorCurrentsPins[X]=PC_0;
   _motorCurrentsPins[PITCH]=PC_1;
   _motorCurrentsPins[Y]=PB_0;
-  _motorCurrentsPins[ROLL]=PA_4;
+  _motorCurrentsPins[ROLL]=PA_4;  
   _motorCurrentsPins[YAW]=PA_0;
+
+  // _motorCurrentsPins[X] = A5;
+  // _motorCurrentsPins[Y] = A3;
+  // _motorCurrentsPins[PITCH] = A4;
+  // _motorCurrentsPins[ROLL] = A2;
+  // _motorCurrentsPins[YAW] = A0;
 
   _enableMotors= new DigitalOut(PB_1);  
 
@@ -188,5 +203,6 @@ Platform::Platform()
 _timestamp=0; // We don't read the timer until the platform is initialized
 
 _recoveringFromError=false;
+_flagBiasADCOk=false;
 _allEsconOk = 1;
 }

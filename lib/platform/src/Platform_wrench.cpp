@@ -32,6 +32,7 @@ void Platform::setEfforts()
 void Platform::setEffortAxis(float effort, PwmOut *pin, int sign, int axis)
 {
   float escon_torque = effort/_transmisions[axis];
+  escon_torque = clamp(escon_torque, -USER_MAX_EFFORTS[axis], USER_MAX_EFFORTS[axis]);
   setCurrentAxis(escon_torque, pin, sign, axis);
 }
 

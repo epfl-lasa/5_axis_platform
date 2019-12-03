@@ -26,14 +26,15 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
     }
 
     if ((axis>=2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
-      if (axis==PITCH) {_pidPosition[axis]->setOutputLimits(-5.0,5.0);} //!Nm
-      if (axis==ROLL || axis==YAW){_pidPosition[axis]->setOutputLimits(-5.0,5.0);} //!Nm
+      if (axis==PITCH) {_pidPosition[axis]->setOutputLimits(-3.0,3.0);} //!Nm
+      if (axis==ROLL || axis==YAW){_pidPosition[axis]->setOutputLimits(-3.0,3.0);} //!Nm
     }
 
     if (_ros_controllerType==SPEED_POSITION_CASCADE){
       _positionD[axis]=_speedCtrlOut[axis];
     }
-
+     
+     _positionD_filtered[axis] = _posDesiredFilters[axis]->update(_positionD[axis]);
      _pidPosition[axis]->setTunings(_kpPosition[axis], _kiPosition[axis], _kdPosition[axis]);
      _pidPosition[axis]->compute();
 

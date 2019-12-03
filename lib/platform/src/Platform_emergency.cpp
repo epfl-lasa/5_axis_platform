@@ -19,7 +19,5 @@ void Platform::releasePlatform()
   {
     _positionFilters[k]->reset();
     _speedFilters[k]->reset();
-    _effortMFilters[k]->reset();
   }
-
 }

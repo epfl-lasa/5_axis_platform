@@ -14,10 +14,35 @@ float Platform::map(float x, float in_min, float in_max, float out_min, float ou
   else
   {_nh.logfatal("You have inf or nan numbers");}
 
-  return mapping<-out_min ? -out_min : (mapping>out_max ? out_max : mapping);
+  return mapping < out_min ? out_min : (mapping>out_max ? out_max : mapping);
 }
 
 float Platform::clamp(float x, float out_min, float out_max)
 {
-   return x < -out_min ? -out_min : (x > out_max ? out_max : x);
+   return x < out_min ? out_min : (x > out_max ? out_max : x);
+}
+
+
+float Platform::smoothRise(float x, float a, float b)
+{
+  float y;
+  if (x < a)
+  {
+    y = 0.0f;
+  }
+  else if (x > b)
+  {
+    y = 1.0f;
+  }
+  else
+  {
+    y = (1.0f + sin(M_PI * (x - a) / (b - a) - M_PI / 2.0f)) / 2.0f;
+  }
+
+  return y;
+}
+
+float Platform::smoothFall(float x, float a, float b)
+{
+  return 1.0f - smoothRise(x, a, b);
 }

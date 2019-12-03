@@ -18,7 +18,6 @@ void Platform::step()
   }
 
   getMotion(); //! SPI
-  readActualEffort(); //! Using the ESCON 50/5 Analog Output  
   
   _allEsconOk=1;
   for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
@@ -119,7 +118,7 @@ void Platform::step()
       if (!_enterStateOnceFlag[CENTERING])
       {
         for (uint k = 0; k < NB_AXIS; k++) {
-          _pidPosition[k]->reset();
+           _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
         }
         sprintf(_logMsg, "%s : MOVING TO STATE CENTERING", Platform_Names[PLATFORM_ID]);
         _nh.loginfo(_logMsg);
@@ -157,9 +156,8 @@ void Platform::step()
      if (!_enterStateOnceFlag[TELEOPERATION])
      {
       //
-
       for (uint k = 0; k < NB_AXIS; k++) {
-        _pidPosition[k]->reset();
+        _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
         _pidSpeed[k]->reset();
       }
       _ros_controllerType = TORQUE_ONLY;
@@ -170,11 +168,16 @@ void Platform::step()
      }
 
     //! Clear the vector of efforts
-     totalEffortDClear(-1);
+    //  totalEffortDClear(-1);
+
+     compEffortClear(-1, CONSTRAINS);
+     compEffortClear(-1, COMPENSATION);
+     compEffortClear(-1, FEEDFORWARD);
 
      if (_flagInputReceived[MSG_TORQUE]) {
          for (uint k=0; k<NB_AXIS; k++) {
            _effortD_ADD[NORMAL][k] = _ros_effort[k];
+          //  _ros_effort_prev[k] = _ros_effort[k];
          }
          _flagInputReceived[MSG_TORQUE] = false;
      }
@@ -182,6 +185,13 @@ void Platform::step()
      // Main State
      //# In this context: e.g. CtrlType=POSITION_ONLY-> "I should listen" to
      //set_positions[k],
+
+     if(_ros_effortComp[COMPENSATION] == 1)
+     {
+       gravityCompensation();
+      //  _nh.loginfo("here");
+     }
+
      if (_ros_effortComp[CONSTRAINS] == 1) {
       if (flagPositionInControl()) {
          wsConstrains(_ros_ControlledAxis); //! workspace constraints : soft
@@ -205,7 +215,7 @@ void Platform::step()
        _enableMotors->write(1);
        for (uint k = 0; k<NB_AXIS; k++)
        {
-         _pidPosition[k]->reset();
+          _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
          _pidSpeed[k]->reset();
        }
        _ros_controllerType=TORQUE_ONLY;
@@ -241,7 +251,7 @@ void Platform::step()
           {
              if (_workspaceLimitReached[k])
              {
-              _pidPosition[k]->reset();
+               _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
              }
             
           }
@@ -282,7 +292,7 @@ void Platform::step()
       _enableMotors->write(0);
       if(!_enterStateOnceFlag[EMERGENCY]){
         for (uint k = 0; k < NB_AXIS; k++) {
-          _pidPosition[k]->reset();
+           _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
           _pidSpeed[k]->reset();
         }
         if(!_allEsconOk) {_nh.logerror("The servoamplifiers are not doing fine. Try restarting the microcontroller or rebooting the power supply");}
@@ -290,8 +300,8 @@ void Platform::step()
         _nh.loginfo(_logMsg);
         _enterStateOnceFlag[EMERGENCY]=true;
       }
-      releasePlatform();
-      break;
+        releasePlatform();
+        break;
     }
     case RESET:
     {
@@ -301,8 +311,9 @@ void Platform::step()
   }
 
   workspaceCheck(_ros_ControlledAxis);
-
-  if (_allEsconOk) {setEfforts();}// Aply the forces and torques}  
+  
+  if (_allEsconOk) {setEfforts();}// Aply the forces and torques}
+  readActualEffort();             //! Using the ESCON 50/5 Analog Output
   
   //! Keep track of variables
   _platform_state = _ros_state;

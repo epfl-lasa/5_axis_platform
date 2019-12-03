@@ -14,11 +14,11 @@ extern const char *Platform_Names[];
 #define NB_FI_CATEGORY 3
 
 #define AXES  \
-ListofAxes(X,"X Joint") \
-ListofAxes(Y,"Y Joint") \
-ListofAxes(PITCH,"PITCH Joint") \
-ListofAxes(ROLL,"ROLL Joint") \
-ListofAxes(YAW,"YAW Joint")
+ListofAxes(X,"X_Joint") \
+ListofAxes(Y,"Y_Joint") \
+ListofAxes(PITCH,"PITCH_Joint") \
+ListofAxes(ROLL,"ROLL_Joint") \
+ListofAxes(YAW,"YAW_Joint")
 
 #define ListofAxes(enumeration, names) enumeration,
 enum Axis : size_t { AXES };
@@ -32,7 +32,7 @@ extern const char *Axis_names[];
 
 #define PI 3.14159265359F
 
-
+#define GRAVITY -9.80665F
 
 #define BELT_PULLEY_R 0.00915F     //! Torque/Force
 
@@ -82,24 +82,23 @@ const float C_WS_RANGE_PITCH = PITCH_RANGE / 2 * 0.3;
 const float C_WS_RANGE_ROLL = ROLL_RANGE / 2 * 0.2;
 const float C_WS_RANGE_YAW = YAW_RANGE / 2 * 0.5;
 
+
+//const float ADC_EFFORT_BIAS_RIGHT[NB_AXIS] = {0.0, 0.0, 0.0, 0.0, 0.0};
+
 //! Security Variables
 const float EFFORT_LIMIT_DEFAULT_X = (TORQUE_CONSTANT_X/1000) * (MAX_CURRENT_X) * X_TRANSMISSION;
 const float EFFORT_LIMIT_DEFAULT_Y = (TORQUE_CONSTANT_Y/1000) * (MAX_CURRENT_Y) * Y_TRANSMISSION;
-const float EFFORT_LIMIT_DEFAULT_PITCH= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * PITCH_REDUCTION_R;
-const float EFFORT_LIMIT_DEFAULT_ROLL= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * ROLL_YAW_REDUCTION_R;
-const float EFFORT_LIMIT_DEFAULT_YAW= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * ROLL_YAW_REDUCTION_R;
+// const float EFFORT_LIMIT_DEFAULT_PITCH= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * PITCH_REDUCTION_R;
+// const float EFFORT_LIMIT_DEFAULT_ROLL= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * ROLL_YAW_REDUCTION_R;
+// const float EFFORT_LIMIT_DEFAULT_YAW= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * ROLL_YAW_REDUCTION_R;
+
+const float USER_MAX_EFFORTS[NB_AXIS] = {EFFORT_LIMIT_DEFAULT_X, EFFORT_LIMIT_DEFAULT_Y, 7.0f, 7.0f, 7.0f};
 
 #define EFFORT_LIMIT_HOMING_X EFFORT_LIMIT_DEFAULT_X
 #define EFFORT_LIMIT_HOMING_Y EFFORT_LIMIT_DEFAULT_X
 #define EFFORT_LIMIT_HOMING_PITCH 3
 #define EFFORT_LIMIT_HOMING_ROLL 3
 #define EFFORT_LIMIT_HOMING_YAW 3
-
-const float EFFORT_LIMITS[NB_AXIS] = {EFFORT_LIMIT_HOMING_X,
-                                      EFFORT_LIMIT_HOMING_Y,
-                                      EFFORT_LIMIT_HOMING_PITCH,
-                                      EFFORT_LIMIT_HOMING_ROLL,
-                                      EFFORT_LIMIT_HOMING_YAW};
 
 const float SPEED_LIMIT_X = X_RANGE / 0.5; //! s^-1
 const float SPEED_LIMIT_Y = Y_RANGE/0.5;
@@ -109,15 +108,26 @@ const float SPEED_LIMIT_YAW = YAW_RANGE/0.5;
 
 #if (PLATFORM_ID == LEFT_PLATFORM)
 
+const float ADC_EFFORT_SCALE[NB_AXIS] = {1.0f, 1.0f, 1.0f, 2.12571428571f, 2.26086956522f};
+
 const float HOMING_OFFSET_X = -X_RANGE / 2; 
 const float HOMING_OFFSET_Y = Y_RANGE / 2; 
-const float HOMING_OFFSET_PITCH = 17.0f;  //! [deg]
+const float HOMING_OFFSET_PITCH = 17.0f+7.4139f;  //! [deg]
 
 #define ENCODERSIGN_X 1 //! LEFT
 #define ENCODERSIGN_Y 1 //! LEFT
 #define ENCODERSIGN_PITCH 1 //! LEFT
 #define ENCODERSIGN_ROLL 1 //! LEFT
 #define ENCODERSIGN_YAW 1 //! LEFT
+
+#define ADC_SIGN_X -1     //! LEFT
+#define ADC_SIGN_Y -1     //! LEFT
+#define ADC_SIGN_PITCH -1 //! LEFT
+#define ADC_SIGN_ROLL -1  //! LEFT
+#define ADC_SIGN_YAW -1   //! LEFT
+
+const int ADC_SIGN[NB_AXIS] = {ADC_SIGN_X, ADC_SIGN_Y, ADC_SIGN_PITCH, ADC_SIGN_ROLL,ADC_SIGN_YAW};
+const float ADC_USER_BIAS[NB_AXIS] = {0.0f, 0.0f, 0.0f, 0.0f, -0.30f};
 
 // MOTORSIGN: To programatically change the rotation sign
 
@@ -127,7 +137,7 @@ const float HOMING_OFFSET_PITCH = 17.0f;  //! [deg]
 #define MOTORSIGN_ROLL -1 //! LEFT
 #define MOTORSIGN_YAW -1 //! LEFT
 
-const float ENCODERSCALE_X = (X_RANGE / 7310.0f * (0.195f/0.180f));
+const float ENCODERSCALE_X = (X_RANGE / 7310.0f * (0.195f / 0.180f));
 const float ENCODERSCALE_Y = (Y_RANGE / 12400.0f * (0.180f/0.1767f));
 const float ENCODERSCALE_PITCH  = 360.F / PITCH_REDUCTION_R / (4 * 4095.0F);
 const float ENCODERSCALE_ROLL = 90.0f/53000.0f;
@@ -135,9 +145,11 @@ const float ENCODERSCALE_YAW = 90.0f/53000.0f;
 
 #else
 
+const float ADC_EFFORT_SCALE[NB_AXIS] = {2.03291821668, 1.04135423273f, 1.0f, 1.85313799022, 2.4117866005f};
+
 const float HOMING_OFFSET_X = X_RANGE / 2; 
 const float HOMING_OFFSET_Y  = Y_RANGE / 2; 
-const float HOMING_OFFSET_PITCH =  -24.5; //! [deg]
+const float HOMING_OFFSET_PITCH =  -27.5; //! [deg]
 
 #define ENCODERSIGN_X -1 //! RIGHT
 #define ENCODERSIGN_Y -1 //! RIGHT
@@ -145,6 +157,14 @@ const float HOMING_OFFSET_PITCH =  -24.5; //! [deg]
 #define ENCODERSIGN_ROLL 1 //! RIGHT
 #define ENCODERSIGN_YAW 1 //! RIGHT
 
+#define ADC_SIGN_X 1     //! RIGHT
+#define ADC_SIGN_Y 1     //! RIGHT
+#define ADC_SIGN_PITCH 1 //! RIGHT
+#define ADC_SIGN_ROLL -1  //! RIGHT
+#define ADC_SIGN_YAW -1   //! RIGHT
+
+const int ADC_SIGN[NB_AXIS] = {ADC_SIGN_X, ADC_SIGN_Y, ADC_SIGN_PITCH, ADC_SIGN_ROLL, ADC_SIGN_YAW};
+const float ADC_USER_BIAS[NB_AXIS] = {0.0f, 0.0f, 0.0f, 0.0f, -1.5f};
 // MOTORSIGN: To programatically change the rotation sign
 
 #define MOTORSIGN_X 1 //! RIGHT

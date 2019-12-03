@@ -6,6 +6,7 @@
 #include <SPI.h>
 #include <QEC_1X_SPI.h>
 #include <LP_Filter.h>
+#include <MA_Filter.h>
 #include <pid_interpolator.h>
 #include <Platform.h>
 #include <definitions.h>
@@ -31,6 +32,8 @@ class Platform
     InterruptIn* _esconEnabled[NB_AXIS];
     volatile unsigned int _allEsconOk;
     bool _recoveringFromError;
+    bool _flagBiasADCOk;
+    float _adc_sum[NB_AXIS];
     DigitalOut* _enableMotors;
 
     //Public Time
@@ -94,6 +97,7 @@ class Platform
     float _positionOffsets[NB_AXIS];
     float _positionPrev[NB_AXIS];
     float _positionD[NB_AXIS];
+    float _positionD_filtered[NB_AXIS];
     float _positionCtrlOut[NB_AXIS];
     float _speed[NB_AXIS];
     float _speedD[NB_AXIS];
@@ -102,6 +106,7 @@ class Platform
     float _effortM[NB_AXIS + 2]; //The last two elements are temporary variables
     float _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
     LP_Filter* _positionFilters[NB_AXIS];
+    LP_Filter* _posDesiredFilters[NB_AXIS];
     LP_Filter* _speedFilters[NB_AXIS];
     LP_Filter* _effortMFilters[NB_AXIS];
     volatile uint _switchesState[NB_AXIS];
@@ -199,11 +204,12 @@ class Platform
   public:  
     float map(float x, float in_min, float in_max, float out_min, float out_max); //! 1    
     float clamp(float x, float out_min, float out_max);
+    float smoothRise(float x, float a, float b);
+    float smoothFall(float x, float a, float b);
 
-
-  //!Platform_sensors.cpp
-  public:  
-    void getMotion();                     //! 1
+    //!Platform_sensors.cpp
+  public:
+    void getMotion(); //! 1
   private:
       //! Robot State
       void getPosition();                     //! 2
@@ -234,6 +240,8 @@ class Platform
       void gotoPointGainsDefault(int axis_);                              //! 7
       //! Platform_constrains.cpp
     private:    
+      //Compensation
+      void gravityCompensation();
       //Constrains 
       void wsConstrains(int axis_); //! -1 := all of them                 //! 1
       void motionDamping(int axis_); //! -1:= all of them                 //! 2
