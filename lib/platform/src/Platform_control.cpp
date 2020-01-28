@@ -33,14 +33,26 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
     if (_ros_controllerType==SPEED_POSITION_CASCADE){
       _positionD[axis]=_speedCtrlOut[axis];
     }
-     
-     _positionD_filtered[axis] = _posDesiredFilters[axis]->update(_positionD[axis]);
-     _pidPosition[axis]->setTunings(_kpPosition[axis], _kiPosition[axis], _kdPosition[axis]);
-     _pidPosition[axis]->compute();
 
-     if ((_ros_controllerType == POSITION_ONLY) ||
-         (_ros_controllerType == SPEED_POSITION_CASCADE)) {
-       _effortD_ADD[Component][axis] = _positionCtrlOut[axis];
+    if (abs(_positionD[axis])>0.005) //! Only interpolate if greater than 5 millimiters / millidegrees
+    {
+      _positionD_filtered[axis] =
+      _posDesiredFilters[axis]->update(_positionD[axis]);
+      _positionD_filtered[axis] =
+             clamp(_positionD_filtered[axis], -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
+    }
+    else
+    {
+      _positionD_filtered[axis] = _positionD[axis];
+    }
+    
+    _pidPosition[axis]->setTunings(_kpPosition[axis], _kiPosition[axis],
+                                   _kdPosition[axis]);
+    _pidPosition[axis]->compute();
+
+    if ((_ros_controllerType == POSITION_ONLY) ||
+        (_ros_controllerType == SPEED_POSITION_CASCADE)) {
+      _effortD_ADD[Component][axis] = _positionCtrlOut[axis];
     }
 }
 

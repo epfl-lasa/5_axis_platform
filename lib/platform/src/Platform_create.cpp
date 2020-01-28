@@ -75,9 +75,9 @@ Platform::Platform()
     speedCtrlClear(k);
     totalEffortDClear(k);
     _effortM[k] = 0.0f;
-    _positionFilters[k] = new LP_Filter(0.6);
+    
     _posDesiredFilters[k] = new LP_Filter(0.85);
-    _effortMFilters[k] =  new LP_Filter(0.7);
+    _effortMFilters[k] =  new LP_Filter(0.8);
     _adc_sum[k]=0.0f;
 
     limitSwitchesClear();
@@ -86,11 +86,17 @@ Platform::Platform()
     _ros_speed[k]=0.0f;
     _ros_effort[k] = 0.0f;
 
-        _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD_filtered[k], _kpPosition[k], _kiPosition[k], _kdPosition[k], DIRECT);
+    _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD_filtered[k], _kpPosition[k], _kiPosition[k], _kdPosition[k], DIRECT);
     _pidPosition[k]->setMode(AUTOMATIC);
     _pidSpeed[k] = new PID(&_innerTimer, &_speed[k], &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
     _pidSpeed[k]->setMode(AUTOMATIC);
   }
+
+  _positionFilters[X] = new LP_Filter(0.6);
+  _positionFilters[Y] = new LP_Filter(0.6);
+  _positionFilters[PITCH] = new LP_Filter(0.85);
+  _positionFilters[ROLL] = new LP_Filter(0.85);
+  _positionFilters[YAW] = new LP_Filter(0.85);
 
   _speedFilters[X] = new LP_Filter(0.96);
   _speedFilters[Y] = new LP_Filter(0.96);

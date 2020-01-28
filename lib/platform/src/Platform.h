@@ -242,6 +242,7 @@ class Platform
     private:    
       //Compensation
       void gravityCompensation();
+      void stictionCompensation(int axis_);
       //Constrains 
       void wsConstrains(int axis_); //! -1 := all of them                 //! 1
       void motionDamping(int axis_); //! -1:= all of them                 //! 2

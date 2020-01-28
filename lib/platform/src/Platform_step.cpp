@@ -51,6 +51,8 @@ void Platform::step()
       _nh.loginfo(_logMsg);
       _enableMotors->write(0);
       _enterStateOnceFlag[STANDBY]=true;
+      sprintf(_logMsg, "Timestep: %f milliseconds", ((float)_timestep * 1e-3));
+      _nh.loginfo(_logMsg);
     }
     totalEffortDClear(-1);
     break;
@@ -188,7 +190,8 @@ void Platform::step()
 
      if(_ros_effortComp[COMPENSATION] == 1)
      {
-       gravityCompensation();
+      //  gravityCompensation();
+       stictionCompensation(X);
       //  _nh.loginfo("here");
      }
 

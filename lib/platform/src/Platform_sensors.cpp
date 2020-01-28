@@ -132,11 +132,11 @@ void Platform::getPosition()
 //! #4
 void Platform::getSpeed()
 {
-  if ((_timestamp-_speedSamplingStamp)>=VELOCITY_PID_SAMPLE_P)
+  if ((_timestamp-_speedSamplingStamp)>=(uint32_t)VELOCITY_PID_SAMPLE_P)
   {
     for (uint k = 0; k < NB_AXIS; k++)
     {
-      _speed[k] = (_position[k] - _positionPrev[k]) / (VELOCITY_PID_SAMPLE_P * 1e-6f);
+      _speed[k] = (_position[k] - _positionPrev[k]) / ((float)VELOCITY_PID_SAMPLE_P * 1e-6f);
       _speed[k] = _speedFilters[k]->update(_speed[k]);
       _positionPrev[k] = _position[k];
       _speedSamplingStamp=_timestamp;

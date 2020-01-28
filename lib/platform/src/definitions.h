@@ -3,7 +3,7 @@
 
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
 
 extern const char *Platform_Names[];
 
@@ -73,20 +73,28 @@ const float POSITION_PID_SAMPLE_P =  1 * CTRL_LOOP;  //! [us]
 #define ROLL_RANGE 40.0F  //! [deg]
 #define YAW_RANGE 50.0F  //! [deg]
 
-const float WS_LIMITS[NB_AXIS] = {0.95* X_RANGE / 2.0, 0.9* Y_RANGE / 2.0, PITCH_RANGE / 2.0f, 1.25*ROLL_RANGE / 2.0f,
-    1.25*YAW_RANGE / 2.0f}; 
+// const float WS_LIMITS[NB_AXIS] = {0.95* X_RANGE / 2.0, 0.9* Y_RANGE / 2.0, PITCH_RANGE / 2.0f, 1.25*ROLL_RANGE / 2.0f,
+//    YAW_RANGE / 2.0f};
 
-const float C_WS_RANGE_X =  X_RANGE*0.7/2;
-const float C_WS_RANGE_Y = Y_RANGE * 0.7 / 2;
-const float C_WS_RANGE_PITCH = PITCH_RANGE / 2 * 0.3;
-const float C_WS_RANGE_ROLL = ROLL_RANGE / 2 * 0.2;
-const float C_WS_RANGE_YAW = YAW_RANGE / 2 * 0.5;
+const float WS_LIMITS[NB_AXIS] = {X_RANGE / 2.0, Y_RANGE / 2.0,
+                                  PITCH_RANGE / 2.0f, ROLL_RANGE / 2.0f,
+                                  YAW_RANGE / 2.0f};
 
+const float C_WS_LIMIT_X = (X_RANGE/ 2) * 0.8;
+const float C_WS_LIMIT_Y = (Y_RANGE / 2)  * 0.8;
+const float C_WS_LIMIT_PITCH = (PITCH_RANGE / 2) * 0.8;
+const float C_WS_LIMIT_ROLL = (ROLL_RANGE / 2) * 0.8;
+const float C_WS_LIMIT_YAW = (YAW_RANGE / 2) * 0.8;
 
-//const float ADC_EFFORT_BIAS_RIGHT[NB_AXIS] = {0.0, 0.0, 0.0, 0.0, 0.0};
+const float C_WS_LIMITS[NB_AXIS] = {C_WS_LIMIT_X, C_WS_LIMIT_Y,
+                                    C_WS_LIMIT_PITCH, C_WS_LIMIT_ROLL,
+                                    C_WS_LIMIT_YAW};
+
+// const float ADC_EFFORT_BIAS_RIGHT[NB_AXIS] = {0.0, 0.0, 0.0, 0.0, 0.0};
 
 //! Security Variables
-const float EFFORT_LIMIT_DEFAULT_X = (TORQUE_CONSTANT_X/1000) * (MAX_CURRENT_X) * X_TRANSMISSION;
+const float EFFORT_LIMIT_DEFAULT_X =
+    (TORQUE_CONSTANT_X / 1000) * (MAX_CURRENT_X)*X_TRANSMISSION;
 const float EFFORT_LIMIT_DEFAULT_Y = (TORQUE_CONSTANT_Y/1000) * (MAX_CURRENT_Y) * Y_TRANSMISSION;
 // const float EFFORT_LIMIT_DEFAULT_PITCH= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * PITCH_REDUCTION_R;
 // const float EFFORT_LIMIT_DEFAULT_ROLL= (TORQUE_CONSTANT_PITCH_ROLL_YAW/1000) * (MAX_CURRENT_PITCH_ROLL_YAW) * ROLL_YAW_REDUCTION_R;
