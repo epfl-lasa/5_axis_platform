@@ -1,5 +1,13 @@
 #include <LP_Filter.h>
 
+// LP_Filter::LP_Filter()
+// {
+//   _output = 0.0f;
+//   _old_output = 0.0f;
+//   _alpha = 0.9;
+//   _bias = 0.0f;
+// }
+
 LP_Filter::LP_Filter(float alpha)
 {
   _output=0.0f;

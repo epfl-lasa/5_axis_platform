@@ -190,8 +190,8 @@ void Platform::step()
 
      if(_ros_effortComp[COMPENSATION] == 1)
      {
-      //  gravityCompensation();
-       stictionCompensation(X);
+      gravityCompensation();
+      frictionCompensation();
       //  _nh.loginfo("here");
      }
 

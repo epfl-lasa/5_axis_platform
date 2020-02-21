@@ -7,7 +7,7 @@
 #include <QEC_1X_SPI.h>
 #include <LP_Filter.h>
 #include <MA_Filter.h>
-#include <pid_interpolator.h>
+//#include <pid_interpolator.h>
 #include <Platform.h>
 #include <definitions.h>
 #include <definitions_2.h>
@@ -17,7 +17,7 @@
 #include <setStateSrv.h>
 
 #include <PID_v1.h>
-
+#include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
 
 class Platform
 {
@@ -206,10 +206,11 @@ class Platform
     float clamp(float x, float out_min, float out_max);
     float smoothRise(float x, float a, float b);
     float smoothFall(float x, float a, float b);
+    float smoothRiseFall(float x, float a, float b, float c, float d);
+    Eigen::Matrix<float, Eigen::Dynamic, 1> bound(Eigen::Matrix<float, Eigen::Dynamic, 1> x, float limit);
 
-    //!Platform_sensors.cpp
-  public:
-    void getMotion(); //! 1
+        //!Platform_sensors.cpp
+        public : void getMotion(); //! 1
   private:
       //! Robot State
       void getPosition();                     //! 2
@@ -241,13 +242,35 @@ class Platform
       //! Platform_constrains.cpp
     private:    
       //Compensation
-      void gravityCompensation();
-      void stictionCompensation(int axis_);
-      //Constrains 
-      void wsConstrains(int axis_); //! -1 := all of them                 //! 1
-      void motionDamping(int axis_); //! -1:= all of them                 //! 2
-      void wsConstrainsDefault(int axis_);                                //! 3
-      void motionDampingGainsDefault(int axis_);                          //! 4      
+  #define NB_STICTION_COMP 2
+  #define NB_VISCOUS_COMP NB_AXIS
+  #define NB_SIGN_COMP 2
+
+  #define NB_LIMS 2
+  #define L_MIN 0
+  #define L_MAX 1
+  #define NEG 0
+  #define POS 1
+  #define MID 3
+
+  void gravityCompensation();
+  void frictionCompensation();
+  void quadraticRegression();
+  Eigen::Matrix<float, NB_STICTION_COMP, 1> _compEffort[NB_SIGN_COMP];
+  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _predictors[NB_SIGN_COMP];
+  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _betas[NB_SIGN_COMP];
+  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _mean[NB_SIGN_COMP];
+  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _stdInv[NB_SIGN_COMP];
+  Eigen::Matrix<float, 1 , NB_STICTION_COMP> _bias[NB_SIGN_COMP];
+  // Eigen::Matrix<float, NB_STICTION_COMP, NB_LIMS> _effortCompLim[NB_SIGN_COMP + 1]; //! Including Zero
+  Eigen::Matrix<float, NB_STICTION_COMP, NB_LIMS> _effortCompLim[NB_SIGN_COMP]; //! Including Zero
+
+  //Constrains
+  void
+  wsConstrains(int axis_);                   //! -1 := all of them                 //! 1
+  void motionDamping(int axis_);             //! -1:= all of them                 //! 2
+  void wsConstrainsDefault(int axis_);       //! 3
+  void motionDampingGainsDefault(int axis_); //! 4      
 
   //!Platform_clear.cpp
   private:

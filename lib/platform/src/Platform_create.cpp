@@ -77,6 +77,7 @@ Platform::Platform()
     _effortM[k] = 0.0f;
     
     _posDesiredFilters[k] = new LP_Filter(0.85);
+    //_posDesiredFilters[k] = new LP_Filter(0);
     _effortMFilters[k] =  new LP_Filter(0.8);
     _adc_sum[k]=0.0f;
 
@@ -92,8 +93,8 @@ Platform::Platform()
     _pidSpeed[k]->setMode(AUTOMATIC);
   }
 
-  _positionFilters[X] = new LP_Filter(0.6);
-  _positionFilters[Y] = new LP_Filter(0.6);
+  _positionFilters[X] = new LP_Filter(0.56);
+  _positionFilters[Y] = new LP_Filter(0.56);
   _positionFilters[PITCH] = new LP_Filter(0.85);
   _positionFilters[ROLL] = new LP_Filter(0.85);
   _positionFilters[YAW] = new LP_Filter(0.85);
@@ -152,7 +153,7 @@ Platform::Platform()
   _motorPins[X] = PC_7_ALT0; // D9 PWM8/2
   _motorPins[Y] = PB_3; // D3  PWM2/2
   _motorPins[PITCH] = PB_5; // D4 PWM3/2 
-  _motorPins[ROLL] = PA_8; // D7 PWM1/1
+  _motorPins[ROLL] = PA_8; // D7 PWM1.0f/1
   _motorPins[YAW] = PB_4; // D5  PWM3/1
 
   _limitSwitchesPins[X] = PC_8; //  NOT as PWMX/XN
@@ -211,4 +212,98 @@ _timestamp=0; // We don't read the timer until the platform is initialized
 _recoveringFromError=false;
 _flagBiasADCOk=false;
 _allEsconOk = 1;
+
+_compEffort[NEG].setConstant(0.0f);
+_predictors[NEG].setConstant(0.0f);
+_betas[NEG].setConstant(0.0f);
+_mean[NEG].setConstant(0.0f);
+_stdInv[NEG].setConstant(0.0f);
+
+_compEffort[POS].setConstant(0.0f);
+_predictors[POS].setConstant(0.0f);
+_betas[POS].setConstant(0.0f);
+_mean[POS].setConstant(0.0f);
+_stdInv[POS].setConstant(0.0f);
+_effortCompLim[NEG].setConstant(0.0f);
+_effortCompLim[POS].setConstant(0.0f);
+
+// //% For friction compensation betas of a linear regression
+_betas[NEG].col(X) << 0.1000f, 0.5090f, -0.1961f, -0.2133f, 0.6077f, -0.3332f, 0.3717f, 0.1320f, -0.2567f, -0.0420;
+_betas[POS].col(X) << 1.6894f, -0.3858f, -0.0671f, -0.1247f, -0.4456f, 0.7966f, -0.4280f, -0.0831f, -0.1320f, 0.3302;
+
+_mean[NEG].col(X) << -0.0139f, -0.0143f, 0.0623f, -0.0613f, 0.0552f, 0.0011f, 0.0014f, 0.0305f, 0.0251f, 0.0312 ;
+_mean[POS].col(X) << -0.0147f, -0.0143f, 0.0623f, -0.0613f, 0.0552f, 0.0011f, 0.0014f, 0.0305f, 0.0251f, 0.0312 ;
+
+_stdInv[NEG].col(X) << 33.6700f, 28.5714f, 6.1275f, 6.8306f, 5.9595f, 833.3333f, 666.6667f, 38.1679f, 37.3134f, 28.0112f;
+_stdInv[POS].col(X) << 33.3333f, 28.5714f, 6.1275f, 6.8306f, 5.9595f, 833.3333f, 666.6667f, 38.1679f, 37.3134f, 28.0112f;
+
+_bias[NEG].col(X) << -4.63060f;
+_bias[POS].col(X) << 3.17075f;
+
+_effortCompLim[NEG].row(X) << 2.0f*-8.55883f, -1.47001f;
+_effortCompLim[POS].row(X) << 0.875992f, 2.0f * 6.60670f;
+
+_betas[NEG].col(Y) << 0.1197f, 1.6298f, -0.1719f, -0.0223f, 0.1983f, 0.0202f, -0.9100f, 0.0566f, -0.1002f, -0.1577f;
+_betas[POS].col(Y) << 0.1095f, 0.0843f, 0.1773f, -0.1787f, -0.0708f, 0.0936f, 1.4363f, -0.0854f, 0.0247f, 0.1376f;
+
+_mean[NEG].col(Y) << 0.0094f, 0.0613f, 0.0325f, -0.0148f, 0.0062f, 0.0022f, 0.0045f, 0.0307f, 0.0304f, 0.0533f;
+_mean[POS].col(Y) << 0.0094f, 0.0613f, 0.0325f, -0.0148f, 0.0062f, 0.0022f, 0.0045f, 0.0307f, 0.0304f, 0.0533f;
+
+_stdInv[NEG].col(Y) << 21.8818f, 35.7143f, 5.7870f, 5.7372f, 4.3178f, 416.6667f, 370.3704f, 32.4675f, 40.1606f, 23.4742f;
+_stdInv[POS].col(Y) << 21.8818f, 25.3807f, 5.7971f, 5.7372f, 4.3178f, 416.6667f, 555.5556f, 32.6797f, 40.1606f, 23.4742f;
+
+_bias[NEG].col(Y) << -8.18028f;
+_bias[POS].col(Y) << 10.5657f;
+
+_effortCompLim[NEG].row(Y) << -16.0498f, -3.10896f;
+_effortCompLim[POS].row(Y) << 1.90903f, 15.5236f;
+
+
+// _betas[NEG].col(PITCH).setConstant(0.0f);
+// _betas[POS].col(PITCH).setConstant(0.0f);
+
+// //! Since betas are zero, I simplified the means and stdInvs
+// _mean[NEG].col(PITCH).setConstant(0.0f);
+// _mean[POS].col(PITCH).setConstant(0.0f);
+
+// _stdInv[POS].col(PITCH).setConstant(1.0f);
+// _stdInv[NEG].col(PITCH).setConstant(1.0f);
+
+// _bias[NEG].col(PITCH) << -0.0862f;
+// _bias[POS].col(PITCH) << 0.0862f;
+
+// _effortCompLim[NEG].row(PITCH) << -0.0863f, -0.0862f;
+// _effortCompLim[POS].row(PITCH) << 0.0861f, 0.0863f;
+
+
+// _betas[NEG].col(ROLL).setConstant(0.0f);
+// _betas[POS].col(ROLL).setConstant(0.0f);
+
+// _mean[NEG].col(ROLL).setConstant(0.0f);
+// _mean[POS].col(ROLL).setConstant(0.0f);
+
+// _stdInv[POS].col(ROLL).setConstant(1.0f);
+// _stdInv[NEG].col(ROLL).setConstant(1.0f);
+
+// _bias[NEG].col(ROLL) << -0.1859;
+// _bias[POS].col(ROLL) << 0.1859f;
+
+// _effortCompLim[NEG].row(ROLL) << -0.1860f, -0.18585f;
+// _effortCompLim[POS].row(ROLL) << 0.18585f, 0.1860f;
+
+
+// _betas[NEG].col(YAW).setConstant(0.0f);
+// _betas[POS].col(YAW).setConstant(0.0f);
+
+// _mean[NEG].col(YAW).setConstant(0.0f);
+// _mean[POS].col(YAW).setConstant(0.0f);
+
+// _stdInv[POS].col(YAW).setConstant(1.0f);
+// _stdInv[NEG].col(YAW).setConstant(1.0f);
+
+// _bias[NEG].col(YAW) << -0.0862;
+// _bias[POS].col(YAW) << 0.0862f;
+
+// _effortCompLim[NEG].row(YAW) << -0.0863, -0.0861f;
+// _effortCompLim[POS].row(YAW) << 0.0861, 0.0863f;
 }

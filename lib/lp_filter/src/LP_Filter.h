@@ -6,7 +6,7 @@ class LP_Filter
 	public:
 		LP_Filter(float alpha); 
 		float update(float raw_input);
-		//void setValue(float alpha);		
+		// void setValue(float alpha);		
 		void reset();
 		void setBias(float bias_);
 	private:

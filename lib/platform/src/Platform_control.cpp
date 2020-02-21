@@ -25,10 +25,23 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
       _pidPosition[Y]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_Y,EFFORT_LIMIT_DEFAULT_Y); //!N
     }
 
-    if ((axis>=2)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
-      if (axis==PITCH) {_pidPosition[axis]->setOutputLimits(-3.0,3.0);} //!Nm
-      if (axis==ROLL || axis==YAW){_pidPosition[axis]->setOutputLimits(-3.0,3.0);} //!Nm
+    if (_platform_state==TELEOPERATION)
+      {
+        if ((axis >= 2) && ((_ros_controllerType == POSITION_ONLY) || (_ros_controllerType == SPEED_POSITION_CASCADE)))
+        {
+            _pidPosition[axis]->setOutputLimits(-USER_MAX_EFFORTS[axis], USER_MAX_EFFORTS[axis]);
+          //!Nm
+        }
+      }
+    else
+    {
+        if ((axis >= 2) && ((_ros_controllerType == POSITION_ONLY) || (_ros_controllerType == SPEED_POSITION_CASCADE)))
+        {
+            _pidPosition[axis]->setOutputLimits(-3, 3);
+        }
     }
+    
+
 
     if (_ros_controllerType==SPEED_POSITION_CASCADE){
       _positionD[axis]=_speedCtrlOut[axis];

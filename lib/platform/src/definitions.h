@@ -3,7 +3,7 @@
 
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
 
 extern const char *Platform_Names[];
 
@@ -37,6 +37,7 @@ extern const char *Axis_names[];
 #define BELT_PULLEY_R 0.00915F     //! Torque/Force
 
 #define  RAD_TO_DEG 57.295779513082323f
+#define DEG_TO_RAD 0.0174533f
 const float X_TRANSMISSION = (1.0f / BELT_PULLEY_R); //!
 const float X_RESOLUTION = (2 * PI / (4 * 500) ) /  X_TRANSMISSION; //! 28.5 um
 const float Y_TRANSMISSION = 1.0f / BELT_PULLEY_R; //!
@@ -46,7 +47,7 @@ const float PITCH_RESOLUTION = (2 * PI / (4 * 4096)) / PITCH_REDUCTION_R * RAD_T
 const float ROLL_YAW_REDUCTION_R = 12.96f;  //! Pulley Big [mm] / Pulley Belt [mm]
 const float ROLL_YAW_RESOLUTION = 2 * ((2 * PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //! 
 
-#define COMM_LOOP 2000 //! [us] -> 2ms = 500Hz
+#define COMM_LOOP 100 //! [us] -> 2ms = 500Hz
 #define CTRL_LOOP 500 //! [us] -> 500us = 2KHz  /50
 const float VELOCITY_PID_SAMPLE_P =  5 * CTRL_LOOP;              //!  [us]
 const float ANALOG_SAMPLING_TIME =  10 * CTRL_LOOP; 
@@ -103,7 +104,7 @@ const float EFFORT_LIMIT_DEFAULT_Y = (TORQUE_CONSTANT_Y/1000) * (MAX_CURRENT_Y) 
 const float USER_MAX_EFFORTS[NB_AXIS] = {EFFORT_LIMIT_DEFAULT_X, EFFORT_LIMIT_DEFAULT_Y, 7.0f, 7.0f, 7.0f};
 
 #define EFFORT_LIMIT_HOMING_X EFFORT_LIMIT_DEFAULT_X
-#define EFFORT_LIMIT_HOMING_Y EFFORT_LIMIT_DEFAULT_X
+#define EFFORT_LIMIT_HOMING_Y EFFORT_LIMIT_DEFAULT_Y
 #define EFFORT_LIMIT_HOMING_PITCH 3
 #define EFFORT_LIMIT_HOMING_ROLL 3
 #define EFFORT_LIMIT_HOMING_YAW 3

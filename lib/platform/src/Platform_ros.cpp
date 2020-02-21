@@ -102,8 +102,9 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_position[k] = _position[k];
     _msgFootOutput.platform_speed[k]= _speed[k];
     _msgFootOutput.platform_effortD[k] =_effortD[k];
-    _msgFootOutput.platform_effortM[k] =_effortM[k];
-  }
+    //_msgFootOutput.platform_effortM[k] =_effortM[k];
+  } 
+    _msgFootOutput.platform_effortM[0] = _timestep;
     _msgFootOutput.platform_controllerType= (uint8_t)_ros_controllerType; 
     _msgFootOutput.platform_machineState=(uint8_t)_ros_state;
   _pubFootOutput->publish(&_msgFootOutput);
