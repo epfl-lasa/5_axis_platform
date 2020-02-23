@@ -5,11 +5,17 @@
 
 float const SPEED_THRESHOLD[NB_AXIS] = {0.0035f, 0.004f, 0.05f, 0.09f, 0.09f};
 float const MIN_SPEED[NB_AXIS] = {0.00002f, 0.00002f, 0.00002f, 0.02f, 0.02f};
-float const VIS_EFFORT_LIMS[NB_VISCOUS_COMP][NB_LIMS] = {{0.0f, 0.0f}, {0.0f, 0.0f}, {-0.6f, 0.3f}, {-0.2f, 0.2f}, {-0.1f, 0.1f}};
-float const VISCOUS_K[NB_VISCOUS_COMP] = {0.0f, 0.0f, 46.0734f * DEG_TO_RAD,
-                                          62.3174f * DEG_TO_RAD, 0.0f * DEG_TO_RAD};
+float const VIS_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{0.0f, 0.0f}, {0.0f, 0.0f}, {-0.6f, 0.3f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}};
+float const GRAVITY_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{0.0f, 0.0f}, {0.0f, 0.0f}, {-2.0f, 2.0f}, {-2.0f, 2.0f}, {-1.5f, 1.5f}};
+float const INERTIA_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-4.0f, 4.0f}, {-4.0f, 4.0f}, {-0.2f, 0.2f}, {-0.2f, 0.2f}, {-0.2f, 0.2f}};
+float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_AXIS][NB_LIMS] = {{{2.5*-8.55883f, -1.47001f}, {-16.0498f, -3.10896f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
+                                                               {{0.875992f,1.5*6.60670f}, {1.90903f, 15.5236f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}};
 
+float const VISCOUS_K[NB_AXIS] = {0.0f, 0.0f, 46.0734f * DEG_TO_RAD,
+                                  62.3174f * DEG_TO_RAD, 62.3174f * DEG_TO_RAD};
 
+float const INERTIA_K[NB_AXIS] = {13.7704f, 13.6178f, 0.2521f * DEG_TO_RAD,
+                                  0.1831f* DEG_TO_RAD, 0.1867f * DEG_TO_RAD};
 
 LP_Filter comp_filter[NB_STICTION_COMP]{0.5f, 0.7f};
 
@@ -27,8 +33,8 @@ using namespace Eigen;
   const float CoMMassSensor = 1.2f;               //[kg]
 #else
   // const float CoMDistanceSensorFromAxis[3] = {0.0f,0.01f,0.034f}; //[m]
-  const float CoMDistanceSensorFromAxis[3] = {0.0f, 0.01f, 0.080f}; //[m]
-  const float CoMMassSensor = 1.2f-0.295f;
+  const float CoMDistanceSensorFromAxis[3] = {0.0f, 0.1f, 0.110f}; //[m]
+  const float CoMMassSensor = 1.2f;
 #endif
 
 //! 1
@@ -41,10 +47,7 @@ void Platform::dynamicCompensation()
   viscFrictionCompensation();
   inertiaCompensation();
   
-  for (int axis_; axis_<NB_AXIS; axis_++) // Change things to eigen
-  {
-    _effortD_ADD[COMPENSATION][axis_] = _compensationEffort.row(axis_).sum();
-  }
+  _effortD_ADD.col(COMPENSATION) = _compensationEffort.rowwise().sum();
 }
 
 void Platform::gravityCompensation()
@@ -73,12 +76,14 @@ void Platform::gravityCompensation()
           0.0f, 0.0f, 1.0f;
 
   R_tot = R_pitch * R_roll * R_yaw;
+  //R_tot = R_pitch * R_roll;
 
   Torque = - R_tot * (CoMVector.cross(R_tot.transpose()*Weight));
 
-  _compensationEffort.col(COMP_GRAVITY)(PITCH) = clamp(Torque(0), -1.5f, 1.5f);
-  _compensationEffort.col(COMP_GRAVITY)(ROLL) = clamp(Torque(1), -1.0, 1.0f);
-  _compensationEffort.col(COMP_GRAVITY)(YAW) = clamp(Torque(2), -1.0, 1.0f);
+    for (int axis_=PITCH; axis_<NB_AXIS; axis_++)
+    {
+      _compensationEffort.col(COMP_GRAVITY)(PITCH) = clip(Torque(axis_-PITCH), GRAVITY_EFFORT_LIMS[axis_][L_MIN], GRAVITY_EFFORT_LIMS[axis_][L_MAX]);
+    }
   }
 
 #define LINEAR_MODEL 1
@@ -115,10 +120,10 @@ void Platform::gravityCompensation()
             w_sign = MID;
           }
           
-          dry_scale = clamp(abs(SPEED_THRESHOLD[axis_] / (_speed[axis_] + 1e-10f)),0.95f,1.0f);
+          dry_scale = clip(abs(SPEED_THRESHOLD[axis_] / (_speed[axis_] + 1e-10f)),0.95f,1.0f);
 
-          _dryFrictionEffortSign[NEG](axis_) = clamp(_dryFrictionEffortSign[NEG](axis_), _effortCompLim[NEG](axis_, L_MIN), _effortCompLim[NEG](axis_, L_MAX));
-          _dryFrictionEffortSign[POS](axis_) = clamp(_dryFrictionEffortSign[POS](axis_), _effortCompLim[POS](axis_, L_MIN), _effortCompLim[POS](axis_, L_MAX));
+          _dryFrictionEffortSign[NEG](axis_) = clip(_dryFrictionEffortSign[NEG](axis_), DRY_EFFORT_LIMS[NEG][axis_][L_MIN], DRY_EFFORT_LIMS[NEG][axis_][L_MAX]);
+          _dryFrictionEffortSign[POS](axis_) = clip(_dryFrictionEffortSign[POS](axis_), DRY_EFFORT_LIMS[POS][axis_][L_MIN], DRY_EFFORT_LIMS[POS][axis_][L_MAX]);
 
           if (w_sign == POS || w_sign == NEG)
           {
@@ -143,9 +148,9 @@ void Platform::gravityCompensation()
       // Viscous friction compensation
     for (int axis_=0; axis_<NB_AXIS; axis_++)
     {
-      if (abs(_position[axis_]) <= WS_LIMITS[axis_]) // only if inside the desired workspace
+      if (abs(_position[axis_]) <= COMP_WS_LIMITS[axis_]) // only if inside the desired workspace
       {
-        _compensationEffort(axis_,COMP_VISC_FRICTION) = clamp(_speed[axis_] * VISCOUS_K[axis_], VIS_EFFORT_LIMS[axis_][L_MIN], VIS_EFFORT_LIMS[axis_][L_MAX]);
+        _compensationEffort(axis_,COMP_VISC_FRICTION) = clip(_speed[axis_] * VISCOUS_K[axis_], VIS_EFFORT_LIMS[axis_][L_MIN], VIS_EFFORT_LIMS[axis_][L_MAX]);
       }
     }
 
@@ -153,7 +158,14 @@ void Platform::gravityCompensation()
 
   void Platform::inertiaCompensation()
   {
-
+    // Inertia compensation
+    for (int axis_ = 0; axis_ < NB_AXIS; axis_++)
+    {
+      if (abs(_position[axis_]) <= COMP_WS_LIMITS[axis_]) // only if inside the desired workspace
+      {
+        _compensationEffort(axis_, COMP_INERTIA) = clip(_acceleration[axis_] * INERTIA_K[axis_], INERTIA_EFFORT_LIMS[axis_][L_MIN], INERTIA_EFFORT_LIMS[axis_][L_MAX]);
+      }
+    }
   }
 
 void Platform::quadraticRegression()

@@ -32,7 +32,7 @@ class PID
                                           //   calculation frequency can be set using SetMode
                                           //   SetSampleTime respectively
 
-    void setOutputLimits(float, float); // * clamps the output to a specific range. 0-255 by default, but
+    void setOutputLimits(float, float); // * clips the output to a specific range. 0-255 by default, but
 										                      //   it's likely the user will want to change this depending on
 										                      //   the application
 	

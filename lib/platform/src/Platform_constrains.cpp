@@ -37,7 +37,7 @@ void Platform::wsConstrains(int axis_)
       else    
       {
         _flagInWsConstrains=false;
-        _effortD_ADD[CONSTRAINS][axis_]=0.0f;
+        _effortD_ADD(axis_,CONSTRAINS)=0.0f;
       }
   }
 }

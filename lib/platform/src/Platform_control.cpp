@@ -52,7 +52,7 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
       _positionD_filtered[axis] =
       _posDesiredFilters[axis].update(_positionD[axis]);
       _positionD_filtered[axis] =
-             clamp(_positionD_filtered[axis], -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
+             clip(_positionD_filtered[axis], -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
     }
     else
     {
@@ -65,7 +65,7 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
 
     if ((_ros_controllerType == POSITION_ONLY) ||
         (_ros_controllerType == SPEED_POSITION_CASCADE)) {
-      _effortD_ADD[Component][axis] = _positionCtrlOut[axis];
+      _effortD_ADD(axis,Component) = _positionCtrlOut[axis];
     }
 }
 
@@ -93,7 +93,7 @@ void Platform::speedAxisControl(EffortComp Component, int axis)
      _pidSpeed[axis]->compute();
 
     if ((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE)){
-      _effortD_ADD[NORMAL][axis]=_speedCtrlOut[axis];
+      _effortD_ADD(axis,NORMAL) = _speedCtrlOut[axis];
     }
 }
 

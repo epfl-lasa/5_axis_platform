@@ -17,18 +17,18 @@ float Platform::map(float x, float in_min, float in_max, float out_min, float ou
   return mapping < out_min ? out_min : (mapping>out_max ? out_max : mapping);
 }
 
-float Platform::clamp(float x, float out_min, float out_max)
+float Platform::clip(float x, float out_min, float out_max)
 {
-  float clamp_ = 0.0f;
+  float clip_ = 0.0f;
 
   if (!isnanf(x) && !isinf(x)) {
-    clamp_ = x;
+    clip_ = x;
   } 
   
   else {
   _nh.logfatal("You have inf or nan numbers");
   }
-  return clamp_ < out_min ? out_min : (clamp_ > out_max ? out_max : clamp_);
+  return clip_ < out_min ? out_min : (clip_ > out_max ? out_max : clip_);
 }
 
 

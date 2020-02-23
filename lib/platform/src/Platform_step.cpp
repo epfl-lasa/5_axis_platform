@@ -178,8 +178,7 @@ void Platform::step()
 
      if (_flagInputReceived[MSG_TORQUE]) {
          for (uint k=0; k<NB_AXIS; k++) {
-           _effortD_ADD[NORMAL][k] = _ros_effort[k];
-          //  _ros_effort_prev[k] = _ros_effort[k];
+           _effortD_ADD(k,NORMAL) = _ros_effort[k];
          }
          _flagInputReceived[MSG_TORQUE] = false;
      }

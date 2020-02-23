@@ -16,6 +16,7 @@ Platform::Platform()
   me = this;
   _stop=false;
   _flagEmergencyCalled = false;
+  _effortD_ADD.setConstant(0.0f);
   _transmisions[X] = X_TRANSMISSION;
   _transmisions[Y] = Y_TRANSMISSION;
   _transmisions[PITCH] = PITCH_REDUCTION_R;
@@ -61,7 +62,6 @@ Platform::Platform()
   _wsRange[PITCH]=PITCH_RANGE;
   _wsRange[ROLL]=ROLL_RANGE;
   _wsRange[YAW]=YAW_RANGE;
-
   for(int k = 0; k < NB_AXIS; k++)
   {
     _effortD[k] = 0.0f;
@@ -226,7 +226,6 @@ for (int sign_=0; sign_<NB_SIGN_COMP; sign_++)
   _betas[sign_].setConstant(0.0f);
   _mean[sign_].setConstant(0.0f);
   _stdInv[sign_].setConstant(0.0f);
-  _effortCompLim[sign_].setConstant(0.0f);
 
 }
 
@@ -245,9 +244,6 @@ _stdInv[POS].col(X) << 33.3333f, 28.5714f, 6.1275f, 6.8306f, 5.9595f, 833.3333f,
 _bias[NEG].col(X) << -4.63060f;
 _bias[POS].col(X) << 3.17075f;
 
-_effortCompLim[NEG].row(X) << 2.0f*-8.55883f, -1.47001f;
-_effortCompLim[POS].row(X) << 0.875992f, 2.0f * 6.60670f;
-
 _betas[NEG].col(Y) << 0.1197f, 1.6298f, -0.1719f, -0.0223f, 0.1983f, 0.0202f, -0.9100f, 0.0566f, -0.1002f, -0.1577f;
 _betas[POS].col(Y) << 0.1095f, 0.0843f, 0.1773f, -0.1787f, -0.0708f, 0.0936f, 1.4363f, -0.0854f, 0.0247f, 0.1376f;
 
@@ -259,9 +255,6 @@ _stdInv[POS].col(Y) << 21.8818f, 25.3807f, 5.7971f, 5.7372f, 4.3178f, 416.6667f,
 
 _bias[NEG].col(Y) << -8.18028f;
 _bias[POS].col(Y) << 10.5657f;
-
-_effortCompLim[NEG].row(Y) << -16.0498f, -3.10896f;
-_effortCompLim[POS].row(Y) << 1.90903f, 15.5236f;
 
 
 // _betas[NEG].col(PITCH).setConstant(0.0f);

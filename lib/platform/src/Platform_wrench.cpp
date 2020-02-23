@@ -11,9 +11,10 @@ void Platform::setEfforts()
   for(int k = 0; k < NB_AXIS; k++)
   { 
      effortSum = 0.0f;
+      
       for(int j = 0; j < NB_EFFORT_COMPONENTS; j++)
       {
-        if (_ros_effortComp[j]==1) {effortSum+= _effortD_ADD[j][k];}
+        if (_ros_effortComp[j]==1) {effortSum+= _effortD_ADD(k,j);}
       }
     _effortD[k]=effortSum;
   } 
@@ -32,7 +33,7 @@ void Platform::setEfforts()
 void Platform::setEffortAxis(float effort, PwmOut *pin, int sign, int axis)
 {
   float escon_torque = effort/_transmisions[axis];
-  escon_torque = clamp(escon_torque, -USER_MAX_EFFORTS[axis], USER_MAX_EFFORTS[axis]);
+  escon_torque = clip(escon_torque, -USER_MAX_EFFORTS[axis], USER_MAX_EFFORTS[axis]);
   setCurrentAxis(escon_torque, pin, sign, axis);
 }
 

@@ -26,7 +26,6 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
       me->_ros_position[k]=msg.ros_position[k];
       me->_ros_speed[k]=msg.ros_speed[k];
       me->_ros_effort[k] = msg.ros_effort[k];
-      // me->_effortD_ADD[NORMAL][k]=msg.ros_effort[k];
   }
 }
 

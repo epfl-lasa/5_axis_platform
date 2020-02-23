@@ -178,15 +178,12 @@ void Platform::compEffortClear(int axis_, Platform::EffortComp component_)
 {
   if (axis_==-1)
   {
-    for (uint k=0; k<NB_AXIS; k++) 
-    { 
-      compEffortClear(k, component_); 
-    }
-    return;
+    _effortD_ADD.col(component_).setConstant(0.0f);
+     return;
   }
   else
   {
-    _effortD_ADD[component_][axis_]=0.0f;
+    _effortD_ADD(axis_, component_) = 0.0f;
   }
 }
 

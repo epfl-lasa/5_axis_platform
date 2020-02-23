@@ -107,7 +107,7 @@ class Platform
     float _speedCtrlOut[NB_AXIS];
     float _effortD[NB_AXIS];
     float _effortM[NB_AXIS + 2]; //The last two elements are temporary variables
-    float _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
+    Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
     LP_Filter _positionFilters[NB_AXIS];
     LP_Filter _posDesiredFilters[NB_AXIS];
     LP_Filter _speedFilters[NB_AXIS];
@@ -207,7 +207,7 @@ class Platform
   //! Platform_utils.cpp
   public:  
     float map(float x, float in_min, float in_max, float out_min, float out_max); //! 1    
-    float clamp(float x, float out_min, float out_max);
+    float clip(float x, float out_min, float out_max);
     float smoothRise(float x, float a, float b);
     float smoothFall(float x, float a, float b);
     float smoothRiseFall(float x, float a, float b, float c, float d);
@@ -248,7 +248,6 @@ class Platform
     private:    
       //Compensation
   #define NB_STICTION_COMP 2
-  #define NB_VISCOUS_COMP NB_AXIS
   #define NB_SIGN_COMP 2
 
   #define COMP_GRAVITY 0
@@ -257,12 +256,12 @@ class Platform
   #define COMP_INERTIA 3
   #define NB_COMPENSATION_COMP 4
 
-#define NB_LIMS 2
-#define L_MIN 0
-#define L_MAX 1
-#define NEG 0
-#define POS 1
-#define MID 3
+  #define NB_LIMS 2
+  #define L_MIN 0
+  #define L_MAX 1
+  #define NEG 0
+  #define POS 1
+  #define MID 3
 
   void dynamicCompensation();
   void gravityCompensation();
@@ -271,7 +270,7 @@ class Platform
   void inertiaCompensation();
   
   void quadraticRegression();
-  
+
   Eigen::Matrix<float, NB_STICTION_COMP, 1> _dryFrictionEffortSign[NB_SIGN_COMP];
   Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP> _compensationEffort;
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _predictors[NB_SIGN_COMP];
@@ -279,7 +278,6 @@ class Platform
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _mean[NB_SIGN_COMP];
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _stdInv[NB_SIGN_COMP];
   Eigen::Matrix<float, 1 , NB_STICTION_COMP> _bias[NB_SIGN_COMP];
-  Eigen::Matrix<float, NB_STICTION_COMP, NB_LIMS> _effortCompLim[NB_SIGN_COMP]; //! Including Zero
 
   //Constrains
   void
