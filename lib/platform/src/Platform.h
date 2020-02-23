@@ -41,6 +41,7 @@ class Platform
     uint32_t _timestep;
     uint32_t _analogReadStamp;
     uint32_t _speedSamplingStamp;
+    uint32_t _accSamplingStamp;
     Timer _innerTimer; //! micros()
     uint64_t _innerCounterADC;
 
@@ -100,15 +101,18 @@ class Platform
     float _positionD_filtered[NB_AXIS];
     float _positionCtrlOut[NB_AXIS];
     float _speed[NB_AXIS];
+    float _speedPrev[NB_AXIS];
+    float _acceleration[NB_AXIS];
     float _speedD[NB_AXIS];
     float _speedCtrlOut[NB_AXIS];
     float _effortD[NB_AXIS];
     float _effortM[NB_AXIS + 2]; //The last two elements are temporary variables
     float _effortD_ADD[NB_EFFORT_COMPONENTS][NB_AXIS];
-    LP_Filter* _positionFilters[NB_AXIS];
-    LP_Filter* _posDesiredFilters[NB_AXIS];
-    LP_Filter* _speedFilters[NB_AXIS];
-    LP_Filter* _effortMFilters[NB_AXIS];
+    LP_Filter _positionFilters[NB_AXIS];
+    LP_Filter _posDesiredFilters[NB_AXIS];
+    LP_Filter _speedFilters[NB_AXIS];
+    LP_Filter _accFilters[NB_AXIS];
+    LP_Filter _effortMFilters[NB_AXIS];
     volatile uint _switchesState[NB_AXIS];
     float _maxEffort[NB_AXIS];
     float _maxCurrent[NB_AXIS];
@@ -215,6 +219,7 @@ class Platform
       //! Robot State
       void getPosition();                     //! 2
       void getSpeed();                    //! 3
+      void getAcceleration();
       //! Estimate Robot Effort (ADC)    
       void readActualEffort();            //! 4
 
@@ -246,23 +251,34 @@ class Platform
   #define NB_VISCOUS_COMP NB_AXIS
   #define NB_SIGN_COMP 2
 
-  #define NB_LIMS 2
-  #define L_MIN 0
-  #define L_MAX 1
-  #define NEG 0
-  #define POS 1
-  #define MID 3
+  #define COMP_GRAVITY 0
+  #define COMP_DRY_FRICTION 1
+  #define COMP_VISC_FRICTION 2
+  #define COMP_INERTIA 3
+  #define NB_COMPENSATION_COMP 4
 
+#define NB_LIMS 2
+#define L_MIN 0
+#define L_MAX 1
+#define NEG 0
+#define POS 1
+#define MID 3
+
+  void dynamicCompensation();
   void gravityCompensation();
-  void frictionCompensation();
+  void dryFrictionCompensation();
+  void viscFrictionCompensation();
+  void inertiaCompensation();
+  
   void quadraticRegression();
-  Eigen::Matrix<float, NB_STICTION_COMP, 1> _compEffort[NB_SIGN_COMP];
+  
+  Eigen::Matrix<float, NB_STICTION_COMP, 1> _dryFrictionEffortSign[NB_SIGN_COMP];
+  Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP> _compensationEffort;
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _predictors[NB_SIGN_COMP];
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _betas[NB_SIGN_COMP];
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _mean[NB_SIGN_COMP];
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _stdInv[NB_SIGN_COMP];
   Eigen::Matrix<float, 1 , NB_STICTION_COMP> _bias[NB_SIGN_COMP];
-  // Eigen::Matrix<float, NB_STICTION_COMP, NB_LIMS> _effortCompLim[NB_SIGN_COMP + 1]; //! Including Zero
   Eigen::Matrix<float, NB_STICTION_COMP, NB_LIMS> _effortCompLim[NB_SIGN_COMP]; //! Including Zero
 
   //Constrains

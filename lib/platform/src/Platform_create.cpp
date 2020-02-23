@@ -38,8 +38,6 @@ Platform::Platform()
     _maxEffort[k] = _torqueConstants[k] * _maxCurrent[k] * _transmisions[k]; //DO NOT USE IN A CONTROLLER, JUST IN A MEASUREMENT FOR MAPPING
     }
 
-    
-
   _encoderScale[X] =ENCODERSCALE_X;
   _encoderScale[Y] =ENCODERSCALE_Y;
   _encoderScale[PITCH] =ENCODERSCALE_PITCH;
@@ -76,9 +74,8 @@ Platform::Platform()
     totalEffortDClear(k);
     _effortM[k] = 0.0f;
     
-    _posDesiredFilters[k] = new LP_Filter(0.85);
-    //_posDesiredFilters[k] = new LP_Filter(0);
-    _effortMFilters[k] =  new LP_Filter(0.8);
+    _posDesiredFilters[k].setAlpha(0.85);
+    _effortMFilters[k].setAlpha(0.8);
     _adc_sum[k]=0.0f;
 
     limitSwitchesClear();
@@ -93,17 +90,23 @@ Platform::Platform()
     _pidSpeed[k]->setMode(AUTOMATIC);
   }
 
-  _positionFilters[X] = new LP_Filter(0.56);
-  _positionFilters[Y] = new LP_Filter(0.56);
-  _positionFilters[PITCH] = new LP_Filter(0.85);
-  _positionFilters[ROLL] = new LP_Filter(0.85);
-  _positionFilters[YAW] = new LP_Filter(0.85);
+  _positionFilters[X].setAlpha(0.56);
+  _positionFilters[Y].setAlpha(0.56);
+  _positionFilters[PITCH].setAlpha(0.85);
+  _positionFilters[ROLL].setAlpha(0.85);
+  _positionFilters[YAW].setAlpha(0.85);
 
-  _speedFilters[X] = new LP_Filter(0.96);
-  _speedFilters[Y] = new LP_Filter(0.96);
-  _speedFilters[PITCH] = new LP_Filter(0.96);
-  _speedFilters[ROLL] = new LP_Filter(0.97);
-  _speedFilters[YAW] = new LP_Filter(0.97);
+  _speedFilters[X].setAlpha(0.96);
+  _speedFilters[Y].setAlpha(0.96);
+  _speedFilters[PITCH].setAlpha(0.96);
+  _speedFilters[ROLL].setAlpha(0.97);
+  _speedFilters[YAW].setAlpha(0.97);
+
+  _accFilters[X].setAlpha(0.96);
+  _accFilters[Y].setAlpha(0.96);
+  _accFilters[PITCH].setAlpha(0.96);
+  _accFilters[ROLL].setAlpha(0.97);
+  _accFilters[YAW].setAlpha(0.97);
 
   _innerCounterADC=0;
 
@@ -213,19 +216,21 @@ _recoveringFromError=false;
 _flagBiasADCOk=false;
 _allEsconOk = 1;
 
-_compEffort[NEG].setConstant(0.0f);
-_predictors[NEG].setConstant(0.0f);
-_betas[NEG].setConstant(0.0f);
-_mean[NEG].setConstant(0.0f);
-_stdInv[NEG].setConstant(0.0f);
 
-_compEffort[POS].setConstant(0.0f);
-_predictors[POS].setConstant(0.0f);
-_betas[POS].setConstant(0.0f);
-_mean[POS].setConstant(0.0f);
-_stdInv[POS].setConstant(0.0f);
-_effortCompLim[NEG].setConstant(0.0f);
-_effortCompLim[POS].setConstant(0.0f);
+_compensationEffort.setConstant(0.0f);
+
+for (int sign_=0; sign_<NB_SIGN_COMP; sign_++)
+{
+  _dryFrictionEffortSign[sign_].setConstant(0.0f);
+  _predictors[sign_].setConstant(0.0f);
+  _betas[sign_].setConstant(0.0f);
+  _mean[sign_].setConstant(0.0f);
+  _stdInv[sign_].setConstant(0.0f);
+  _effortCompLim[sign_].setConstant(0.0f);
+
+}
+
+
 
 // //% For friction compensation betas of a linear regression
 _betas[NEG].col(X) << 0.1000f, 0.5090f, -0.1961f, -0.2133f, 0.6077f, -0.3332f, 0.3717f, 0.1320f, -0.2567f, -0.0420;

@@ -1,12 +1,12 @@
 #include <LP_Filter.h>
 
-// LP_Filter::LP_Filter()
-// {
-//   _output = 0.0f;
-//   _old_output = 0.0f;
-//   _alpha = 0.9;
-//   _bias = 0.0f;
-// }
+LP_Filter::LP_Filter()
+{
+  _output = 0.0f;
+  _old_output = 0.0f;
+  _alpha = 0.0f;
+  _bias = 0.0f;
+}
 
 LP_Filter::LP_Filter(float alpha)
 {
@@ -34,7 +34,7 @@ void LP_Filter::reset()
   _old_output=0.0f;
 }
 
-// void LP_Filter::setValue(float alpha)
-// {
-//   _alpha=alpha;
-// }
+void LP_Filter::setAlpha(float alpha)
+{
+  _alpha=alpha;
+}

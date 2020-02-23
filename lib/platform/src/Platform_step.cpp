@@ -120,7 +120,7 @@ void Platform::step()
       if (!_enterStateOnceFlag[CENTERING])
       {
         for (uint k = 0; k < NB_AXIS; k++) {
-           _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
+           _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
         }
         sprintf(_logMsg, "%s : MOVING TO STATE CENTERING", Platform_Names[PLATFORM_ID]);
         _nh.loginfo(_logMsg);
@@ -159,7 +159,7 @@ void Platform::step()
      {
       //
       for (uint k = 0; k < NB_AXIS; k++) {
-        _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
+        _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
         _pidSpeed[k]->reset();
       }
       _ros_controllerType = TORQUE_ONLY;
@@ -190,9 +190,7 @@ void Platform::step()
 
      if(_ros_effortComp[COMPENSATION] == 1)
      {
-      gravityCompensation();
-      frictionCompensation();
-      //  _nh.loginfo("here");
+      dynamicCompensation();
      }
 
      if (_ros_effortComp[CONSTRAINS] == 1) {
@@ -218,7 +216,7 @@ void Platform::step()
        _enableMotors->write(1);
        for (uint k = 0; k<NB_AXIS; k++)
        {
-          _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
+          _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
          _pidSpeed[k]->reset();
        }
        _ros_controllerType=TORQUE_ONLY;
@@ -254,7 +252,7 @@ void Platform::step()
           {
              if (_workspaceLimitReached[k])
              {
-               _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
+               _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
              }
             
           }
@@ -295,7 +293,7 @@ void Platform::step()
       _enableMotors->write(0);
       if(!_enterStateOnceFlag[EMERGENCY]){
         for (uint k = 0; k < NB_AXIS; k++) {
-           _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
+           _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
           _pidSpeed[k]->reset();
         }
         if(!_allEsconOk) {_nh.logerror("The servoamplifiers are not doing fine. Try restarting the microcontroller or rebooting the power supply");}

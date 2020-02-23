@@ -50,7 +50,7 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
     if (abs(_positionD[axis])>0.005) //! Only interpolate if greater than 5 millimiters / millidegrees
     {
       _positionD_filtered[axis] =
-      _posDesiredFilters[axis]->update(_positionD[axis]);
+      _posDesiredFilters[axis].update(_positionD[axis]);
       _positionD_filtered[axis] =
              clamp(_positionD_filtered[axis], -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
     }

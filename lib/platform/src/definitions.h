@@ -50,6 +50,7 @@ const float ROLL_YAW_RESOLUTION = 2 * ((2 * PI / (4 * 4096)) / ROLL_YAW_REDUCTIO
 #define COMM_LOOP 100 //! [us] -> 2ms = 500Hz
 #define CTRL_LOOP 500 //! [us] -> 500us = 2KHz  /50
 const float VELOCITY_PID_SAMPLE_P =  5 * CTRL_LOOP;              //!  [us]
+const float ACC_SAMPLE_P = 6 * CTRL_LOOP;
 const float ANALOG_SAMPLING_TIME =  10 * CTRL_LOOP; 
 const float POSITION_PID_SAMPLE_P =  1 * CTRL_LOOP;  //! [us]
 

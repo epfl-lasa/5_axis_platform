@@ -7,48 +7,35 @@
 #endif
 
 Platform platform;
+Thread th_Control;
 
-// Ticker t_Comm;
-// Thread th_Control;
-// volatile bool flagComm = false;
-
-// void doCommCB()
-// {
-//   flagComm = true;
-// }
-// //! Thread for Communication
-// void doControlTH()
-// {
-//   while (!platform._stop)
-//   {
-//     platform.step();
-//   }
-// }
-
-
-// int main()
-// {
-//     platform.init();
-//     t_Comm.attach_us(&doCommCB, COMM_LOOP);
-//     th_Control.start(doControlTH);
-//     while (1)
-//     {
-//       if (flagComm)
-//       {
-//         platform.communicateToRos();
-//         flagComm=false;
-//       }
-//     }
-//   return 0;
-//   }
-
-int main()
+void doControlTH()
 {
-  platform.init();
   while (!platform._stop)
   {
     platform.step();
-    platform.communicateToRos();
   }
-  return 0;
 }
+
+
+int main()
+{
+    platform.init();
+    th_Control.start(doControlTH);
+    while (1)
+    {
+        platform.communicateToRos();
+    }
+  return 0;
+  }
+
+// int main()
+// {
+//   platform.init();
+//   while (!platform._stop)
+//   {
+//     platform.step();
+//     platform.communicateToRos();
+//   }
+//   return 0;
+// }

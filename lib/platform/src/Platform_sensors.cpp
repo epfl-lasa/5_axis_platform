@@ -12,6 +12,7 @@ void Platform::getMotion()
 {
   getPosition();
   getSpeed();
+  getAcceleration();
 }
 
 #if (EFFORT_M == ADC)
@@ -26,15 +27,15 @@ void Platform::getMotion()
 //     else
 //     {
 //       _effortM[_innerCounterADC]=map(_motorCurrents[_innerCounterADC]->read()*_motorSign[_innerCounterADC],0.1,0.9,-_maxEffort[_innerCounterADC],_maxEffort[_innerCounterADC]);
-//       _effortM[_innerCounterADC]=_effortMFilters[_innerCounterADC]->update(_effortM[_innerCounterADC]);
+//       _effortM[_innerCounterADC]=_effortMFilters[_innerCounterADC].update(_effortM[_innerCounterADC]);
 //     }
     
 //   if(_innerCounterADC==YAW){
 //     // Adapt roll and yaw angles due to differential mechanism
 //     _effortM[ROLL]= (_effortM[ROLL+2]-_effortM[YAW+2])/2.0f;
 //     _effortM[YAW] = (_effortM[ROLL+2]+_effortM[YAW+2])/2.0f;
-//     _effortM[ROLL]=_effortMFilters[ROLL]->update(_effortM[ROLL]);
-//     _effortM[YAW]=_effortMFilters[YAW]->update(_effortM[YAW]);
+//     _effortM[ROLL]=_effortMFilters[ROLL].update(_effortM[ROLL]);
+//     _effortM[YAW]=_effortMFilters[YAW].update(_effortM[YAW]);
 //     _innerCounterADC=0;
 //     _analogReadStamp=_timestamp;
 //   }
@@ -59,11 +60,11 @@ void Platform::readActualEffort() //! ADC
       e_raw[k] *= ADC_EFFORT_SCALE[k];
     }
 
-    _effortM[X] = _effortMFilters[X]->update(e_raw[X]);
-    _effortM[Y] = _effortMFilters[Y]->update(e_raw[Y]);
-    _effortM[PITCH] = _effortMFilters[PITCH]->update(e_raw[PITCH]);
-    _effortM[ROLL] = _effortMFilters[ROLL]->update((e_raw[ROLL] - e_raw[YAW]) / 2.0f);
-    _effortM[YAW] = _effortMFilters[YAW]->update((e_raw[ROLL] + e_raw[YAW]) / 2.0f);
+    _effortM[X] = _effortMFilters[X].update(e_raw[X]);
+    _effortM[Y] = _effortMFilters[Y].update(e_raw[Y]);
+    _effortM[PITCH] = _effortMFilters[PITCH].update(e_raw[PITCH]);
+    _effortM[ROLL] = _effortMFilters[ROLL].update((e_raw[ROLL] - e_raw[YAW]) / 2.0f);
+    _effortM[YAW] = _effortMFilters[YAW].update((e_raw[ROLL] + e_raw[YAW]) / 2.0f);
 
     if (!_flagBiasADCOk)
       {
@@ -81,7 +82,7 @@ void Platform::readActualEffort() //! ADC
     {
       for (uint k = 0; k < NB_AXIS; k++)
         {
-          _effortMFilters[k]->setBias(_adc_sum[k] / (_innerCounterADC - 200) + ADC_USER_BIAS[k]);
+          _effortMFilters[k].setBias(_adc_sum[k] / (_innerCounterADC - 200) + ADC_USER_BIAS[k]);
           _adc_sum[k]=0.0f;
         }
         _flagBiasADCOk=true;
@@ -120,7 +121,7 @@ void Platform::getPosition()
   {
     _encoders[k]->QEC_getPosition(_spi);
     _position[k] = _encoders[k]->outDimension + _positionOffsets[k];
-    _position[k] = _positionFilters[k]->update(_position[k]);
+    _position[k] = _positionFilters[k].update(_position[k]);
   }
   _spi->unlock(); 
   // Adapt roll and yaw angles due to differential mechanism
@@ -137,9 +138,24 @@ void Platform::getSpeed()
     for (uint k = 0; k < NB_AXIS; k++)
     {
       _speed[k] = (_position[k] - _positionPrev[k]) / ((float)VELOCITY_PID_SAMPLE_P * 1e-6f);
-      _speed[k] = _speedFilters[k]->update(_speed[k]);
+      _speed[k] = _speedFilters[k].update(_speed[k]);
       _positionPrev[k] = _position[k];
       _speedSamplingStamp=_timestamp;
+    }
+  }
+}
+
+//! #5
+void Platform::getAcceleration()
+{
+  if ((_timestamp - _accSamplingStamp) >= (uint32_t)ACC_SAMPLE_P)
+  {
+    for (uint k = 0; k < NB_AXIS; k++)
+    {
+      _acceleration[k] = (_speed[k] - _speedPrev[k]) / ((float)ACC_SAMPLE_P * 1e-6f);
+      _acceleration[k] = _accFilters[k].update(_acceleration[k]);
+      _speedPrev[k] = _speed[k];
+      _accSamplingStamp = _timestamp;
     }
   }
 }

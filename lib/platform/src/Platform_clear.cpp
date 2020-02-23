@@ -108,7 +108,7 @@ void Platform::resetControllers()
       {
         for (uint k=0; k<NB_AXIS; k++)
         {
-           _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();   
+           _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
           // _positionPIDIn[k]->reset();
         }
         break;
@@ -123,7 +123,7 @@ void Platform::resetControllers()
     case (SPEED_POSITION_CASCADE):
     case (POSITION_SPEED_CASCADE): {
       for (uint k = 0; k < NB_AXIS; k++) {
-         _pidPosition[k]->reset();  _posDesiredFilters[k]->reset();    
+         _pidPosition[k]->reset();  _posDesiredFilters[k].reset();    
         _pidSpeed[k]->reset();
         // _positionPIDIn[k]->reset();
         // _speedPIDIn[k]->reset();
