@@ -3,21 +3,20 @@
 #include <definitions.h>
 #include <definitions_2.h>
 
-float const SPEED_THRESHOLD[NB_AXIS] = {0.0035f, 0.004f, 0.05f, 0.09f, 0.09f};
-float const MIN_SPEED[NB_AXIS] = {0.00002f, 0.00002f, 0.00002f, 0.02f, 0.02f};
-float const VIS_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{0.0f, 0.0f}, {0.0f, 0.0f}, {-0.6f, 0.3f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}};
+float const SPEED_THRESHOLD[NB_AXIS] = {0.0035f, 0.0035f, 0.05f, 0.09f, 0.09f};
+float const VIS_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-2.0f, 2.0f}, {-2.0f, 2.0f}, {-0.6f, 0.3f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}};
 float const GRAVITY_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{0.0f, 0.0f}, {0.0f, 0.0f}, {-2.0f, 2.0f}, {-2.0f, 2.0f}, {-2.0f, 2.0f}};
-float const INERTIA_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-4.0f, 4.0f}, {-3.5f, 3.5f}, {-0.2f, 0.2f}, {-0.2f, 0.2f}, {-0.2f, 0.2f}};
-float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_AXIS][NB_LIMS] = {{{2.5*-8.55883f, -1.47001f}, {-16.0498f, -3.10896f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
-                                                               {{0.875992f,1.5*6.60670f}, {1.90903f, 15.5236f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}};
+float const INERTIA_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-3.0f, 3.0f}, {-4.0f, 4.0f}, {-0.2f, 0.2f}, {-0.2f, 0.2f}, {-0.2f, 0.2f}};
+float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_AXIS][NB_LIMS] = {{{1.0f*-8.55883f, -1.47001f}, {-16.0498f, -3.10896f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
+                                                               {{0.875992f,1.0f*6.60670f}, {1.90903f, 15.5236f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}}};
 
-float const VISCOUS_K[NB_AXIS] = {0.0f, 0.0f, 46.0734f * DEG_TO_RAD,
+float const VISCOUS_K[NB_AXIS] = {2.0f, 2.0f, 46.0734f * DEG_TO_RAD,
                                   62.3174f * DEG_TO_RAD, 0.0f * DEG_TO_RAD};
 
 float const INERTIA_K[NB_AXIS] = {13.7704f, 13.6178f, 0.2521f * DEG_TO_RAD,
                                   0.1831f* DEG_TO_RAD, 0.1867f * DEG_TO_RAD};
 
-LP_Filter comp_filter[NB_STICTION_COMP]{0.5f, 0.7f};
+LP_Filter comp_filter[NB_STICTION_COMP]{0.7f, 0.7f};
 
 
 using namespace std;
@@ -32,9 +31,9 @@ using namespace Eigen;
   const float CoMDistanceSensorFromAxis = 0.100f; //[m]
   const float CoMMassSensor = 1.2f;               //[kg]
 #else
-  // const float CoMDistanceSensorFromAxis[3] = {0.0f,0.01f,0.034f}; //[m]
-  const float CoMDistanceSensorFromAxis[3] = {0.0f, 0.001f, 0.110f}; //[m]
-  const float CoMMassSensor = 1.2f-0.293f;
+// const float CoMDistanceSensorFromAxis[3] = {-3.43e-3f,8.10e-3f,66.44-3f}; Solidworks
+const float CoMDistanceSensorFromAxis[3] = {-3.43e-3f, 9.10e-3f, 66.44e-3f}; //[m]
+const float CoMMassSensor = 0.8f;
 #endif
 
 //! 1
@@ -76,7 +75,6 @@ void Platform::gravityCompensation()
           0.0f, 0.0f, 1.0f;
 
   R_tot = R_pitch * R_roll * R_yaw;
-  //R_tot = R_pitch * R_roll;
 
   Torque = - R_tot * (CoMVector.cross(R_tot.transpose()*Weight));
 
