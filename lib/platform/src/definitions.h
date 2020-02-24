@@ -82,7 +82,7 @@ const float WS_LIMITS[NB_AXIS] = {X_RANGE / 2.0, Y_RANGE / 2.0,
                                   PITCH_RANGE / 2.0f, ROLL_RANGE / 2.0f,
                                   YAW_RANGE / 2.0f};
 const float COMP_WS_LIMITS[NB_AXIS] = {X_RANGE / 2.0, Y_RANGE / 2.0,
-                                  45.0 / 2.0f, 45.0 / 2.0f,
+                                  50.0 / 2.0f, 45.0 / 2.0f,
                                   YAW_RANGE / 2.0f};
 
 const float C_WS_LIMIT_X = (X_RANGE/ 2) * 0.8;
