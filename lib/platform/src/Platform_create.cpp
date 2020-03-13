@@ -74,7 +74,7 @@ Platform::Platform()
     totalEffortDClear(k);
     _effortM[k] = 0.0f;
     
-    _posDesiredFilters[k].setAlpha(0.85);
+    _posDesiredFilters[k].setAlpha(0.0);
     _effortMFilters[k].setAlpha(0.8);
     _adc_sum[k]=0.0f;
 
