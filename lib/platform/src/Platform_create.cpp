@@ -257,51 +257,16 @@ _bias[NEG].col(Y) << -8.18028f;
 _bias[POS].col(Y) << 10.5657f;
 
 
-// _betas[NEG].col(PITCH).setConstant(0.0f);
-// _betas[POS].col(PITCH).setConstant(0.0f);
+_comMatrixPitchPedal.setConstant(0.0f);
+_comMatrixPitchPedal.col(int(FRAME_PITCH) - int(FRAME_PITCH)) << -0.00593072f, -0.00000124f, -0.00156324f;
+_comMatrixPitchPedal.col(int(FRAME_ROLL) - int(FRAME_PITCH)) << 0.03719409f, -0.00002562f, -0.00002217f;
+_comMatrixPitchPedal.col(int(FRAME_YAW) - int(FRAME_PITCH)) << 0.0f, 0.0f ,0.07495233f;
+_comMatrixPitchPedal.col(int(FRAME_FS) - int(FRAME_PITCH)) << -0.03295545f, 0.00021567f, 0.02639184f;
 
-// //! Since betas are zero, I simplified the means and stdInvs
-// _mean[NEG].col(PITCH).setConstant(0.0f);
-// _mean[POS].col(PITCH).setConstant(0.0f);
+_massMatrixPitchPedal.setConstant(0.0f);
+_massMatrixPitchPedal(int(FRAME_PITCH) - int(FRAME_PITCH)) = 6.40922346f;
+_massMatrixPitchPedal(int(FRAME_ROLL) - int(FRAME_PITCH)) = 1.17868723f;
+_massMatrixPitchPedal(int(FRAME_YAW) - int(FRAME_PITCH)) = 0.09770847f;
+_massMatrixPitchPedal(int(FRAME_FS) - int(FRAME_PITCH)) = 0.37200000f;
 
-// _stdInv[POS].col(PITCH).setConstant(1.0f);
-// _stdInv[NEG].col(PITCH).setConstant(1.0f);
-
-// _bias[NEG].col(PITCH) << -0.0862f;
-// _bias[POS].col(PITCH) << 0.0862f;
-
-// _effortCompLim[NEG].row(PITCH) << -0.0863f, -0.0862f;
-// _effortCompLim[POS].row(PITCH) << 0.0861f, 0.0863f;
-
-
-// _betas[NEG].col(ROLL).setConstant(0.0f);
-// _betas[POS].col(ROLL).setConstant(0.0f);
-
-// _mean[NEG].col(ROLL).setConstant(0.0f);
-// _mean[POS].col(ROLL).setConstant(0.0f);
-
-// _stdInv[POS].col(ROLL).setConstant(1.0f);
-// _stdInv[NEG].col(ROLL).setConstant(1.0f);
-
-// _bias[NEG].col(ROLL) << -0.1859;
-// _bias[POS].col(ROLL) << 0.1859f;
-
-// _effortCompLim[NEG].row(ROLL) << -0.1860f, -0.18585f;
-// _effortCompLim[POS].row(ROLL) << 0.18585f, 0.1860f;
-
-
-// _betas[NEG].col(YAW).setConstant(0.0f);
-// _betas[POS].col(YAW).setConstant(0.0f);
-
-// _mean[NEG].col(YAW).setConstant(0.0f);
-// _mean[POS].col(YAW).setConstant(0.0f);
-
-// _stdInv[POS].col(YAW).setConstant(1.0f);
-// _stdInv[NEG].col(YAW).setConstant(1.0f);
-
-// _bias[NEG].col(YAW) << -0.0862;
-// _bias[POS].col(YAW) << 0.0862f;
-
-// _effortCompLim[NEG].row(YAW) << -0.0863, -0.0861f;
-// _effortCompLim[POS].row(YAW) << 0.0861, 0.0863f;
 }

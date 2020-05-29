@@ -17,7 +17,9 @@
 #include <setStateSrv.h>
 
 #include <PID_v1.h>
-#include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
+// #include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
+#include "/home/jacob/.platformio/lib/Eigen_ID3522/Dense.h"
+
 
 class Platform
 {
@@ -213,6 +215,7 @@ class Platform
     float smoothRiseFall(float x, float a, float b, float c, float d);
     Eigen::Matrix<float, Eigen::Dynamic, 1> bound(Eigen::Matrix<float, Eigen::Dynamic, 1> x, float limit);
 
+
         //!Platform_sensors.cpp
         public : void getMotion(); //! 1
   private:
@@ -244,9 +247,11 @@ class Platform
       void gotoPointAll(float pointX, float pointY, float pointPITCH,     
       float pointROLL, float pointYAW);                                   //! 6
       void gotoPointGainsDefault(int axis_);                              //! 7
-      //! Platform_constrains.cpp
-    private:    
-      //Compensation
+      
+
+    private:
+
+    //! Platform_compensation.cpp
   #define NB_STICTION_COMP 2
   #define NB_SIGN_COMP 2
 
@@ -279,9 +284,16 @@ class Platform
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _stdInv[NB_SIGN_COMP];
   Eigen::Matrix<float, 1 , NB_STICTION_COMP> _bias[NB_SIGN_COMP];
 
+  enum frame_chain {FRAME_BASE, FRAME_Y, FRAME_X, FRAME_Z, FRAME_PITCH, FRAME_ROLL, FRAME_YAW, FRAME_FS, FRAME_PEDAL, FRAME_EPOINT}; 
+  
+  #define NB_FRAMES_GRAVITY_COMP int(FRAME_FS) + 1 - int(FRAME_PITCH) //! link_pitch, link_roll, link_yaw, link_fs+pedal
+
+  Eigen::Matrix<float, 3, NB_FRAMES_GRAVITY_COMP> _comMatrixPitchPedal; //! center of mass of the links from pitch to pedal w.r.t to their own reference frames 
+  Eigen::Matrix<float, NB_FRAMES_GRAVITY_COMP, 1 > _massMatrixPitchPedal;
+  // Eigen::Matrix<float, 3, NB_FRAMES_GRAVITY_COMP> comMatrixPitchPedalWRTBase(); //! center of mass of the links from pitch to pedal w.r.t to the base reference frame
+
   //Constrains
-  void
-  wsConstrains(int axis_);                   //! -1 := all of them                 //! 1
+  void wsConstrains(int axis_);                   //! -1 := all of them                 //! 1
   void motionDamping(int axis_);             //! -1:= all of them                 //! 2
   void wsConstrainsDefault(int axis_);       //! 3
   void motionDampingGainsDefault(int axis_); //! 4      
@@ -297,7 +309,31 @@ class Platform
       void compEffortClear(int axis_, Platform::EffortComp comp_);
       void clearLastState();
       void resetControllers();
-      
+
+    //! Platform_model.cpp
+  public:
+
+      enum link_chain {LINK_BASE, LINK_Y, LINK_X, LINK_PITCH, LINK_ROLL, LINK_YAW, LINK_PEDAL};
+  
+  private:
+
+  #define NB_LINKS 7 //! number of modelled links in the platform
+  
+    // Eigen::Matrix4f forwardKinematics(frame_chain frame);  
+    Eigen::Vector3f positionFrame(frame_chain frame); //! Based on off-line DH forward kinematics
+    Eigen::Matrix3f rotationMatrix(frame_chain frame);
+    Eigen::Matrix<float,6,5> geometricJacobian(frame_chain frame);
+    Eigen::Vector3f comLinkWRTBase(link_chain link); 
+    Eigen::Matrix4f dhTransform(float r,float d,float alpha,float beta);
+
+    #define WITH_FORCE_SENSOR 1
+    #define WITHOUT_FORCE_SENSOR 0
+    #define PRESENCE_FORCE_SENSOR WITHOUT_FORCE_SENSOR
+
+
 };
+
+
+
 
 #endif //PLATFORM_H

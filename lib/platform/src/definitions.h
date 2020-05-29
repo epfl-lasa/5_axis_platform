@@ -30,22 +30,20 @@ extern const char *Axis_names[];
 
 #define BAUDRATE 230400  //! For the serial communication
 
-#define PI 3.14159265359F
-
 #define GRAVITY -9.80665F
 
 #define BELT_PULLEY_R 0.00915F     //! Torque/Force
 
-#define  RAD_TO_DEG 57.295779513082323f
-#define DEG_TO_RAD 0.0174533f
+const float RAD_TO_DEG = 180.0f/M_PI;
+const float DEG_TO_RAD = M_PI/180.0f;
 const float X_TRANSMISSION = (1.0f / BELT_PULLEY_R); //!
-const float X_RESOLUTION = (2 * PI / (4 * 500) ) /  X_TRANSMISSION; //! 28.5 um
+const float X_RESOLUTION = (2 * M_PI / (4 * 500) ) /  X_TRANSMISSION; //! 28.5 um
 const float Y_TRANSMISSION = 1.0f / BELT_PULLEY_R; //!
-const float Y_RESOLUTION = (2 * PI / (4 * 1024) ) / Y_TRANSMISSION; //! 14.03 um
+const float Y_RESOLUTION = (2 * M_PI / (4 * 1024) ) / Y_TRANSMISSION; //! 14.03 um
 const float PITCH_REDUCTION_R = 12.0F; //! Pulley Big [mm] / Pulley Belt [mm]
-const float PITCH_RESOLUTION = (2 * PI / (4 * 4096)) / PITCH_REDUCTION_R * RAD_TO_DEG; //! 32 urad -> 1.8 e-3 deg
+const float PITCH_RESOLUTION = (2 * M_PI / (4 * 4096)) / PITCH_REDUCTION_R * RAD_TO_DEG; //! 32 urad -> 1.8 e-3 deg
 const float ROLL_YAW_REDUCTION_R = 12.96f;  //! Pulley Big [mm] / Pulley Belt [mm]
-const float ROLL_YAW_RESOLUTION = 2 * ((2 * PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //! 
+const float ROLL_YAW_RESOLUTION = 2 * ((2 * M_PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //! 
 
 #define COMM_LOOP 100 //! [us] -> 2ms = 500Hz
 #define CTRL_LOOP 500 //! [us] -> 500us = 2KHz  /50
