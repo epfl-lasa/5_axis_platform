@@ -17,8 +17,8 @@
 #include <setStateSrv.h>
 
 #include <PID_v1.h>
-// #include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
-#include "/home/jacob/.platformio/lib/Eigen_ID3522/Dense.h"
+ #include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
+//#include "/home/jacob/.platformio/lib/Eigen_ID3522/Dense.h"
 
 
 class Platform
@@ -288,12 +288,11 @@ class Platform
   
   #define NB_FRAMES_GRAVITY_COMP int(FRAME_FS) + 1 - int(FRAME_PITCH) //! link_pitch, link_roll, link_yaw, link_fs+pedal
 
-  Eigen::Matrix<float, 3, NB_FRAMES_GRAVITY_COMP> _comMatrixPitchPedal; //! center of mass of the links from pitch to pedal w.r.t to their own reference frames 
-  Eigen::Matrix<float, NB_FRAMES_GRAVITY_COMP, 1 > _massMatrixPitchPedal;
-  // Eigen::Matrix<float, 3, NB_FRAMES_GRAVITY_COMP> comMatrixPitchPedalWRTBase(); //! center of mass of the links from pitch to pedal w.r.t to the base reference frame
+  Eigen::Matrix<float,NB_AXIS,1> _gravityCompJointsTorque;
 
-  //Constrains
-  void wsConstrains(int axis_);                   //! -1 := all of them                 //! 1
+      //Constrains
+      void
+      wsConstrains(int axis_);               //! -1 := all of them                 //! 1
   void motionDamping(int axis_);             //! -1:= all of them                 //! 2
   void wsConstrainsDefault(int axis_);       //! 3
   void motionDampingGainsDefault(int axis_); //! 4      
@@ -322,7 +321,7 @@ class Platform
     // Eigen::Matrix4f forwardKinematics(frame_chain frame);  
     Eigen::Vector3f positionFrame(frame_chain frame); //! Based on off-line DH forward kinematics
     Eigen::Matrix3f rotationMatrix(frame_chain frame);
-    Eigen::Matrix<float,6,5> geometricJacobian(frame_chain frame);
+    Eigen::Matrix<float,6,NB_AXIS> geometricJacobian(frame_chain frame);
     Eigen::Vector3f comLinkWRTBase(link_chain link); 
     Eigen::Matrix4f dhTransform(float r,float d,float alpha,float beta);
 

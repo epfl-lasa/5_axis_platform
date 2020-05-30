@@ -256,17 +256,5 @@ _stdInv[POS].col(Y) << 21.8818f, 25.3807f, 5.7971f, 5.7372f, 4.3178f, 416.6667f,
 _bias[NEG].col(Y) << -8.18028f;
 _bias[POS].col(Y) << 10.5657f;
 
-
-_comMatrixPitchPedal.setConstant(0.0f);
-_comMatrixPitchPedal.col(int(FRAME_PITCH) - int(FRAME_PITCH)) << -0.00593072f, -0.00000124f, -0.00156324f;
-_comMatrixPitchPedal.col(int(FRAME_ROLL) - int(FRAME_PITCH)) << 0.03719409f, -0.00002562f, -0.00002217f;
-_comMatrixPitchPedal.col(int(FRAME_YAW) - int(FRAME_PITCH)) << 0.0f, 0.0f ,0.07495233f;
-_comMatrixPitchPedal.col(int(FRAME_FS) - int(FRAME_PITCH)) << -0.03295545f, 0.00021567f, 0.02639184f;
-
-_massMatrixPitchPedal.setConstant(0.0f);
-_massMatrixPitchPedal(int(FRAME_PITCH) - int(FRAME_PITCH)) = 6.40922346f;
-_massMatrixPitchPedal(int(FRAME_ROLL) - int(FRAME_PITCH)) = 1.17868723f;
-_massMatrixPitchPedal(int(FRAME_YAW) - int(FRAME_PITCH)) = 0.09770847f;
-_massMatrixPitchPedal(int(FRAME_FS) - int(FRAME_PITCH)) = 0.37200000f;
-
+_gravityCompJointsTorque.setConstant(0.0f);
 }
