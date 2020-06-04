@@ -313,7 +313,7 @@ void Platform::step()
   workspaceCheck(_ros_ControlledAxis);
   
   if (_allEsconOk) {setEfforts();}// Aply the forces and torques}
-  readActualEffort();             //! Using the ESCON 50/5 Analog Output
+  //readActualEffort();             //! Using the ESCON 50/5 Analog Output
   
   //! Keep track of variables
   _platform_state = _ros_state;

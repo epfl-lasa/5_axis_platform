@@ -4,6 +4,8 @@
 
 const char *Platform_Names[]{"UNKNOWN", "RIGHT PLATFORM", "LEFT PLATFORM"};
 
+extern float LINKS_MASS[NB_LINKS];
+
 #define ListofAxes(enumeration, names) names,
 char const *Axis_names[]{
     AXES};
@@ -62,10 +64,13 @@ Platform::Platform()
   _wsRange[PITCH]=PITCH_RANGE;
   _wsRange[ROLL]=ROLL_RANGE;
   _wsRange[YAW]=YAW_RANGE;
+  
   for(int k = 0; k < NB_AXIS; k++)
   {
     _effortD[k] = 0.0f;
     _position[k] = 0.0f;
+    _speed(k) = 0.0f;
+    _speedPrev(k) = 0.0f;
     _positionOffsets[k] = 0.0f;
     _positionPrev[k] = 0.0f;
     
@@ -86,10 +91,11 @@ Platform::Platform()
 
     _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD_filtered[k], _kpPosition[k], _kiPosition[k], _kdPosition[k], DIRECT);
     _pidPosition[k]->setMode(AUTOMATIC);
-    _pidSpeed[k] = new PID(&_innerTimer, &_speed[k], &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
+    _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
     _pidSpeed[k]->setMode(AUTOMATIC);
   }
 
+  //! Change filters
   _positionFilters[X].setAlpha(0.56);
   _positionFilters[Y].setAlpha(0.56);
   _positionFilters[PITCH].setAlpha(0.85);
@@ -257,4 +263,15 @@ _bias[NEG].col(Y) << -8.18028f;
 _bias[POS].col(Y) << 10.5657f;
 
 _gravityCompJointsTorque.setConstant(0.0f);
+
+
+ _massLinks.setConstant(0.0f);
+for (int link = 0; link<NB_LINKS; link++ )
+{
+  _massLinks(link) = LINKS_MASS[link]; 
+}
+
+  _flagContact=false;
+  _flagVibration=false;
+  _feedForwardTorque.setConstant(0.0f);
 }

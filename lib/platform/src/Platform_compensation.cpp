@@ -38,7 +38,8 @@ using namespace Eigen;
 
 void Platform::dynamicCompensation()
 {
-
+  
+  _compensationEffort.setConstant(0.0f);
   gravityCompensation();
   dryFrictionCompensation();
   viscFrictionCompensation();
@@ -60,32 +61,25 @@ void Platform::gravityCompensation()
   Eigen::Matrix<float, 6,1> gravityTauFSWRTBase; //! force torque of the weight of the center of mass in the frame of the forcesensor w.r.t base
   Eigen::Vector3f coMPitchPedalWRTBase, coMtoFSVector;
   Eigen::Vector3f weightForce, weightTorque;
-  Eigen::Vector4f massPitchPedal;
   Eigen::Vector3f gravityCompTorque;
 
   gravityTauFSWRTBase.setConstant(0.0f);
   weightForce.setConstant(0.0f);
   weightTorque.setConstant(0.0f);
-  massPitchPedal.setConstant(0.0f);
   gravityCompTorque.setConstant(0.0f); //! Required torque to compensate
   coMtoFSVector.setConstant(0.0f);
   coMPitchPedalWRTBase.setConstant(0.0f); //! net CoM of the pedal, roll, yaw and pitch links
-
-  massPitchPedal<< LINKS_MASS[LINK_PITCH], 
-                   LINKS_MASS[LINK_ROLL],
-                   LINKS_MASS[LINK_YAW],
-                   LINKS_MASS[LINK_PEDAL];
   
-  coMPitchPedalWRTBase = comLinkWRTBase(LINK_PEDAL)*massPitchPedal(LINK_PEDAL-LINK_PITCH)+
-                         comLinkWRTBase(LINK_YAW)*massPitchPedal(LINK_YAW-LINK_PITCH)+
-                         comLinkWRTBase(LINK_ROLL)*massPitchPedal(LINK_ROLL-LINK_PITCH)+ 
-                         comLinkWRTBase(LINK_PITCH)*massPitchPedal(LINK_PITCH-LINK_PITCH);
+  coMPitchPedalWRTBase = comLinkWRTBase(LINK_PEDAL)*_massLinks(LINK_PEDAL)+
+                         comLinkWRTBase(LINK_YAW)*_massLinks(LINK_YAW)+
+                         comLinkWRTBase(LINK_ROLL)*_massLinks(LINK_ROLL)+ 
+                         comLinkWRTBase(LINK_PITCH)*_massLinks(LINK_PITCH);
 
-  coMPitchPedalWRTBase/=massPitchPedal.sum();
+  coMPitchPedalWRTBase/=_massLinks.tail(NB_LINKS - LINK_PITCH).sum();
 
   coMtoFSVector = coMPitchPedalWRTBase - positionFrame(FRAME_FS);
 
-  weightForce(2)=massPitchPedal.sum() * GRAVITY;
+  weightForce(2)=_massLinks.tail(NB_LINKS - LINK_PITCH).sum() * GRAVITY;
   weightTorque = coMtoFSVector.cross(weightForce);
 
   gravityTauFSWRTBase.block(0,0,3,1) = weightForce;
@@ -122,11 +116,11 @@ void Platform::gravityCompensation()
           float dry_scale = 1.0f;
           uint w_sign = MID;
           
-          if (_speed[axis_] >= SPEED_THRESHOLD[axis_])
+          if (_speed(axis_) >= SPEED_THRESHOLD[axis_])
           {
             w_sign = POS;   
           }
-          else if (_speed[axis_] <= -SPEED_THRESHOLD[axis_])
+          else if (_speed(axis_) <= -SPEED_THRESHOLD[axis_])
           {
             w_sign = NEG;
           }
@@ -135,7 +129,7 @@ void Platform::gravityCompensation()
             w_sign = MID;
           }
           
-          dry_scale = clip(abs(SPEED_THRESHOLD[axis_] / (_speed[axis_] + 1e-10f)),0.95f,1.0f);
+          dry_scale = clip(abs(SPEED_THRESHOLD[axis_] / (_speed(axis_) + 1e-10f)),0.95f,1.0f);
 
           _dryFrictionEffortSign[NEG](axis_) = clip(_dryFrictionEffortSign[NEG](axis_), DRY_EFFORT_LIMS[NEG][axis_][L_MIN], DRY_EFFORT_LIMS[NEG][axis_][L_MAX]);
           _dryFrictionEffortSign[POS](axis_) = clip(_dryFrictionEffortSign[POS](axis_), DRY_EFFORT_LIMS[POS][axis_][L_MIN], DRY_EFFORT_LIMS[POS][axis_][L_MAX]);
@@ -146,13 +140,13 @@ void Platform::gravityCompensation()
           }
           else
           {
-            //! probabilistic deazone
+            //! probabilistic deadzone
             // float deadzone;
             //! deadzone = map(smoothRise(((float)(rand() % 10) - 5.0f), -5.0f, 5.0f), 0.0f, 1.0f, 0.7 * _dryFrictionEffortSign[NEG][axis_], 0.7 * _dryFrictionEffortSign[POS][axis_]);
             //! _compensationEffort(axis_,COMP_DRY_FRICTION) = comp_filter[axis_].update(deadzone);
             
             //! linear deazone
-            _compensationEffort(axis_,COMP_DRY_FRICTION) = map(_speed[axis_], -SPEED_THRESHOLD[axis_],SPEED_THRESHOLD[axis_], 0.7f*_dryFrictionEffortSign[NEG][axis_], 0.7f*_dryFrictionEffortSign[POS][axis_]);
+            _compensationEffort(axis_,COMP_DRY_FRICTION) = map(_speed(axis_), -SPEED_THRESHOLD[axis_],SPEED_THRESHOLD[axis_], 0.7f*_dryFrictionEffortSign[NEG][axis_], 0.7f*_dryFrictionEffortSign[POS][axis_]);
           }
         }
       }
@@ -166,7 +160,7 @@ void Platform::gravityCompensation()
     {
       if (abs(_position[axis_]) <= COMP_WS_LIMITS[axis_]) // only if inside the desired workspace
       {
-        _compensationEffort(axis_,COMP_VISC_FRICTION) = clip(_speed[axis_] * VISCOUS_K[axis_], VIS_EFFORT_LIMS[axis_][L_MIN], VIS_EFFORT_LIMS[axis_][L_MAX]);
+        _compensationEffort(axis_,COMP_VISC_FRICTION) = clip(_speed(axis_) * VISCOUS_K[axis_], VIS_EFFORT_LIMS[axis_][L_MIN], VIS_EFFORT_LIMS[axis_][L_MAX]);
       }
     }
   }

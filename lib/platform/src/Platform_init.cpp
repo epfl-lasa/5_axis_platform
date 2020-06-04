@@ -48,6 +48,8 @@ void Platform::init()
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _timestamp = _innerTimer.read_us();
   _speedSamplingStamp=_timestamp;
+  _accSamplingStamp=_timestamp;
+  _vibGenStamp=_timestamp;
   _analogReadStamp=_timestamp;
   _enableMotors->write(0);
   _allEsconOk=0;

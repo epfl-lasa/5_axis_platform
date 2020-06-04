@@ -44,6 +44,7 @@ class Platform
     uint32_t _analogReadStamp;
     uint32_t _speedSamplingStamp;
     uint32_t _accSamplingStamp;
+    uint32_t _vibGenStamp;
     Timer _innerTimer; //! micros()
     uint64_t _innerCounterADC;
 
@@ -102,8 +103,8 @@ class Platform
     float _positionD[NB_AXIS];
     float _positionD_filtered[NB_AXIS];
     float _positionCtrlOut[NB_AXIS];
-    float _speed[NB_AXIS];
-    float _speedPrev[NB_AXIS];
+    Eigen::Matrix<float,NB_AXIS,1> _speed;
+    Eigen::Matrix<float,NB_AXIS,1> _speedPrev;
     float _acceleration[NB_AXIS];
     float _speedD[NB_AXIS];
     float _speedCtrlOut[NB_AXIS];
@@ -213,8 +214,7 @@ class Platform
     float smoothRise(float x, float a, float b);
     float smoothFall(float x, float a, float b);
     float smoothRiseFall(float x, float a, float b, float c, float d);
-    Eigen::Matrix<float, Eigen::Dynamic, 1> bound(Eigen::Matrix<float, Eigen::Dynamic, 1> x, float limit);
-
+    Eigen::Matrix<float, Eigen::Dynamic, 1> boundMat(Eigen::Matrix<float, Eigen::Dynamic, 1> x, Eigen::Matrix<float, Eigen::Dynamic, 1> limit);
 
         //!Platform_sensors.cpp
         public : void getMotion(); //! 1
@@ -317,7 +317,9 @@ class Platform
   private:
 
   #define NB_LINKS 7 //! number of modelled links in the platform
-  
+    
+    Eigen::Matrix<float,NB_LINKS,1> _massLinks;
+
     // Eigen::Matrix4f forwardKinematics(frame_chain frame);  
     Eigen::Vector3f positionFrame(frame_chain frame); //! Based on off-line DH forward kinematics
     Eigen::Matrix3f rotationMatrix(frame_chain frame);
@@ -329,10 +331,28 @@ class Platform
     #define WITHOUT_FORCE_SENSOR 0
     #define PRESENCE_FORCE_SENSOR WITHOUT_FORCE_SENSOR
 
+    //! Platform_feedforward.cpp
 
+    #define NB_FF_COMP 1
+    
+    #define FF_VIB 0
+
+    void feedForwardControl();
+    Eigen::Matrix<float, NB_AXIS, NB_FF_COMP> _feedForwardTorque;
+    void eventVibration(frame_chain frame);
+    bool _flagVibration;
+    bool _flagContact;
 };
 
 
 
 
 #endif //PLATFORM_H
+
+/* TODO
+
+ * 1. Remove position filters to avoid lad
+ * 2. Modify speed filters and acc filters
+ * 3. Include the PID gains in the parameter server
+
+*/

@@ -9,7 +9,7 @@ extern const char *Platform_Names[];
 
 #define NB_AXIS 5
 #define NB_SWITCHES 3
-#define NB_EFFORT_COMPONENTS 4
+#define NB_EFFORT_COMPONENTS 4 //! Normal, Constrains, Compensation, Feedforward
 #define NB_MACHINE_STATES 7
 #define NB_FI_CATEGORY 3
 

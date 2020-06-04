@@ -5,7 +5,6 @@
 //! #1
 
 #define ADC 1
-#define INTEGRAL_TERM 2
 #define EFFORT_M ADC 
 
 void Platform::getMotion()
@@ -16,35 +15,8 @@ void Platform::getMotion()
 }
 
 #if (EFFORT_M == ADC)
+
 //! #2
-// void Platform::readActualEffort() //! ADC
-// {
-//   if(_innerCounterADC<NB_AXIS && (_timestamp-_analogReadStamp)>=ANALOG_SAMPLING_TIME)
-//   {
-//     if (_innerCounterADC>=ROLL){
-//       _effortM[_innerCounterADC+2]=map(_motorCurrents[_innerCounterADC]->read()*_motorSign[_innerCounterADC],0.1,0.9,-_maxEffort[_innerCounterADC],_maxEffort[_innerCounterADC]);
-//     }
-//     else
-//     {
-//       _effortM[_innerCounterADC]=map(_motorCurrents[_innerCounterADC]->read()*_motorSign[_innerCounterADC],0.1,0.9,-_maxEffort[_innerCounterADC],_maxEffort[_innerCounterADC]);
-//       _effortM[_innerCounterADC]=_effortMFilters[_innerCounterADC].update(_effortM[_innerCounterADC]);
-//     }
-    
-//   if(_innerCounterADC==YAW){
-//     // Adapt roll and yaw angles due to differential mechanism
-//     _effortM[ROLL]= (_effortM[ROLL+2]-_effortM[YAW+2])/2.0f;
-//     _effortM[YAW] = (_effortM[ROLL+2]+_effortM[YAW+2])/2.0f;
-//     _effortM[ROLL]=_effortMFilters[ROLL].update(_effortM[ROLL]);
-//     _effortM[YAW]=_effortMFilters[YAW].update(_effortM[YAW]);
-//     _innerCounterADC=0;
-//     _analogReadStamp=_timestamp;
-//   }
-  
-//   _innerCounterADC++;
-//   }
-
-// }
-
 void Platform::readActualEffort() //! ADC
 {
   if ((_timestamp - _analogReadStamp) >= ANALOG_SAMPLING_TIME)
@@ -94,23 +66,6 @@ void Platform::readActualEffort() //! ADC
     _analogReadStamp = _timestamp;
   }
 }
-
-#else
-void Platform::readActualEffort() 
-{
-  for (uint k=0; k<NB_AXIS; k++)
-  {
-    // if (flagPositionInControl())
-    //  { _effortM[k]=_pidPosition[k]->getIntegralTerm();}
-    // else if (flagSpeedInControl())
-    //   { _effortM[k]=_pidSpeed[k]->getIntegralTerm();}
-    // else
-    // {
-    //   _effortM[k] = 0.0;
-    // }
-    _effortM[k] = _pidPosition[k]->getIntegralTerm();
-  }
-} 
 #endif
 
 //! #3
@@ -137,8 +92,8 @@ void Platform::getSpeed()
   {
     for (uint k = 0; k < NB_AXIS; k++)
     {
-      _speed[k] = (_position[k] - _positionPrev[k]) / ((float)VELOCITY_PID_SAMPLE_P * 1e-6f);
-      _speed[k] = _speedFilters[k].update(_speed[k]);
+      _speed(k) = (_position[k] - _positionPrev[k]) / ((float)VELOCITY_PID_SAMPLE_P * 1e-6f);
+      _speed(k) = _speedFilters[k].update(_speed(k));
       _positionPrev[k] = _position[k];
       _speedSamplingStamp=_timestamp;
     }
@@ -152,9 +107,9 @@ void Platform::getAcceleration()
   {
     for (uint k = 0; k < NB_AXIS; k++)
     {
-      _acceleration[k] = (_speed[k] - _speedPrev[k]) / ((float)ACC_SAMPLE_P * 1e-6f);
+      _acceleration[k] = (_speed(k) - _speedPrev(k)) / ((float)ACC_SAMPLE_P * 1e-6f);
       _acceleration[k] = _accFilters[k].update(_acceleration[k]);
-      _speedPrev[k] = _speed[k];
+      _speedPrev(k) = _speed(k);
       _accSamplingStamp = _timestamp;
     }
   }

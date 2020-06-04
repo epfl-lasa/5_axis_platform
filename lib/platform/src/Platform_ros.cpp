@@ -99,7 +99,7 @@ void Platform::pubFootOutput()
   for (uint k=0; k<NB_AXIS; k++)
   {
     _msgFootOutput.platform_position[k] = _position[k];
-    _msgFootOutput.platform_speed[k]= _speed[k];
+    _msgFootOutput.platform_speed[k]= _speed(k);
     _msgFootOutput.platform_effortD[k] =_effortD[k];
     _msgFootOutput.platform_effortM[k] =_acceleration[k];
   } 
