@@ -227,6 +227,7 @@ void Platform::step()
 
      // Main state
       totalEffortDClear(-1);
+        
 
       if (flagPositionInControl()) {
         if (_flagInputReceived[MSG_POSITION]) {
@@ -318,7 +319,8 @@ void Platform::step()
   //! Keep track of variables
   _platform_state = _ros_state;
   _platform_controllerType=_ros_controllerType;
-  _timestep=_innerTimer.read_us()-_timestamp;
+  _timestep = float(_innerTimer.read_us() - _timestamp);
+  
   _timestamp=_innerTimer.read_us();
 }
 

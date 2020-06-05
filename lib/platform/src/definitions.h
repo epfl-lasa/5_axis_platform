@@ -45,12 +45,12 @@ const float PITCH_RESOLUTION = (2 * M_PI / (4 * 4096)) / PITCH_REDUCTION_R * RAD
 const float ROLL_YAW_REDUCTION_R = 12.96f;  //! Pulley Big [mm] / Pulley Belt [mm]
 const float ROLL_YAW_RESOLUTION = 2 * ((2 * M_PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //! 
 
-#define COMM_LOOP 100 //! [us] -> 2ms = 500Hz
-#define CTRL_LOOP 500 //! [us] -> 500us = 2KHz  /50
-const float VELOCITY_PID_SAMPLE_P =  5 * CTRL_LOOP;              //!  [us]
-const float ACC_SAMPLE_P = 6 * CTRL_LOOP;
-const float ANALOG_SAMPLING_TIME =  10 * CTRL_LOOP; 
-const float POSITION_PID_SAMPLE_P =  1 * CTRL_LOOP;  //! [us]
+//#define COMM_LOOP 100 //! [us] -> 2ms = 500Hz
+#define CTRL_LOOP 500 //! [us] -> 1000us = 1KHz  /50
+const float VELOCITY_PID_SAMPLE_P =  3 * CTRL_LOOP;              //!  [us]
+const float ACC_SAMPLE_P = 5 * CTRL_LOOP;
+const float ANALOG_SAMPLING_TIME =  5 * CTRL_LOOP; 
+const float POSITION_PID_SAMPLE_P =  2 * CTRL_LOOP;  //! [us]
 
 #define MY_PWM_RESOLUTION 16 // Bits
 #define MY_PWM_FREQUENCY 5000 //Hz

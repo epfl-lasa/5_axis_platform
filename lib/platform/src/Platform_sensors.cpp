@@ -71,19 +71,28 @@ void Platform::readActualEffort() //! ADC
 //! #3
 void Platform::getPosition()
 {
-  _spi->lock(); 
-  for (uint k = 0; k < NB_AXIS; k++)
+  if ((_timestamp - _posSamplingStamp) >= (uint32_t)POSITION_PID_SAMPLE_P)
   {
-    _encoders[k]->QEC_getPosition(_spi);
-    _position[k] = _encoders[k]->outDimension + _positionOffsets[k];
-    _position[k] = _positionFilters[k].update(_position[k]);
+    _spi->lock();
+    float encoders_out[NB_AXIS] = {0.0f,0.0f,0.0f,0.0f,0.0f};
+    for (uint k = 0; k < NB_AXIS; k++)
+    {
+      _encoders[k]->QEC_getPosition(_spi);
+      encoders_out[k] = _encoders[k]->outDimension + _positionOffsets[k];
+    }
+    // Adapt roll and yaw angles due to differential mechanism
+
+    if (encoders_out[ROLL] * encoders_out[YAW] != 0.0f)
+    {
+      _position[X] = encoders_out[X];
+      _position[Y] = encoders_out[Y];
+      _position[PITCH] = encoders_out[PITCH];
+      _position[ROLL] = (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f;
+      _position[YAW] = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f;
+    }
+    _spi->unlock();
+    _posSamplingStamp = _timestamp;
   }
-  _spi->unlock(); 
-  // Adapt roll and yaw angles due to differential mechanism
-  float enc1 = _position[ROLL];
-  float enc2 = _position[YAW];
-  _position[ROLL]= (enc1-enc2)/2.0f;
-  _position[YAW] = (enc1+enc2)/2.0f;
 }
 //! #4
 void Platform::getSpeed()

@@ -47,6 +47,7 @@ void Platform::init()
   wait_us(10000);
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _timestamp = _innerTimer.read_us();
+  _posSamplingStamp = _timestamp;
   _speedSamplingStamp=_timestamp;
   _accSamplingStamp=_timestamp;
   _vibGenStamp=_timestamp;

@@ -6,6 +6,9 @@ const char *Platform_Names[]{"UNKNOWN", "RIGHT PLATFORM", "LEFT PLATFORM"};
 
 extern float LINKS_MASS[NB_LINKS];
 
+const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f };
+const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
+
 #define ListofAxes(enumeration, names) names,
 char const *Axis_names[]{
     AXES};
@@ -89,18 +92,24 @@ Platform::Platform()
     _ros_speed[k]=0.0f;
     _ros_effort[k] = 0.0f;
 
-    _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD_filtered[k], _kpPosition[k], _kiPosition[k], _kdPosition[k], DIRECT);
+    _pidPosition[k] = new PID(&_innerTimer, &_position[k], &_positionCtrlOut[k], &_positionD_filtered[k], _kpPosition[k], _kiPosition[k], _kdPosition[k], DIRECT, POS_PID_FILTER_GAINS[k]);
     _pidPosition[k]->setMode(AUTOMATIC);
-    _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT);
+    _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut[k], &_speedD[k], _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT, VEL_PID_FILTER_GAINS[k]);
     _pidSpeed[k]->setMode(AUTOMATIC);
   }
 
   //! Change filters
-  _positionFilters[X].setAlpha(0.56);
-  _positionFilters[Y].setAlpha(0.56);
-  _positionFilters[PITCH].setAlpha(0.85);
-  _positionFilters[ROLL].setAlpha(0.85);
-  _positionFilters[YAW].setAlpha(0.85);
+  // _positionFilters[X].setAlpha(0.56);
+  // _positionFilters[Y].setAlpha(0.56);
+  // _positionFilters[PITCH].setAlpha(0.85);
+  // _positionFilters[ROLL].setAlpha(0.85);
+  // _positionFilters[YAW].setAlpha(0.85);
+
+  _positionFilters[X].setAlpha(0.0);
+  _positionFilters[Y].setAlpha(0.0);
+  _positionFilters[PITCH].setAlpha(0.0);
+  _positionFilters[ROLL].setAlpha(0.0);
+  _positionFilters[YAW].setAlpha(0.0);
 
   _speedFilters[X].setAlpha(0.96);
   _speedFilters[Y].setAlpha(0.96);

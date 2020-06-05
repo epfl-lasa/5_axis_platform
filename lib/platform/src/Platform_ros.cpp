@@ -101,12 +101,12 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_position[k] = _position[k];
     _msgFootOutput.platform_speed[k]= _speed(k);
     _msgFootOutput.platform_effortD[k] =_effortD[k];
-    _msgFootOutput.platform_effortM[k] =_acceleration[k];
+    _msgFootOutput.platform_effortM[k] =_effortM[k];
   } 
     _msgFootOutput.platform_effortM[0] = _timestep;
-    _msgFootOutput.platform_effortM[1] = _compensationEffort.col(COMP_GRAVITY)(PITCH);
-    _msgFootOutput.platform_effortM[2] = _compensationEffort.col(COMP_GRAVITY)(ROLL);
-    _msgFootOutput.platform_effortM[3] = _compensationEffort.col(COMP_GRAVITY)(YAW);
+    // _msgFootOutput.platform_effortM[1] = _compensationEffort.col(COMP_GRAVITY)(PITCH);
+    // _msgFootOutput.platform_effortM[2] = _compensationEffort.col(COMP_GRAVITY)(ROLL);
+    // _msgFootOutput.platform_effortM[3] = _compensationEffort.col(COMP_GRAVITY)(YAW);
     _msgFootOutput.platform_controllerType= (uint8_t)_ros_controllerType; 
     _msgFootOutput.platform_machineState=(uint8_t)_ros_state;
   _pubFootOutput->publish(&_msgFootOutput);

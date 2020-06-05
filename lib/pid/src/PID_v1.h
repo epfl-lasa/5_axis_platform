@@ -2,6 +2,7 @@
 #define PID_V1_H
 //#define LIBRARY_VERSION	1.2.1
 #include <mbed.h>
+#include "LP_Filter.h"
 
 class PID
 {
@@ -17,12 +18,15 @@ class PID
 
   //commonly used functions **************************************************************************
     PID(Timer*, float*, float*, float*,        // * constructor.  links the PID to the Input, Output, and 
-        float, float, float, int, int);//   Setpoint.  Initial tuning parameters are also set here.
+        float, float, float, int, int, float);//   Setpoint.  Initial tuning parameters are also set here.
                                           //   (overload for specifying proportional mode)
 
     PID(Timer*, float*, float*, float*,        // * constructor.  links the PID to the Input, Output, and 
-        float, float, float, int);     //   Setpoint.  Initial tuning parameters are also set here
-    
+        float, float, float, int, float);     //   Setpoint.  Initial tuning parameters are also set here
+
+    PID(Timer *, float *, float *, float *,
+        float, float, float, int);
+
     ~PID();
     
     void setMode(int Mode);               // * sets PID to either Manual (0) or Auto (non-0)
@@ -67,7 +71,9 @@ class PID
 
   private:
 	void initialize();
-	
+
+  LP_Filter dInputFilter;
+
   float outputSum;
   float errorM;
   

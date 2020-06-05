@@ -518,4 +518,5 @@ Eigen::Vector3f Platform::comLinkWRTBase(link_chain link)
 
     }
 
+    return link_comWRTBase;
 }

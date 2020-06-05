@@ -18,7 +18,7 @@ LP_Filter::LP_Filter(float alpha)
 
 
 float LP_Filter::update(float raw_input){
-  _output=_alpha*_old_output + (1.0-_alpha)*raw_input;
+  _output=_alpha*_old_output + (1.0f-_alpha)*raw_input;
   _old_output=_output;
   return _output - _bias;
 }

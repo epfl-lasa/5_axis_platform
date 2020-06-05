@@ -3,8 +3,9 @@
 #include <definitions.h>
 #include <definitions_2.h>
 
-float const SPEED_THRESHOLD[NB_AXIS] = {0.004f, 0.0035f, 0.05f, 0.09f, 0.09f};
+//float const SPEED_THRESHOLD[NB_AXIS] = {0.004f, 0.0035f, 0.05f, 0.09f, 0.09f};
 //float const SPEED_THRESHOLD[NB_AXIS] = {0.006f, 0.005f, 0.07f, 0.12f, 0.12f};
+float const SPEED_THRESHOLD[NB_AXIS] = {0.006f, 0.005f, 0.07f, 0.12f, 0.12f};
 float const VIS_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-2.0f, 2.0f}, {-2.0f, 2.0f}, {-0.6f, 0.3f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}};
 float const GRAVITY_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{0.0f, 0.0f}, {0.0f, 0.0f}, {-2.0f, 2.0f}, {-2.0f, 2.0f}, {-2.0f, 2.0f}};
 float const INERTIA_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-3.0f, 3.0f}, {-3.0f, 3.0f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}};
@@ -43,7 +44,7 @@ void Platform::dynamicCompensation()
   gravityCompensation();
   dryFrictionCompensation();
   viscFrictionCompensation();
-  inertiaCompensation();
+  // inertiaCompensation();
   
   _effortD_ADD.col(COMPENSATION) = _compensationEffort.rowwise().sum();
 }
@@ -87,7 +88,9 @@ void Platform::gravityCompensation()
 
   _gravityCompJointsTorque = geometricJacobian(FRAME_FS).transpose() * -gravityTauFSWRTBase;
 
-  // 
+  // _effortM[1] = _gravityCompJointsTorque(PITCH);
+  // _effortM[2] = _gravityCompJointsTorque(ROLL);
+  // _effortM[3] = _gravityCompJointsTorque(YAW);
 
   for (int axis_ = PITCH; axis_ < NB_AXIS; axis_++)
   {
@@ -190,91 +193,3 @@ void Platform::quadraticRegression()
     _dryFrictionEffortSign[sign_] << (_betas[sign_].transpose() * _predictors[sign_]).diagonal() + _bias[sign_].transpose();
   }
 }
-
-
-
-
-
-
-
-
-// #define s1 0.37289094873267458751797676086426f
-// // #define s2 0.00017838561681537967729127558413893f
-// // #define s3 0.1202649827939694660017266869545f
-// // #define s4 5.3278916881681652739644050598145f
-// // #define s5 0.060133779052037886837501552679998f
-// // #define s6 1.5642521308821102975981439484377f
-// // #define s7 0.00078704884439950717478495789691806f
-// // #define s8 0.00029624205462752684070437680929899f
-// // #define s9 6.2129561752277892082929611206055f
-// // #define s10 0.098287905464530922472476959228516f
-// // #define s11 5.3278916964040078922555905394144f
-
-// // gravityCompTorque(0) = s1*s_theta - s2*c_theta  + s3*c_psi*c_theta + s4*c_phi*s_theta + s7*c_theta*s_psi - s8*s_phi*s_theta - s9*c_phi*s_theta - s3*s_phi*s_psi*s_theta + s7*c_psi*s_phi*s_theta;
-// // gravityCompTorque(1) = c_theta*( - s5*cos(_position[ROLL]*DEG_TO_RAD + _position[YAW]*DEG_TO_RAD + s6) - s9*s_phi + s11*cos(_position[ROLL]*DEG_TO_RAD - M_PI_2) - s5*cos(_position[YAW]*DEG_TO_RAD - 1.0f*_position[ROLL]*DEG_TO_RAD + s6) + s10);
-// // gravityCompTorque(2) = s_phi*(s1*s_theta - s2*c_theta  + s3*c_psi*c_theta + s4*c_phi*s_theta + s7*c_theta*s_psi - s8*s_phi*s_theta - s3*s_phi*s_psi*s_theta + s7*c_psi*s_phi*s_theta) - 1.0f*c_phi*s_theta*( + s8*c_phi + s4*s_phi - s7*c_phi*c_psi + s3*c_phi*s_psi + s10);
-
-// _gravityCompJointsTorque(PITCH) =  GRAVITY * (LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PITCH] * c_theta -
-//                                   LINKS_COM[LINK_ROLL][2] * LINKS_MASS[LINK_ROLL]* c_theta +
-//                                   LINKS_COM[LINK_PITCH][0] * LINKS_MASS[LINK_PITCH] * s_theta +
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][2] * c_phi * s_theta +
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][0] * c_theta * s_psi -
-//                                   LINKS_COM[LINK_ROLL][1] * LINKS_MASS[LINK_ROLL] * s_phi * s_theta +
-//                                   LINKS_COM[LINK_PEDAL][0] * LINKS_MASS[LINK_PEDAL] * c_psi * c_theta -
-//                                   d6 * LINKS_MASS[LINK_PITCH] * c_phi * s_theta -
-//                                   d6 * LINKS_MASS[LINK_ROLL] * c_phi * s_theta -
-//                                   d6 * LINKS_MASS[LINK_YAW] * c_phi * s_theta +
-//                                   LINKS_COM[LINK_PEDAL][2] * LINKS_MASS[LINK_PEDAL] * c_phi * s_theta -
-//                                   LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PEDAL] * c_theta * s_psi +
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][1] * c_psi * c_theta +
-//                                   LINKS_COM[LINK_ROLL][0] * LINKS_MASS[LINK_ROLL] * c_phi * s_theta -
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][1] * s_phi * s_psi * s_theta -
-//                                   LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PEDAL] * c_psi * s_phi * s_theta -
-//                                   LINKS_COM[LINK_PEDAL][0] * LINKS_MASS[LINK_PEDAL] * s_phi * s_psi * s_theta +
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][0] * c_psi * s_phi * s_theta)   +
-//                                   GRAVITY * c_phi * s_theta * d6 * (LINKS_MASS[LINK_PEDAL] + LINKS_MASS[LINK_PITCH] +
-//                                   LINKS_MASS[LINK_ROLL] + LINKS_MASS[LINK_YAW]);
-
-// _gravityCompJointsTorque(ROLL) =  GRAVITY * c_theta * (LINKS_COM[LINK_PITCH][2] * LINKS_MASS[LINK_PITCH] -
-//                                   d6 * LINKS_MASS[LINK_PITCH] * s_phi +
-//                                   LINKS_COM[LINK_ROLL][1] * LINKS_MASS[LINK_ROLL] * c_phi -
-//                                   d6 * LINKS_MASS[LINK_ROLL] * s_phi -
-//                                   d6 * LINKS_MASS[LINK_YAW] * s_phi +
-//                                   LINKS_COM[LINK_PEDAL][2] * LINKS_MASS[LINK_PEDAL] * s_phi +
-//                                   LINKS_COM[LINK_ROLL][0] * LINKS_MASS[LINK_ROLL] * s_phi +
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][2] * s_phi +
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][1] * c_phi * s_psi +
-//                                   LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PEDAL] * c_phi * c_psi +
-//                                   LINKS_COM[LINK_PEDAL][0] * LINKS_MASS[LINK_PEDAL] * c_phi * s_psi -
-//                                   LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][0] * c_phi * c_psi) +
-//                                   GRAVITY * c_theta * s_phi * d6 * (LINKS_MASS[LINK_PEDAL] + LINKS_MASS[LINK_PITCH] +
-//                                   LINKS_MASS[LINK_ROLL] + LINKS_MASS[LINK_YAW]);
-
-// _gravityCompJointsTorque(YAW) =  GRAVITY * s_phi * (LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PITCH] * c_theta -
-//                                  LINKS_COM[LINK_ROLL][2] * LINKS_MASS[LINK_ROLL] * c_theta +
-//                                  LINKS_COM[LINK_PITCH][0] * LINKS_MASS[LINK_PITCH] * s_theta +
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][2] * c_phi * s_theta +
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][0] * c_theta * s_psi -
-//                                  LINKS_COM[LINK_ROLL][1] * LINKS_MASS[LINK_ROLL] * s_phi * s_theta +
-//                                  LINKS_COM[LINK_PEDAL][0] * LINKS_MASS[LINK_PEDAL] * c_psi * c_theta -
-//                                  d6 * LINKS_MASS[LINK_PITCH] * c_phi * s_theta -
-//                                  d6 * LINKS_MASS[LINK_ROLL] * c_phi * s_theta -
-//                                  d6 * LINKS_MASS[LINK_YAW] * c_phi * s_theta +
-//                                  LINKS_COM[LINK_PEDAL][2] * LINKS_MASS[LINK_PEDAL] * c_phi * s_theta -
-//                                  LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PEDAL] * c_theta * s_psi +
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][1] * c_psi * c_theta +
-//                                  LINKS_COM[LINK_ROLL][0] * LINKS_MASS[LINK_ROLL] * c_phi * s_theta -
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][1] * s_phi * s_psi * s_theta -
-//                                  LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PEDAL] * c_psi * s_phi * s_theta -
-//                                  LINKS_COM[LINK_PEDAL][0] * LINKS_MASS[LINK_PEDAL] * s_phi * s_psi * s_theta +
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][0] * c_psi * s_phi * s_theta) -
-//                                  GRAVITY * c_phi * s_theta * (LINKS_COM[LINK_PITCH][2] * LINKS_MASS[LINK_PITCH] -
-//                                  d6 * LINKS_MASS[LINK_PITCH] * s_phi + LINKS_COM[LINK_ROLL][1] * LINKS_MASS[LINK_ROLL] * c_phi -
-//                                  d6 * LINKS_MASS[LINK_ROLL] * s_phi -  d6 * LINKS_MASS[LINK_YAW] * s_phi +
-//                                  LINKS_COM[LINK_PEDAL][2] * LINKS_MASS[LINK_PEDAL] * s_phi +
-//                                  LINKS_COM[LINK_ROLL][0] * LINKS_MASS[LINK_ROLL] * s_phi +
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][2] * s_phi +
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][1] * c_phi * s_psi +
-//                                  LINKS_COM[LINK_PEDAL][1] * LINKS_MASS[LINK_PEDAL] * c_phi * c_psi +
-//                                  LINKS_COM[LINK_PEDAL][0] * LINKS_MASS[LINK_PEDAL] * c_phi * s_psi -
-//                                  LINKS_MASS[LINK_YAW] * LINKS_COM[LINK_YAW][0] * c_phi * c_psi);

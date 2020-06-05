@@ -7,36 +7,49 @@
 #endif
 
 Platform platform;
-// Thread th_Control;
+Ticker t_Control;
+Thread th_Control;
+volatile bool flagControl = false;
 
-// void doControlTH()
+
+// void doControlCb()
 // {
-  
-//   while (!platform._stop)
-//   {
-//     platform.step();   
-//   }
+//   flagControl=true;
 // }
 
 
-// int main()
-// {
-//     platform.init();
-//     th_Control.start(doControlTH);
-//     while (1)
-//     {
-//         platform.communicateToRos();
-//     }
-//   return 0;
-//   }
+void doControlTH()
+{
+  // t_Control.attach_us(&doControlCb, CTRL_LOOP);
+  while (!platform._stop)
+  {
+    if (true)
+    {
+      platform.step();   
+      flagControl=false;
+    }
+  }
+}
+
 
 int main()
 {
-  platform.init();
-  while (!platform._stop)
-  {
-    platform.step();
-    platform.communicateToRos();
-  }
+    platform.init();
+    th_Control.start(doControlTH);
+    while (1)
+    {
+        platform.communicateToRos();
+    }
   return 0;
-}
+  }
+
+// int main()
+// {
+//   platform.init();
+//   while (!platform._stop)
+//   {
+//     platform.step();
+//     platform.communicateToRos();
+//   }
+//   return 0;
+// }

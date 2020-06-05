@@ -42,6 +42,7 @@ class Platform
     uint32_t _timestamp;
     uint32_t _timestep;
     uint32_t _analogReadStamp;
+    uint32_t _posSamplingStamp;
     uint32_t _speedSamplingStamp;
     uint32_t _accSamplingStamp;
     uint32_t _vibGenStamp;
@@ -351,7 +352,7 @@ class Platform
 
 /* TODO
 
- * 1. Remove position filters to avoid lad
+ * 1. Remove position filters to avoid lag
  * 2. Modify speed filters and acc filters
  * 3. Include the PID gains in the parameter server
 

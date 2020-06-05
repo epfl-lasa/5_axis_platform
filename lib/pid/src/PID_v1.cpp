@@ -14,7 +14,7 @@
  *    reliable defaults, so we need to have the user set them.
  ***************************************************************************/
 PID::PID(Timer* timer_, float* Input, float* Output, float* Setpoint,
-        float Kp, float Ki, float Kd, int POn, int ControllerDirection)
+        float Kp, float Ki, float Kd, int POn, int ControllerDirection, float filterGain)
 {
     myOutput = Output;
     myInput = Input;
@@ -32,6 +32,8 @@ PID::PID(Timer* timer_, float* Input, float* Output, float* Setpoint,
     PID::setTunings(Kp, Ki, Kd, POn);
 
     lastTime = myTimer->read_us()-SampleTime;
+
+    dInputFilter.setAlpha(filterGain);
 }
 
 /*Constructor (...)*********************************************************
@@ -39,11 +41,17 @@ PID::PID(Timer* timer_, float* Input, float* Output, float* Setpoint,
  *    to use Proportional on Error without explicitly saying so
  ***************************************************************************/
 
-PID::PID(Timer* timer_, float* Input, float* Output, float* Setpoint,
-        float Kp, float Ki, float Kd, int ControllerDirection)
-    :PID::PID(timer_, Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E, ControllerDirection)
+PID::PID(Timer *timer_, float *Input, float *Output, float *Setpoint,
+         float Kp, float Ki, float Kd, int ControllerDirection, float filterGain)
+    : PID::PID(timer_, Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E, ControllerDirection, filterGain)
 {
 
+}
+
+PID::PID(Timer *timer_, float *Input, float *Output, float *Setpoint,
+         float Kp, float Ki, float Kd, int ControllerDirection)
+    : PID::PID(timer_, Input, Output, Setpoint, Kp, Ki, Kd, P_ON_E, ControllerDirection, 0.5f)
+{
 }
 
 PID::~PID()
@@ -71,7 +79,7 @@ bool PID::compute()
       float input = *myInput;
       float error = *mySetpoint - input;
       
-      float dInput = (input - lastInput);
+      float dInput = dInputFilter.update(input - lastInput);
       outputSum += (ki * error);
 
       /*Add Proportional on Measurement, if P_ON_M is specified*/

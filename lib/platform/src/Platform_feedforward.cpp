@@ -18,7 +18,8 @@ float const VIB_EFFORT_LIMS[NB_AXIS] = {5.0f, 5.0f , 1.0 , 1.0 , 1.0};
 
 
 void Platform::feedForwardControl()
-{
+{   
+    _feedForwardTorque.setConstant(0.0f);
     eventVibration(FRAME_PEDAL);
     _effortD_ADD.col(FEEDFORWARD) = _feedForwardTorque.rowwise().sum();
 }
@@ -26,7 +27,6 @@ void Platform::feedForwardControl()
 
 void Platform::eventVibration(frame_chain frame_)
 {
-    _feedForwardTorque.col(FF_VIB).setConstant(0.0f);
     
     if (_flagVibration)
     {
