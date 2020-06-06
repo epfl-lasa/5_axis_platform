@@ -1,6 +1,6 @@
-#include <Platform.h>
-#include <definitions.h>
-#include <definitions_2.h>
+#include "Platform.h"
+#include "definitions.h"
+#include "definitions_2.h"
 
 const char *Platform_Names[]{"UNKNOWN", "RIGHT PLATFORM", "LEFT PLATFORM"};
 

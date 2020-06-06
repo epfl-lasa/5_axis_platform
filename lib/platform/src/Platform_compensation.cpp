@@ -1,11 +1,11 @@
-#include <Platform.h>
-#include <LP_Filter.h>
-#include <definitions.h>
-#include <definitions_2.h>
+#include "Platform.h"
+#include "LP_Filter.h"
+#include "definitions.h"
+#include "definitions_2.h"
 
 //float const SPEED_THRESHOLD[NB_AXIS] = {0.004f, 0.0035f, 0.05f, 0.09f, 0.09f};
 //float const SPEED_THRESHOLD[NB_AXIS] = {0.006f, 0.005f, 0.07f, 0.12f, 0.12f};
-float const SPEED_THRESHOLD[NB_AXIS] = {0.006f, 0.005f, 0.07f, 0.12f, 0.12f};
+float const SPEED_THRESHOLD[NB_AXIS] = {0.010f, 0.010f, 0.09f, 0.12f, 0.12f};
 float const VIS_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-2.0f, 2.0f}, {-2.0f, 2.0f}, {-0.6f, 0.3f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}};
 float const GRAVITY_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{0.0f, 0.0f}, {0.0f, 0.0f}, {-2.0f, 2.0f}, {-2.0f, 2.0f}, {-2.0f, 2.0f}};
 float const INERTIA_EFFORT_LIMS[NB_AXIS][NB_LIMS] = {{-3.0f, 3.0f}, {-3.0f, 3.0f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}, {-0.5f, 0.5f}};
@@ -28,7 +28,7 @@ extern const float d7;
 extern const float r8;
 
 
-LP_Filter comp_filter[NB_STICTION_COMP]{0.7f, 0.7f};
+LP_Filter comp_filter[NB_STICTION_COMP]{0.9f, 0.9f};
 
 
 using namespace std;
@@ -44,7 +44,7 @@ void Platform::dynamicCompensation()
   gravityCompensation();
   dryFrictionCompensation();
   viscFrictionCompensation();
-  // inertiaCompensation();
+  inertiaCompensation();
   
   _effortD_ADD.col(COMPENSATION) = _compensationEffort.rowwise().sum();
 }
@@ -144,12 +144,11 @@ void Platform::gravityCompensation()
           else
           {
             //! probabilistic deadzone
-            // float deadzone;
-            //! deadzone = map(smoothRise(((float)(rand() % 10) - 5.0f), -5.0f, 5.0f), 0.0f, 1.0f, 0.7 * _dryFrictionEffortSign[NEG][axis_], 0.7 * _dryFrictionEffortSign[POS][axis_]);
-            //! _compensationEffort(axis_,COMP_DRY_FRICTION) = comp_filter[axis_].update(deadzone);
-            
+            float deadzone;
+            deadzone = map(smoothRise(((float)(rand() % 10) - 5.0f), -5.0f, 5.0f), 0.0f, 1.0f, 0.7 * _dryFrictionEffortSign[NEG][axis_], 0.7 * _dryFrictionEffortSign[POS][axis_]);
+            _compensationEffort(axis_,COMP_DRY_FRICTION) = comp_filter[axis_].update(deadzone);
             //! linear deazone
-            _compensationEffort(axis_,COMP_DRY_FRICTION) = map(_speed(axis_), -SPEED_THRESHOLD[axis_],SPEED_THRESHOLD[axis_], 0.7f*_dryFrictionEffortSign[NEG][axis_], 0.7f*_dryFrictionEffortSign[POS][axis_]);
+            //!_compensationEffort(axis_,COMP_DRY_FRICTION) = map(_speed(axis_), -SPEED_THRESHOLD[axis_],SPEED_THRESHOLD[axis_], 0.7f*_dryFrictionEffortSign[NEG][axis_], 0.7f*_dryFrictionEffortSign[POS][axis_]);
           }
         }
       }
@@ -171,6 +170,11 @@ void Platform::gravityCompensation()
   void Platform::inertiaCompensation()
   {
     // Inertia compensation
+
+    // D(q) = sum (mi*Jvi*Jvi' + Jwi'*Ri*Ii*Ri'*Jwi)
+
+
+
     for (int axis_ = 0; axis_ < NB_AXIS; axis_++)
     {
       if (abs(_position[axis_]) <= COMP_WS_LIMITS[axis_]) // only if inside the desired workspace

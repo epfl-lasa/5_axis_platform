@@ -1,7 +1,7 @@
 #ifndef DEFINITIONS_2_HH
 #define DEFINITIONS_2_HH
 
-#include <../../5_axis_platform/lib/platform/src/definitions.h>
+#include "definitions.h"
 
 
 #define SCALE_GAINS_LINEAR_POSITION 1

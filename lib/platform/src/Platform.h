@@ -1,23 +1,23 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include <ros.h>
-#include <mbed.h>
-#include <SPI.h>
-#include <QEC_1X_SPI.h>
-#include <LP_Filter.h>
-#include <MA_Filter.h>
-//#include <pid_interpolator.h>
-#include <Platform.h>
-#include <definitions.h>
-#include <definitions_2.h>
-#include <FootInputMsg_v2.h>
-#include <FootOutputMsg_v2.h>
-#include <setControllerSrv.h>
-#include <setStateSrv.h>
+#include "ros.h"
+#include "mbed.h"
+#include "SPI.h"
+#include "QEC_1X_SPI.h"
+#include "LP_Filter.h"
+#include "MA_Filter.h"
+//#include "pid_interpolator.h"
+#include "Platform.h"
+#include "definitions.h"
+#include "definitions_2.h"
+#include "FootInputMsg_v2.h"
+#include "FootOutputMsg_v2.h"
+#include "setControllerSrv.h"
+#include "setStateSrv.h"
 
-#include <PID_v1.h>
- #include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
+#include "PID_v1.h"
+#include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
 //#include "/home/jacob/.platformio/lib/Eigen_ID3522/Dense.h"
 
 
