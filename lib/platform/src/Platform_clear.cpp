@@ -8,9 +8,9 @@ void Platform::positionAllReset()
 {
   if (_switchesState[X] == 1 && _switchesState[Y] == 1 && _switchesState[PITCH] == 1)
   {
-    _positionOffsets[X] = HOMING_OFFSET_X;
-    _positionOffsets[Y] = HOMING_OFFSET_Y;
-    _positionOffsets[PITCH] = HOMING_OFFSET_PITCH;
+    _positionOffsets(X) = HOMING_OFFSET_X;
+    _positionOffsets(Y) = HOMING_OFFSET_Y;
+    _positionOffsets(PITCH) = HOMING_OFFSET_PITCH;
     _spi->lock();
       for(int k = 0; k <NB_AXIS; k++)
       {
@@ -192,17 +192,11 @@ void Platform::totalEffortDClear(int axis_)
 {
   if (axis_==-1)
     {
-      for (uint k=0; k<NB_AXIS; k++) 
-      { 
-        totalEffortDClear(k); 
-        _effortD[k] = 0.0f;
-      }
+      _effortD.setConstant(0.0f);
+      _effortD_ADD.setConstant(0.0f);
     }
   else
-  {  
-    for (uint j=0; j<NB_EFFORT_COMPONENTS; j++)
-    {
-      compEffortClear(axis_, (Platform::EffortComp) j);
+    {  
+      _effortD_ADD.row(axis_).setConstant(0.0f);
     }
-  }
 }

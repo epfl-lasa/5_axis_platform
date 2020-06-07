@@ -1,9 +1,9 @@
-#include <mbed.h>
+#include "mbed.h"
 #include "Platform.h"
 #include "definitions.h"
 
 #if (BOARD==NUCLEO64)
-  #include <rtos.h>
+  #include "rtos.h"
 #endif
 
 Platform platform;

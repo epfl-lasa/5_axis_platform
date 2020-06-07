@@ -52,7 +52,7 @@ class Platform
   private:
     // Enum for axis ID
     
-    // enum Axis {X,Y,PITCH,ROLL,YAW} -> Move to definitions 
+    // enum Axis {Y,X,PITCH,ROLL,YAW} -> Move to definitions 
 
     enum JointState {POSITION, SPEED, ACCELERATION}; 
 
@@ -98,19 +98,19 @@ class Platform
 
     bool _workspaceLimitReached[NB_AXIS];
 
-    float _position[NB_AXIS];
-    float _positionOffsets[NB_AXIS];
-    float _positionPrev[NB_AXIS];
-    float _positionD[NB_AXIS];
-    float _positionD_filtered[NB_AXIS];
-    float _positionCtrlOut[NB_AXIS];
+    Eigen::Matrix<float, NB_AXIS, 1> _positionOffsets; //! in m or radians
+    Eigen::Matrix<float, NB_AXIS, 1> _positionD;
+    Eigen::Matrix<float, NB_AXIS, 1> _positionD_filtered;
+    Eigen::Matrix<float, NB_AXIS, 1> _positionCtrlOut;
+    Eigen::Matrix<float, NB_AXIS, 1> _position;
+    Eigen::Matrix<float, NB_AXIS, 1> _positionPrev;
     Eigen::Matrix<float,NB_AXIS,1> _speed;
     Eigen::Matrix<float,NB_AXIS,1> _speedPrev;
-    float _acceleration[NB_AXIS];
-    float _speedD[NB_AXIS];
-    float _speedCtrlOut[NB_AXIS];
-    float _effortD[NB_AXIS];
-    float _effortM[NB_AXIS + 2]; //The last two elements are temporary variables
+    Eigen::Matrix<float, NB_AXIS, 1> _acceleration;
+    Eigen::Matrix<float, NB_AXIS, 1> _speedD;
+    Eigen::Matrix<float, NB_AXIS, 1> _speedCtrlOut;
+    Eigen::Matrix<float, NB_AXIS, 1> _effortD;
+    Eigen::Matrix<float, NB_AXIS+2, 1> _effortM; // The last two elements are temporary variables
     Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
     LP_Filter _positionFilters[NB_AXIS];
     LP_Filter _posDesiredFilters[NB_AXIS];
@@ -215,7 +215,7 @@ class Platform
     float smoothRise(float x, float a, float b);
     float smoothFall(float x, float a, float b);
     float smoothRiseFall(float x, float a, float b, float c, float d);
-    Eigen::Matrix<float, Eigen::Dynamic, 1> boundMat(Eigen::Matrix<float, Eigen::Dynamic, 1> x, Eigen::Matrix<float, Eigen::Dynamic, 1> limit);
+    Eigen::Matrix<float, Eigen::Dynamic, 1> boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit);
 
         //!Platform_sensors.cpp
         public : void getMotion(); //! 1
@@ -256,11 +256,8 @@ class Platform
   #define NB_STICTION_COMP 2
   #define NB_SIGN_COMP 2
 
-  #define COMP_GRAVITY 0
-  #define COMP_DRY_FRICTION 1
-  #define COMP_VISC_FRICTION 2
-  #define COMP_INERTIA 3
-  #define NB_COMPENSATION_COMP 4
+  enum compensationComp {COMP_GRAVITY, COMP_VISC_FRICTION, COMP_INERTIA, COMP_CORIOLIS, COMP_DRY_FRICTION, NB_COMPENSATION_COMP};
+  
 
   #define NB_LIMS 2
   #define L_MIN 0
@@ -285,15 +282,25 @@ class Platform
   Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _stdInv[NB_SIGN_COMP];
   Eigen::Matrix<float, 1 , NB_STICTION_COMP> _bias[NB_SIGN_COMP];
 
-  enum frame_chain {FRAME_BASE, FRAME_Y, FRAME_X, FRAME_Z, FRAME_PITCH, FRAME_ROLL, FRAME_YAW, FRAME_FS, FRAME_PEDAL, FRAME_EPOINT}; 
+  enum frame_chain {
+    FRAME_BASE,
+    FRAME_Y,
+    FRAME_X,
+    FRAME_Z,
+    FRAME_PITCH,
+    FRAME_ROLL,
+    FRAME_YAW,
+    FRAME_FS,
+    FRAME_PEDAL,
+    FRAME_EPOINT
+  };
+
+
+  Eigen::Matrix<float,NB_AXIS,NB_COMPENSATION_COMP-1>  _compTorqueLims[NB_LIMS];
+  Eigen::Matrix<float,NB_AXIS,1>  _dryFrictionTorqueLims[NB_SIGN_COMP][NB_LIMS];
   
-  #define NB_FRAMES_GRAVITY_COMP int(FRAME_FS) + 1 - int(FRAME_PITCH) //! link_pitch, link_roll, link_yaw, link_fs+pedal
-
-  Eigen::Matrix<float,NB_AXIS,1> _gravityCompJointsTorque;
-
-      //Constrains
-      void
-      wsConstrains(int axis_);               //! -1 := all of them                 //! 1
+  //Platform_constrains.cpp
+  void wsConstrains(int axis_);               //! -1 := all of them                 //! 1
   void motionDamping(int axis_);             //! -1:= all of them                 //! 2
   void wsConstrainsDefault(int axis_);       //! 3
   void motionDampingGainsDefault(int axis_); //! 4      
@@ -311,21 +318,24 @@ class Platform
       void resetControllers();
 
     //! Platform_model.cpp
-  public:
+  private:
 
       enum link_chain {LINK_BASE, LINK_Y, LINK_X, LINK_PITCH, LINK_ROLL, LINK_YAW, LINK_PEDAL};
-  
-  private:
 
   #define NB_LINKS 7 //! number of modelled links in the platform
     
     Eigen::Matrix<float,NB_LINKS,1> _massLinks;
+    Eigen::Matrix<float, 3, 3> _inertiaMLinks[NB_LINKS];
+    Eigen::Matrix<float,6,6> _linksInertialMatrix[NB_AXIS];
 
-    // Eigen::Matrix4f forwardKinematics(frame_chain frame);  
+    Eigen::Matrix<float, NB_AXIS, NB_AXIS> _jointsViscosityMat;
+
     Eigen::Vector3f positionFrame(frame_chain frame); //! Based on off-line DH forward kinematics
     Eigen::Matrix3f rotationMatrix(frame_chain frame);
     Eigen::Matrix<float,6,NB_AXIS> geometricJacobian(frame_chain frame);
-    Eigen::Vector3f comLinkWRTBase(link_chain link); 
+    Eigen::Vector3f comLinkWRTBase(link_chain link);
+    Eigen::Matrix3f comRotationMatrix(link_chain link);
+    Eigen::Matrix<float, 6, NB_AXIS> comGeometricJacobian(link_chain link);
     Eigen::Matrix4f dhTransform(float r,float d,float alpha,float beta);
 
     #define WITH_FORCE_SENSOR 1
@@ -352,8 +362,12 @@ class Platform
 
 /* TODO
 
- * 1. Remove position filters to avoid lag
- * 2. Modify speed filters and acc filters
+ * 1. Remove position filters to avoid lag -> done
+ * 2. Modify speed filters and acc filters -> done
  * 3. Include the PID gains in the parameter server
+ * 5. Make multi-axis PID
+ * 6. Make multi-axis FILTER
+ * 7. Calculate Inertia Matrices, Coriolis and Gravity
+ * 9. Eliminate uneeded matrices like _massLinks;
 
 */

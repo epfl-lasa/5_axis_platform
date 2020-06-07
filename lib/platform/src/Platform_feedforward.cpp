@@ -59,7 +59,7 @@ void Platform::eventVibration(frame_chain frame_)
             _flagVibration = false;
         }
 
-        _feedForwardTorque.col(FF_VIB) = boundMat(vibTorques,limTorques);
+        _feedForwardTorque.col(FF_VIB) = boundMat(vibTorques,-limTorques,limTorques);
          
     }
     else

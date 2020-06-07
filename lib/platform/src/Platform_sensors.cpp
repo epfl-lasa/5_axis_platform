@@ -32,11 +32,11 @@ void Platform::readActualEffort() //! ADC
       e_raw[k] *= ADC_EFFORT_SCALE[k];
     }
 
-    _effortM[X] = _effortMFilters[X].update(e_raw[X]);
-    _effortM[Y] = _effortMFilters[Y].update(e_raw[Y]);
-    _effortM[PITCH] = _effortMFilters[PITCH].update(e_raw[PITCH]);
-    _effortM[ROLL] = _effortMFilters[ROLL].update((e_raw[ROLL] - e_raw[YAW]) / 2.0f);
-    _effortM[YAW] = _effortMFilters[YAW].update((e_raw[ROLL] + e_raw[YAW]) / 2.0f);
+    _effortM(X) = _effortMFilters[X].update(e_raw[X]);
+    _effortM(Y) = _effortMFilters[Y].update(e_raw[Y]);
+    _effortM(PITCH) = _effortMFilters[PITCH].update(e_raw[PITCH]);
+    _effortM(ROLL) = _effortMFilters[ROLL].update((e_raw[ROLL] - e_raw[YAW]) / 2.0f);
+    _effortM(YAW) = _effortMFilters[YAW].update((e_raw[ROLL] + e_raw[YAW]) / 2.0f);
 
     if (!_flagBiasADCOk)
       {
@@ -44,7 +44,7 @@ void Platform::readActualEffort() //! ADC
        { 
           for (uint k = 0; k < NB_AXIS; k++)
           {
-            _adc_sum[k] += _effortM[k];
+            _adc_sum[k] += _effortM(k);
           }
        }
         _innerCounterADC++;
@@ -77,19 +77,20 @@ void Platform::getPosition()
     float encoders_out[NB_AXIS] = {0.0f,0.0f,0.0f,0.0f,0.0f};
     for (uint k = 0; k < NB_AXIS; k++)
     {
-      _encoders[k]->QEC_getPosition(_spi);
-      encoders_out[k] = _encoders[k]->outDimension + _positionOffsets[k];
+      encoders_out[k] = _encoders[k]->QEC_getPosition(_spi);
     }
     // Adapt roll and yaw angles due to differential mechanism
-
+    
     if (encoders_out[ROLL] * encoders_out[YAW] != 0.0f)
     {
-      _position[X] = encoders_out[X];
-      _position[Y] = encoders_out[Y];
-      _position[PITCH] = encoders_out[PITCH];
-      _position[ROLL] = (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f;
-      _position[YAW] = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f;
+      _position(X) = encoders_out[X];
+      _position(Y) = encoders_out[Y];
+      _position(PITCH) = encoders_out[PITCH];
+      _position(ROLL) = (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f;
+      _position(YAW) = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f;
     }
+    _position+= _positionOffsets;
+    
     _spi->unlock();
     _posSamplingStamp = _timestamp;
   }
@@ -99,13 +100,13 @@ void Platform::getSpeed()
 {
   if ((_timestamp-_speedSamplingStamp)>=(uint32_t)VELOCITY_PID_SAMPLE_P)
   {
-    for (uint k = 0; k < NB_AXIS; k++)
+    _speed = (_position - _positionPrev) / ((float)VELOCITY_PID_SAMPLE_P * 1e-6f);
+    for (uint k = 0; k < NB_AXIS; k++) // to change
     {
-      _speed(k) = (_position[k] - _positionPrev[k]) / ((float)VELOCITY_PID_SAMPLE_P * 1e-6f);
       _speed(k) = _speedFilters[k].update(_speed(k));
-      _positionPrev[k] = _position[k];
-      _speedSamplingStamp=_timestamp;
     }
+    _positionPrev = _position;
+    _speedSamplingStamp = _timestamp;
   }
 }
 
@@ -114,12 +115,12 @@ void Platform::getAcceleration()
 {
   if ((_timestamp - _accSamplingStamp) >= (uint32_t)ACC_SAMPLE_P)
   {
-    for (uint k = 0; k < NB_AXIS; k++)
-    {
-      _acceleration[k] = (_speed(k) - _speedPrev(k)) / ((float)ACC_SAMPLE_P * 1e-6f);
-      _acceleration[k] = _accFilters[k].update(_acceleration[k]);
-      _speedPrev(k) = _speed(k);
-      _accSamplingStamp = _timestamp;
+    _acceleration = (_speed - _speedPrev) / ((float)ACC_SAMPLE_P * 1e-6f);
+    for (uint k = 0; k < NB_AXIS; k++) // to change
+    {    
+      _acceleration(k) = _accFilters[k].update(_acceleration(k));
     }
+    _speedPrev = _speed;
+    _accSamplingStamp = _timestamp;
   }
 }

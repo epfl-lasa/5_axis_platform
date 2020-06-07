@@ -61,9 +61,9 @@ float Platform::smoothRiseFall(float x, float a, float b, float c, float d)
   return smoothRise(x, a, b) * smoothFall(x, c, d);
 }
 
-Eigen::Matrix<float, Eigen::Dynamic, 1> Platform::boundMat(Eigen::Matrix<float, Eigen::Dynamic, 1> x, Eigen::Matrix<float, Eigen::Dynamic, 1> limit)
+Eigen::Matrix<float, Eigen::Dynamic, 1> Platform::boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit)
 {
   
-  return x.cwiseMin(limit).cwiseMax(-limit);
+  return x.cwiseMin(maxLimit).cwiseMax(minLimit);
 
 }

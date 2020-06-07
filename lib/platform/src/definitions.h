@@ -14,8 +14,8 @@ extern const char *Platform_Names[];
 #define NB_FI_CATEGORY 3
 
 #define AXES  \
-ListofAxes(X,"X_Joint") \
 ListofAxes(Y,"Y_Joint") \
+ListofAxes(X,"X_Joint") \
 ListofAxes(PITCH,"PITCH_Joint") \
 ListofAxes(ROLL,"ROLL_Joint") \
 ListofAxes(YAW,"YAW_Joint")
@@ -41,7 +41,7 @@ const float X_RESOLUTION = (2 * M_PI / (4 * 500) ) /  X_TRANSMISSION; //! 28.5 u
 const float Y_TRANSMISSION = 1.0f / BELT_PULLEY_R; //!
 const float Y_RESOLUTION = (2 * M_PI / (4 * 1024) ) / Y_TRANSMISSION; //! 14.03 um
 const float PITCH_REDUCTION_R = 12.0F; //! Pulley Big [mm] / Pulley Belt [mm]
-const float PITCH_RESOLUTION = (2 * M_PI / (4 * 4096)) / PITCH_REDUCTION_R * RAD_TO_DEG; //! 32 urad -> 1.8 e-3 deg
+const float PITCH_RESOLUTION = ((2 * M_PI / (4 * 4096)) / PITCH_REDUCTION_R )* RAD_TO_DEG; //! 32 urad -> 1.8 e-3 deg
 const float ROLL_YAW_REDUCTION_R = 12.96f;  //! Pulley Big [mm] / Pulley Belt [mm]
 const float ROLL_YAW_RESOLUTION = 2 * ((2 * M_PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //! 
 
@@ -186,9 +186,9 @@ const float ADC_USER_BIAS[NB_AXIS] = {0.0f, 0.0f, 0.0f, 0.0f, -1.5f};
 
 const float ENCODERSCALE_X = (X_RANGE / 7310.0f * (0.195f/0.180f));
 const float ENCODERSCALE_Y = (Y_RANGE / 12400.0f* (0.180f/0.1767f));
-const float ENCODERSCALE_PITCH = 360.F / PITCH_REDUCTION_R / (4 * 4095.0F);
-const float ENCODERSCALE_ROLL = 90.0f/53000.0f;
-const float ENCODERSCALE_YAW =  90.0f/53000.0f;
+const float ENCODERSCALE_PITCH = (360.F / PITCH_REDUCTION_R / (4 * 4095.0F)) * DEG_TO_RAD;
+const float ENCODERSCALE_ROLL = (90.0f / 53000.0f) * DEG_TO_RAD;
+const float ENCODERSCALE_YAW = (90.0f / 53000.0f) * DEG_TO_RAD;
 
 #endif
 

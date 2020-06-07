@@ -3,6 +3,7 @@
 #include "definitions_2.h"
 #include <string>
 
+
 void Platform::step()
 {
   memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
@@ -134,7 +135,7 @@ void Platform::step()
       compEffortClear(-1, NORMAL);
       gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
 
-      if((fabs(_positionD[X]-_position[X]) < 0.003f) && (fabs(_positionD[Y]-_position[Y]) < 0.003f) && (fabs(_positionD[PITCH]-_position[PITCH]) < 3.0f))
+      if((fabs(_positionD(X)-_position(X)) < 0.003f) && (fabs(_positionD(Y)-_position(Y)) < 0.003f) && (fabs(_positionD(PITCH)-_position(PITCH)) < 3.0f*DEG_TO_RAD))
       {
         if(!_tic){
           _toc = _innerTimer.read_us();
@@ -234,7 +235,7 @@ void Platform::step()
           if (_ros_ControlledAxis == -1)
           {   
             for (uint k = 0; k < NB_AXIS; k++) {
-              _positionD[k]=_ros_position[k];
+              _positionD(k)=_ros_position[k];
             }
           }
           else 
@@ -246,8 +247,8 @@ void Platform::step()
       
         if (_ros_ControlledAxis == -1) 
         {
-          gotoPointAll(_positionD[X], _positionD[Y], _positionD[PITCH],
-                       _positionD[ROLL], _positionD[YAW]);
+          gotoPointAll(_positionD(X), _positionD(Y), _positionD(PITCH),
+                       _positionD(ROLL), _positionD(YAW));
           for (uint k=0; k<NB_AXIS; k++)
           {
              if (_workspaceLimitReached[k])
@@ -274,7 +275,7 @@ void Platform::step()
           if (_ros_ControlledAxis==-1)
           {
             for (uint k = 0; k < NB_AXIS; k++) {
-              _speedD[k] = _ros_speed[k];
+              _speedD(k) = _ros_speed[k];
             }
           }
           else {

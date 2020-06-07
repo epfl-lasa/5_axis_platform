@@ -2,7 +2,7 @@
 #include "definitions.h"
 #include "definitions_2.h"
 
-
+const int rosAxis[] = {X,Y,PITCH,ROLL,YAW};//! This is because the first joint is Y and then X in the real platform and in the model... but in ros is X
 
 void Platform::communicateToRos()
 {
@@ -23,9 +23,9 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 
   for (uint k=0; k<NB_AXIS; k++)
   {
-      me->_ros_position[k]=msg.ros_position[k];
-      me->_ros_speed[k]=msg.ros_speed[k];
-      me->_ros_effort[k] = msg.ros_effort[k];
+      me->_ros_position[k]=msg.ros_position[rosAxis[k]];
+      me->_ros_speed[k]=msg.ros_speed[rosAxis[k]];
+      me->_ros_effort[k] = msg.ros_effort[rosAxis[k]];
   }
 }
 
@@ -63,7 +63,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
   }
 
   me->_ros_flagDefaultControl = req.ros_defaultControl;
-  me->_ros_ControlledAxis=req.ros_controlledAxis; 
+  me->_ros_ControlledAxis=req.ros_controlledAxis ==-1 ? -1:rosAxis[req.ros_controlledAxis]; 
   
   if ((me->_ros_state!=TELEOPERATION) && (me->_ros_state!=ROBOT_STATE_CONTROL))
     { resp.platform_controlOk=false; }
@@ -76,16 +76,16 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
        if(k<PITCH) {scale=SCALE_GAINS_LINEAR_POSITION;}
        else{scale=SCALE_GAINS_ANGULAR_POSITION;}
 
-       me->_kpPosition[k]=req.ros_posP[k] * scale;
-       me->_kiPosition[k]=req.ros_posI[k] * scale;
-       me->_kdPosition[k]=req.ros_posD[k] * scale; 
+       me->_kpPosition[k]=req.ros_posP[rosAxis[k]] * scale;
+       me->_kiPosition[k]=req.ros_posI[rosAxis[k]] * scale;
+       me->_kdPosition[k]=req.ros_posD[rosAxis[k]] * scale; 
 
        if(k<PITCH) {scale=SCALE_GAINS_LINEAR_SPEED;}
        else{scale=SCALE_GAINS_ANGULAR_SPEED;}
 
-       me->_kpSpeed[k]=req.ros_speedP[k] * scale;
-       me->_kiSpeed[k]=req.ros_speedI[k] * scale;
-       me->_kdSpeed[k]=req.ros_speedD[k] * scale; 
+       me->_kpSpeed[k]=req.ros_speedP[rosAxis[k]] * scale;
+       me->_kiSpeed[k]=req.ros_speedI[rosAxis[k]] * scale;
+       me->_kdSpeed[k]=req.ros_speedD[rosAxis[k]] * scale; 
     }
   }
 }
@@ -96,18 +96,30 @@ void Platform::pubFootOutput()
 {
   _msgFootOutput.platform_stamp = _nh.now();
   _msgFootOutput.platform_id = PLATFORM_ID;
-  for (uint k=0; k<NB_AXIS; k++)
+  
+  for (uint k=0; k<PITCH; k++)
   {
-    _msgFootOutput.platform_position[k] = _position[k];
-    _msgFootOutput.platform_speed[k]= _speed(k);
-    _msgFootOutput.platform_effortD[k] =_effortD[k];
-    _msgFootOutput.platform_effortM[k] =_effortM[k];
-  } 
-    _msgFootOutput.platform_effortM[0] = _timestep;
-    // _msgFootOutput.platform_effortM[1] = _compensationEffort.col(COMP_GRAVITY)(PITCH);
-    // _msgFootOutput.platform_effortM[2] = _compensationEffort.col(COMP_GRAVITY)(ROLL);
-    // _msgFootOutput.platform_effortM[3] = _compensationEffort.col(COMP_GRAVITY)(YAW);
-    _msgFootOutput.platform_controllerType= (uint8_t)_ros_controllerType; 
-    _msgFootOutput.platform_machineState=(uint8_t)_ros_state;
+    _msgFootOutput.platform_position[rosAxis[k]] = _position(k);
+    _msgFootOutput.platform_speed[rosAxis[k]]= _speed(k);
+    _msgFootOutput.platform_effortD[rosAxis[k]] =_effortD(k);
+    _msgFootOutput.platform_effortM[rosAxis[k]] =_effortM(k);
+  }
+
+  for (uint k = PITCH; k < NB_AXIS; k++) {
+    _msgFootOutput.platform_position[rosAxis[k]] = _position(k) * RAD_TO_DEG;
+    _msgFootOutput.platform_speed[rosAxis[k]] = _speed(k) * RAD_TO_DEG;
+    _msgFootOutput.platform_effortD[rosAxis[k]] = _effortD(k);
+    _msgFootOutput.platform_effortM[rosAxis[k]] = _effortM(k);
+  }
+
+  _msgFootOutput.platform_effortM[0] = _timestep;
+  // _msgFootOutput.platform_effortM[1] =
+  // _compensationEffort.col(COMP_GRAVITY)(PITCH);
+  // _msgFootOutput.platform_effortM[2] =
+  // _compensationEffort.col(COMP_GRAVITY)(ROLL);
+  // _msgFootOutput.platform_effortM[3] =
+  // _compensationEffort.col(COMP_GRAVITY)(YAW);
+  _msgFootOutput.platform_controllerType = (uint8_t)_ros_controllerType;
+  _msgFootOutput.platform_machineState = (uint8_t)_ros_state;
   _pubFootOutput->publish(&_msgFootOutput);
 }

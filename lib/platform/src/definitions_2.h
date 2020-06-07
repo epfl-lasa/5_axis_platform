@@ -6,9 +6,8 @@
 
 #define SCALE_GAINS_LINEAR_POSITION 1
 #define SCALE_GAINS_LINEAR_SPEED 1e-2f   
-#define SCALE_GAINS_ANGULAR_POSITION 1e-4f
-#define SCALE_GAINS_ANGULAR_SPEED 1e-5f
-
+const float SCALE_GAINS_ANGULAR_POSITION = 1e-4f * RAD_TO_DEG;
+const float SCALE_GAINS_ANGULAR_SPEED = 1e-5f * RAD_TO_DEG;
 
 //******************************CONSTRUCTOR*****************************
     #define PLATFORM_SUBSCRIBER_NAME_LEFT "/FI_Input/Left"
