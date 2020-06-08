@@ -67,3 +67,14 @@ Eigen::Matrix<float, Eigen::Dynamic, 1> Platform::boundMat(Eigen::Matrix<float, 
   return x.cwiseMin(maxLimit).cwiseMax(minLimit);
 
 }
+
+Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Platform::kroneckerProductEye(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> xVector)
+{
+  #define dim_ xVector.RowsAtCompileTime
+  Eigen::Matrix<float, dim_*dim_, dim_*dim_> kProductEye_;
+  kProductEye_.setZero();
+  for (int i = 0; i < dim_; i++) {
+    kProductEye_.block(i * xVector.rows(), i * xVector.cols(), xVector.rows(), xVector.cols()) = xVector;
+  }
+}
+

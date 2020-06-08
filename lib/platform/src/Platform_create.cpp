@@ -6,6 +6,7 @@ const char *Platform_Names[]{"UNKNOWN", "RIGHT PLATFORM", "LEFT PLATFORM"};
 
 extern const float GRAVITY_EFFORT_LIMS[NB_LIMS][NB_AXIS];
 extern const float INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS];
+extern const float CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS];
 extern const float VISC_EFFORT_LIMS[NB_LIMS][NB_AXIS];
 extern const float DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_LIMS][NB_AXIS];
 
@@ -86,7 +87,6 @@ Platform::Platform()
 
   for(int k = 0; k < NB_AXIS; k++)
   {
-    _linksInertialMatrix[k].setConstant(0.0f);
     positionCtrlClear(k);
     speedCtrlClear(k);
     totalEffortDClear(k);
@@ -302,7 +302,7 @@ for (int lim_=L_MIN; lim_<NB_LIMS; lim_++)
   _compTorqueLims[lim_].col(COMP_GRAVITY) = Eigen::Map<const Eigen::MatrixXf>(GRAVITY_EFFORT_LIMS[lim_],NB_AXIS,1);
   _compTorqueLims[lim_].col(COMP_VISC_FRICTION) = Eigen::Map<const Eigen::MatrixXf>(VISC_EFFORT_LIMS[lim_],NB_AXIS,1);
   _compTorqueLims[lim_].col(COMP_INERTIA) = Eigen::Map<const Eigen::MatrixXf>(INERTIA_EFFORT_LIMS[lim_],NB_AXIS,1);
-  _compTorqueLims[lim_].col(COMP_CORIOLIS).setConstant(0.0f);
+  _compTorqueLims[lim_].col(COMP_CORIOLIS) = Eigen::Map<const Eigen::MatrixXf>(CORIOLIS_EFFORT_LIMS[lim_],NB_AXIS,1);;
   _dryFrictionTorqueLims[NEG][lim_]=Eigen::Map<const Eigen::MatrixXf>(DRY_EFFORT_LIMS[NEG][lim_],NB_AXIS,1);
   _dryFrictionTorqueLims[POS][lim_]=Eigen::Map<const Eigen::MatrixXf>(DRY_EFFORT_LIMS[POS][lim_],NB_AXIS,1);
 }
@@ -313,12 +313,22 @@ for (int lim_=L_MIN; lim_<NB_LIMS; lim_++)
 _jointsViscosityMat.diagonal() = Eigen::Map<const Eigen::MatrixXf>(VISCOUS_K, NB_AXIS, 1);
 _massLinks = Eigen::Map<const Eigen::MatrixXf>(LINKS_MASS, NB_LINKS, 1);
 for (int link = 0; link < NB_LINKS; link++) {
-  _inertiaMLinks[link] = Eigen::Map<const Eigen::Matrix<float,3,3,Eigen::RowMajor>>(LINKS_MOMENT_OF_INERTIAS[link]);
-  _linksInertialMatrix[link].block(0, 0, 3, 3).setIdentity()*=_massLinks(link);
-  _linksInertialMatrix[link].block(3, 3, 3, 3) = _inertiaMLinks[link];
+  _momentInertiaLinks[link] = Eigen::Map<const Eigen::Matrix<float,3,3,Eigen::RowMajor>>(LINKS_MOMENT_OF_INERTIAS[link]);
+  
+  _linkCOMGeomJacobian[link].setConstant(0.0f);
+  _linkCOMGeometricJ_prev[link].setConstant(0.0f);
+  _rotationMatrixCOM[link].setConstant(0.0f);
+  _rotationMatrixCOM_prev[link].setConstant(0.0f);
+  _devLinkCOMGeomJacobian[link].setConstant(0.0f);
+  _devRotationMatrixCOM[link].setConstant(0.0f);
 }
+
+#if (CORIOLIS_DEV_STRATEGY == CORIOLIS_TEMPORAL)
+  _flagSpeedSampledForCoriolis = false;
+#endif
 
   _flagContact=false;
   _flagVibration=false;
   _feedForwardTorque.setConstant(0.0f);
+
 }

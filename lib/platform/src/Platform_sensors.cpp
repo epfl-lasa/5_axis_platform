@@ -5,7 +5,10 @@
 //! #1
 
 #define ADC 1
-#define EFFORT_M ADC 
+#define EFFORT_M ADC
+
+const float invSpeedSampT = (float) VELOCITY_PID_SAMPLE_P * 1e-6f;
+const float invAccSampT = (float)ACC_SAMPLE_P * 1e-6f;
 
 void Platform::getMotion()
 {
@@ -100,13 +103,16 @@ void Platform::getSpeed()
 {
   if ((_timestamp-_speedSamplingStamp)>=(uint32_t)VELOCITY_PID_SAMPLE_P)
   {
-    _speed = (_position - _positionPrev) / ((float)VELOCITY_PID_SAMPLE_P * 1e-6f);
+    _speed = (_position - _positionPrev) * invSpeedSampT;
     for (uint k = 0; k < NB_AXIS; k++) // to change
     {
       _speed(k) = _speedFilters[k].update(_speed(k));
     }
     _positionPrev = _position;
     _speedSamplingStamp = _timestamp;
+    #if (CORIOLIS_DEV_STRATEGY==CORIOLIS_TEMPORAL)
+    _flagSpeedSampledForCoriolis = true;
+    #endif
   }
 }
 
@@ -115,7 +121,7 @@ void Platform::getAcceleration()
 {
   if ((_timestamp - _accSamplingStamp) >= (uint32_t)ACC_SAMPLE_P)
   {
-    _acceleration = (_speed - _speedPrev) / ((float)ACC_SAMPLE_P * 1e-6f);
+    _acceleration = (_speed - _speedPrev) * invAccSampT;
     for (uint k = 0; k < NB_AXIS; k++) // to change
     {    
       _acceleration(k) = _accFilters[k].update(_acceleration(k));

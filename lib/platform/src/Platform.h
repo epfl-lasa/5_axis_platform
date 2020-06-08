@@ -20,6 +20,7 @@
 #include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
 //#include "/home/jacob/.platformio/lib/Eigen_ID3522/Dense.h"
 
+extern const float filterdevMatrices; // for jacobian and rotation matrices
 
 class Platform
 {
@@ -48,6 +49,12 @@ class Platform
     uint32_t _vibGenStamp;
     Timer _innerTimer; //! micros()
     uint64_t _innerCounterADC;
+
+  public:
+
+  enum cartesianAxis {CART_X, CART_Y, CART_Z,NB_CART_AXIS_COUNT};
+
+  #define NB_CART_AXIS Platform::cartesianAxis::NB_CART_AXIS_COUNT
 
   private:
     // Enum for axis ID
@@ -216,7 +223,8 @@ class Platform
     float smoothFall(float x, float a, float b);
     float smoothRiseFall(float x, float a, float b, float c, float d);
     Eigen::Matrix<float, Eigen::Dynamic, 1> boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit);
-
+    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> kroneckerProductEye(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> xVector);
+        
         //!Platform_sensors.cpp
         public : void getMotion(); //! 1
   private:
@@ -250,28 +258,37 @@ class Platform
       void gotoPointGainsDefault(int axis_);                              //! 7
       
 
-    private:
+
+
+
+    
 
     //! Platform_compensation.cpp
+   
+
+  public:
   #define NB_STICTION_COMP 2
   #define NB_SIGN_COMP 2
-
-  enum compensationComp {COMP_GRAVITY, COMP_VISC_FRICTION, COMP_INERTIA, COMP_CORIOLIS, COMP_DRY_FRICTION, NB_COMPENSATION_COMP};
-  
-
   #define NB_LIMS 2
   #define L_MIN 0
   #define L_MAX 1
   #define NEG 0
   #define POS 1
   #define MID 3
+  
+  enum link_chain {LINK_BASE, LINK_Y, LINK_X, LINK_PITCH, LINK_ROLL, LINK_YAW, LINK_PEDAL, NB_LINKS_COUNT};
 
+  #define NB_LINKS Platform::link_chain::NB_LINKS_COUNT
+
+  enum compensationComp {COMP_GRAVITY, COMP_VISC_FRICTION, COMP_INERTIA, COMP_CORIOLIS, COMP_DRY_FRICTION, NB_COMPENSATION_COMP};
+private:
   void dynamicCompensation();
   void gravityCompensation();
   void dryFrictionCompensation();
   void viscFrictionCompensation();
   void inertiaCompensation();
-  
+  void coriolisCompensation();
+
   void quadraticRegression();
 
   Eigen::Matrix<float, NB_STICTION_COMP, 1> _dryFrictionEffortSign[NB_SIGN_COMP];
@@ -295,10 +312,27 @@ class Platform
     FRAME_EPOINT
   };
 
+  #define CORIOLIS_KRONECKER 0
+
+  #define CORIOLIS_TEMPORAL 1
+
+  #define CORILIS_DEV_STRATEGY CORIOLIS_KRONECKER
 
   Eigen::Matrix<float,NB_AXIS,NB_COMPENSATION_COMP-1>  _compTorqueLims[NB_LIMS];
   Eigen::Matrix<float,NB_AXIS,1>  _dryFrictionTorqueLims[NB_SIGN_COMP][NB_LIMS];
+  Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeomJacobian[NB_LINKS];
+  Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
+  Eigen::Matrix<float, 3, 3> _rotationMatrixCOM[NB_LINKS];
+  Eigen::Matrix<float, 3, 3> _rotationMatrixCOM_prev[NB_LINKS];
   
+  Eigen::Matrix<float, 6, NB_AXIS> _devLinkCOMGeomJacobian[NB_LINKS];
+  Eigen::Matrix<float, 3, 3> _devRotationMatrixCOM[NB_LINKS];
+  #if (CORIOLIS_DEV_STRATEGY==CORIOLIS_TEMPORAL)
+  volatile bool _flagSpeedSampledForCoriolis;
+  #else
+
+  #endif
+
   //Platform_constrains.cpp
   void wsConstrains(int axis_);               //! -1 := all of them                 //! 1
   void motionDamping(int axis_);             //! -1:= all of them                 //! 2
@@ -320,13 +354,11 @@ class Platform
     //! Platform_model.cpp
   private:
 
-      enum link_chain {LINK_BASE, LINK_Y, LINK_X, LINK_PITCH, LINK_ROLL, LINK_YAW, LINK_PEDAL};
+    
 
-  #define NB_LINKS 7 //! number of modelled links in the platform
     
     Eigen::Matrix<float,NB_LINKS,1> _massLinks;
-    Eigen::Matrix<float, 3, 3> _inertiaMLinks[NB_LINKS];
-    Eigen::Matrix<float,6,6> _linksInertialMatrix[NB_AXIS];
+    Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS> _momentInertiaLinks[NB_LINKS];
 
     Eigen::Matrix<float, NB_AXIS, NB_AXIS> _jointsViscosityMat;
 
@@ -336,17 +368,23 @@ class Platform
     Eigen::Vector3f comLinkWRTBase(link_chain link);
     Eigen::Matrix3f comRotationMatrix(link_chain link);
     Eigen::Matrix<float, 6, NB_AXIS> comGeometricJacobian(link_chain link);
+#if (CORILIS_DEV_STRATEGY==CORIOLIS_KRONECKER)
+    Eigen::Matrix<float, 6, NB_AXIS*NB_AXIS> devQComGeomJacobian(link_chain link);
+    Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS * NB_AXIS>
+    devQComRotationMatrix(link_chain link);
+#endif
+
     Eigen::Matrix4f dhTransform(float r,float d,float alpha,float beta);
 
-    #define WITH_FORCE_SENSOR 1
-    #define WITHOUT_FORCE_SENSOR 0
-    #define PRESENCE_FORCE_SENSOR WITHOUT_FORCE_SENSOR
+#define WITH_FORCE_SENSOR 1
+#define WITHOUT_FORCE_SENSOR 0
+#define PRESENCE_FORCE_SENSOR WITHOUT_FORCE_SENSOR
 
     //! Platform_feedforward.cpp
 
-    #define NB_FF_COMP 1
-    
-    #define FF_VIB 0
+#define NB_FF_COMP 1
+
+#define FF_VIB 0
 
     void feedForwardControl();
     Eigen::Matrix<float, NB_AXIS, NB_FF_COMP> _feedForwardTorque;
