@@ -7,9 +7,9 @@
 #endif
 
 Platform platform;
-Ticker t_Control;
+//Ticker t_Control;
 Thread th_Control;
-volatile bool flagControl = false;
+// volatile bool flagControl = false;
 
 
 // void doControlCb()
@@ -20,14 +20,13 @@ volatile bool flagControl = false;
 
 void doControlTH()
 {
-  // t_Control.attach_us(&doControlCb, CTRL_LOOP);
+  //t_Control.attach_us(&doControlCb, CTRL_LOOP);
   while (!platform._stop)
   {
-    if (true)
-    {
+    // if (true) {
       platform.step();   
-      flagControl=false;
-    }
+      // flagControl=false;
+    // }
   }
 }
 

@@ -8,8 +8,7 @@ using namespace Eigen;
 class MatLP_Filter
 {
 	public:
-		MatLP_Filter(); 
-		MatLP_Filter(float alpha);
+		MatLP_Filter(float alpha, int length,int width);
 		Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> update(Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> raw_matrix);
 		void setAlpha(float alpha);		
 		void reset();

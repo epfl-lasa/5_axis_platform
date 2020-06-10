@@ -10,12 +10,12 @@ extern const float CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS];
 extern const float VISC_EFFORT_LIMS[NB_LIMS][NB_AXIS];
 extern const float DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_LIMS][NB_AXIS];
 
-extern float LINKS_MASS[NB_LINKS];
-extern float LINKS_MOMENT_OF_INERTIAS[NB_LINKS][9];
+extern const float  LINKS_MASS[NB_LINKS];
+extern const float  LINKS_MOMENT_OF_INERTIAS[NB_LINKS][9];
 
-extern float const VISCOUS_K[NB_AXIS];
+extern const float  VISCOUS_K[NB_AXIS];
 
-const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f };
+const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
 const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
 
 #define ListofAxes(enumeration, names) names,
@@ -85,6 +85,14 @@ Platform::Platform()
   _positionOffsets.setConstant(0.0f);
   _positionPrev.setConstant(0.0f);
 
+  _flagCalculateSinCos = false;
+  _c_theta = 0.0f;
+  _c_phi = 0.0f;
+  _c_psi = 0.0f;
+  _s_theta =0.0f;
+  _s_phi = 0.0f;
+  _s_psi = 0.0f;
+
   for(int k = 0; k < NB_AXIS; k++)
   {
     positionCtrlClear(k);
@@ -106,19 +114,6 @@ Platform::Platform()
     _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT, VEL_PID_FILTER_GAINS[k]);
     _pidSpeed[k]->setMode(AUTOMATIC);
   }
-
-  //! Change filters
-  // _positionFilters[X].setAlpha(0.56);
-  // _positionFilters[Y].setAlpha(0.56);
-  // _positionFilters[PITCH].setAlpha(0.85);
-  // _positionFilters[ROLL].setAlpha(0.85);
-  // _positionFilters[YAW].setAlpha(0.85);
-
-  _positionFilters[Y].setAlpha(0.0);
-  _positionFilters[X].setAlpha(0.0);
-  _positionFilters[PITCH].setAlpha(0.0);
-  _positionFilters[ROLL].setAlpha(0.0);
-  _positionFilters[YAW].setAlpha(0.0);
 
   _speedFilters[Y].setAlpha(0.96);
   _speedFilters[X].setAlpha(0.96);
@@ -310,7 +305,7 @@ for (int lim_=L_MIN; lim_<NB_LIMS; lim_++)
 
 //! Model
 
-_jointsViscosityMat.diagonal() = Eigen::Map<const Eigen::MatrixXf>(VISCOUS_K, NB_AXIS, 1);
+_jointsViscosityGains = Eigen::Map<const Eigen::MatrixXf>(VISCOUS_K, NB_AXIS, 1);
 _massLinks = Eigen::Map<const Eigen::MatrixXf>(LINKS_MASS, NB_LINKS, 1);
 for (int link = 0; link < NB_LINKS; link++) {
   _momentInertiaLinks[link] = Eigen::Map<const Eigen::Matrix<float,3,3,Eigen::RowMajor>>(LINKS_MOMENT_OF_INERTIAS[link]);
@@ -323,9 +318,7 @@ for (int link = 0; link < NB_LINKS; link++) {
   _devRotationMatrixCOM[link].setConstant(0.0f);
 }
 
-#if (CORIOLIS_DEV_STRATEGY == CORIOLIS_TEMPORAL)
   _flagSpeedSampledForCoriolis = false;
-#endif
 
   _flagContact=false;
   _flagVibration=false;

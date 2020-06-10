@@ -17,7 +17,6 @@ void Platform::releasePlatform()
     speedCtrlClear(-1);
   for(int k = 0; k < NB_AXIS; k++)
   {
-    _positionFilters[k].reset();
     _speedFilters[k].reset();
   }
 }

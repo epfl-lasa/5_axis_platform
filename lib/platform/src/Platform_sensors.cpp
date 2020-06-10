@@ -7,8 +7,8 @@
 #define ADC 1
 #define EFFORT_M ADC
 
-const float invSpeedSampT = (float) VELOCITY_PID_SAMPLE_P * 1e-6f;
-const float invAccSampT = (float)ACC_SAMPLE_P * 1e-6f;
+extern const float invSpeedSampT = (float) VELOCITY_PID_SAMPLE_P * 1e-6f;
+extern const float invAccSampT = (float)ACC_SAMPLE_P * 1e-6f;
 
 void Platform::getMotion()
 {
@@ -76,26 +76,30 @@ void Platform::getPosition()
 {
   if ((_timestamp - _posSamplingStamp) >= (uint32_t)POSITION_PID_SAMPLE_P)
   {
-    _spi->lock();
     float encoders_out[NB_AXIS] = {0.0f,0.0f,0.0f,0.0f,0.0f};
-    for (uint k = 0; k < NB_AXIS; k++)
-    {
-      encoders_out[k] = _encoders[k]->QEC_getPosition(_spi);
-    }
-    // Adapt roll and yaw angles due to differential mechanism
-    
-    if (encoders_out[ROLL] * encoders_out[YAW] != 0.0f)
-    {
-      _position(X) = encoders_out[X];
-      _position(Y) = encoders_out[Y];
-      _position(PITCH) = encoders_out[PITCH];
-      _position(ROLL) = (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f;
-      _position(YAW) = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f;
-    }
-    _position+= _positionOffsets;
-    
+    _spi->lock();
+      for (uint k = 0; k < NB_AXIS; k++)
+      {
+        encoders_out[k] = _encoders[k]->QEC_getPosition(_spi);
+      }
     _spi->unlock();
+    // Adapt roll and yaw angles due to differential mechanism
+      _position(Y) = encoders_out[Y] + _positionOffsets (Y);
+      _position(X) = encoders_out[X] + _positionOffsets(X);
+      _position(PITCH) = encoders_out[PITCH] + _positionOffsets(PITCH);
+      _position(ROLL) = (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f + _positionOffsets (ROLL);
+      _position(YAW) = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f + + _positionOffsets (YAW);
     _posSamplingStamp = _timestamp;
+  }
+  //
+  if (_flagCalculateSinCos)
+  {
+    _c_theta = cos(_position(PITCH) );
+    _c_phi = cos(_position(ROLL) );
+    _c_psi = cos(_position(YAW));
+    _s_theta = sin(_position(PITCH) );
+    _s_phi = sin(_position(ROLL) );
+    _s_psi = sin(_position(YAW));
   }
 }
 //! #4
@@ -110,9 +114,7 @@ void Platform::getSpeed()
     }
     _positionPrev = _position;
     _speedSamplingStamp = _timestamp;
-    #if (CORIOLIS_DEV_STRATEGY==CORIOLIS_TEMPORAL)
     _flagSpeedSampledForCoriolis = true;
-    #endif
   }
 }
 

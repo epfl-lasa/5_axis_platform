@@ -61,20 +61,18 @@ float Platform::smoothRiseFall(float x, float a, float b, float c, float d)
   return smoothRise(x, a, b) * smoothFall(x, c, d);
 }
 
-Eigen::Matrix<float, Eigen::Dynamic, 1> Platform::boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit)
+Eigen::Matrix<float, Eigen::Dynamic,  Eigen::Dynamic> Platform::boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit)
 {
-  
   return x.cwiseMin(maxLimit).cwiseMax(minLimit);
-
 }
 
-Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> Platform::kroneckerProductEye(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> xVector)
+Eigen::Matrix<float, NB_AXIS*NB_AXIS, NB_AXIS> Platform::kroneckerProductEye(Eigen::Matrix<float, NB_AXIS, 1> xVector)
 {
-  #define dim_ xVector.RowsAtCompileTime
-  Eigen::Matrix<float, dim_*dim_, dim_*dim_> kProductEye_;
-  kProductEye_.setZero();
-  for (int i = 0; i < dim_; i++) {
-    kProductEye_.block(i * xVector.rows(), i * xVector.cols(), xVector.rows(), xVector.cols()) = xVector;
+  Eigen::Matrix<float, NB_AXIS * NB_AXIS, NB_AXIS > kProductEye_;
+  kProductEye_.setConstant(0.0f);
+  for (int i = 0; i < NB_AXIS; i++) {
+    kProductEye_.block(i * NB_AXIS, i , NB_AXIS, 1) = xVector.block(0, 0 , NB_AXIS, 1);
   }
+  return kProductEye_;
 }
 

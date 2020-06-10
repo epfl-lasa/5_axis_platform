@@ -1,19 +1,11 @@
 #include <MatLP_Filter.h>
 
-MatLP_Filter::MatLP_Filter()
+MatLP_Filter::MatLP_Filter(float alpha, int length,int width)
 {
-  _output.setConstant(0.0f);
-  _old_output.setConstant(0.0f);
-  _alpha = 0.0f;
-  _bias.setConstant(0.0f);
-}
-
-MatLP_Filter::MatLP_Filter(float alpha)
-{
-  _output.setConstant(0.0f);
-  _old_output.setConstant(0.0f);
+  _output = Eigen::MatrixXf::Zero(length,width);
+  _old_output = Eigen::MatrixXf::Zero(length, width);
   _alpha=alpha;
-  _bias.setConstant(0.0f);
+  _bias = Eigen::MatrixXf::Zero(length, width);
 }
 
 

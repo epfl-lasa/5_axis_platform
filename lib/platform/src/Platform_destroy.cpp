@@ -7,9 +7,6 @@ Platform::~Platform()
   _innerTimer.~Timer();
   for(int k = 0; k <NB_AXIS; k++)
   {
-    // delete (_positionFilters[k]);
-    // delete (_effortMFilters[k]);
-    // delete (_speedFilters[k]);
     _pidPosition[k]->~PID();
     delete (_pidPosition[k]);
     _pidSpeed[k]->~PID();

@@ -5,13 +5,17 @@
 
 //! 1
 void Platform::setEfforts()
-{       
+{ 
+  Eigen::Matrix<float, NB_AXIS,1> tempEffortD;
+  tempEffortD.setConstant(0.0f);
   for(int j = 0; j < NB_EFFORT_COMPONENTS; j++)
   {
     if (_ros_effortComp[j]==1) {
-      _effortD+=_effortD_ADD.col(j);
+      tempEffortD += _effortD_ADD.col(j);
     }
   }  
+
+  _effortD=tempEffortD;
 
   setEffortAxis(_effortD(X),_motors[X],_motorSign[X],(int)X);
   setEffortAxis(_effortD(Y),_motors[Y],_motorSign[Y],(int)Y);

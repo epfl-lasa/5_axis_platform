@@ -20,7 +20,6 @@
 #include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
 //#include "/home/jacob/.platformio/lib/Eigen_ID3522/Dense.h"
 
-extern const float filterdevMatrices; // for jacobian and rotation matrices
 
 class Platform
 {
@@ -54,7 +53,7 @@ class Platform
 
   enum cartesianAxis {CART_X, CART_Y, CART_Z,NB_CART_AXIS_COUNT};
 
-  #define NB_CART_AXIS Platform::cartesianAxis::NB_CART_AXIS_COUNT
+  #define NB_CART_AXIS (int) Platform::cartesianAxis::NB_CART_AXIS_COUNT
 
   private:
     // Enum for axis ID
@@ -119,7 +118,6 @@ class Platform
     Eigen::Matrix<float, NB_AXIS, 1> _effortD;
     Eigen::Matrix<float, NB_AXIS+2, 1> _effortM; // The last two elements are temporary variables
     Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
-    LP_Filter _positionFilters[NB_AXIS];
     LP_Filter _posDesiredFilters[NB_AXIS];
     LP_Filter _speedFilters[NB_AXIS];
     LP_Filter _accFilters[NB_AXIS];
@@ -222,8 +220,8 @@ class Platform
     float smoothRise(float x, float a, float b);
     float smoothFall(float x, float a, float b);
     float smoothRiseFall(float x, float a, float b, float c, float d);
-    Eigen::Matrix<float, Eigen::Dynamic, 1> boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit);
-    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> kroneckerProductEye(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> xVector);
+    Eigen::Matrix<float, Eigen::Dynamic,  Eigen::Dynamic> boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit);
+    Eigen::Matrix<float, NB_AXIS*NB_AXIS, NB_AXIS> kroneckerProductEye(Eigen::Matrix<float, NB_AXIS, 1> xVector);
         
         //!Platform_sensors.cpp
         public : void getMotion(); //! 1
@@ -316,7 +314,7 @@ private:
 
   #define CORIOLIS_TEMPORAL 1
 
-  #define CORILIS_DEV_STRATEGY CORIOLIS_KRONECKER
+  #define CORIOLIS_DEV_STRATEGY CORIOLIS_TEMPORAL
 
   Eigen::Matrix<float,NB_AXIS,NB_COMPENSATION_COMP-1>  _compTorqueLims[NB_LIMS];
   Eigen::Matrix<float,NB_AXIS,1>  _dryFrictionTorqueLims[NB_SIGN_COMP][NB_LIMS];
@@ -327,11 +325,8 @@ private:
   
   Eigen::Matrix<float, 6, NB_AXIS> _devLinkCOMGeomJacobian[NB_LINKS];
   Eigen::Matrix<float, 3, 3> _devRotationMatrixCOM[NB_LINKS];
-  #if (CORIOLIS_DEV_STRATEGY==CORIOLIS_TEMPORAL)
   volatile bool _flagSpeedSampledForCoriolis;
-  #else
 
-  #endif
 
   //Platform_constrains.cpp
   void wsConstrains(int axis_);               //! -1 := all of them                 //! 1
@@ -353,14 +348,18 @@ private:
 
     //! Platform_model.cpp
   private:
+    bool _flagCalculateSinCos;
+    float _c_theta;
+    float _c_phi;
+    float _c_psi;
+    float _s_theta;
+    float _s_phi;
+    float _s_psi;
 
-    
-
-    
     Eigen::Matrix<float,NB_LINKS,1> _massLinks;
     Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS> _momentInertiaLinks[NB_LINKS];
 
-    Eigen::Matrix<float, NB_AXIS, NB_AXIS> _jointsViscosityMat;
+    Eigen::Matrix<float, NB_AXIS, 1> _jointsViscosityGains;
 
     Eigen::Vector3f positionFrame(frame_chain frame); //! Based on off-line DH forward kinematics
     Eigen::Matrix3f rotationMatrix(frame_chain frame);

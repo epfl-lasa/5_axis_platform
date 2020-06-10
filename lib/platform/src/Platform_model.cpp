@@ -114,12 +114,7 @@ Eigen::Vector3f Platform::positionFrame(frame_chain frame)
   Eigen::Vector3f positionFrame_;
   positionFrame_.setConstant(0.0f);
 
-  float c_theta = cos(_position(PITCH) );
-  float c_phi = cos(_position(ROLL) );
-  float c_psi = cos(_position(YAW));
-  float s_theta = sin(_position(PITCH) );
-  float s_phi = sin(_position(ROLL) );
-  float s_psi = sin(_position(YAW));
+
 
     switch (frame)
     {
@@ -155,27 +150,27 @@ Eigen::Vector3f Platform::positionFrame(frame_chain frame)
 
         case FRAME_FS:
         {
-            positionFrame_(CART_X) = _position(X) + d6 * s_phi;
-            positionFrame_(CART_Y) = _position(Y) - d6 * c_phi * s_theta;
-            positionFrame_(CART_Z) =  r3 + d6 * c_phi * c_theta;
+            positionFrame_(CART_X) = _position(X) + d6 * _s_phi;
+            positionFrame_(CART_Y) = _position(Y) - d6 * _c_phi * _s_theta;
+            positionFrame_(CART_Z) =  r3 + d6 * _c_phi * _c_theta;
             break;   
         }
         
         case FRAME_PEDAL:
         {
-            positionFrame_(CART_X) = _position(X) + (d6 + d7) * s_phi;
-            positionFrame_(CART_Y) = _position(Y) - (d6 + d7) * c_phi * s_theta;
-            positionFrame_(CART_Z) = r3 + (d6+d7) * c_phi * c_theta; 
+            positionFrame_(CART_X) = _position(X) + (d6 + d7) * _s_phi;
+            positionFrame_(CART_Y) = _position(Y) - (d6 + d7) * _c_phi * _s_theta;
+            positionFrame_(CART_Z) = r3 + (d6+d7) * _c_phi * _c_theta; 
             break;  
         }
 
         case FRAME_EPOINT:
         {
-            positionFrame_(CART_X) = _position(X) + (d6 + d7) * s_phi - r8 * c_phi * s_psi;
-            positionFrame_(CART_Y) = _position(Y) - (d6 + d7) * c_phi * s_theta + 
-                              r8 * ( c_psi*c_theta - s_phi * s_psi * s_theta) ;
-            positionFrame_(CART_Z) = r3 + (d6+d7) * c_phi * c_theta + 
-                              r8 * ( c_psi*s_theta + c_theta*s_phi*s_psi ) ; 
+            positionFrame_(CART_X) = _position(X) + (d6 + d7) * _s_phi - r8 * _c_phi * _s_psi;
+            positionFrame_(CART_Y) = _position(Y) - (d6 + d7) * _c_phi * _s_theta + 
+                              r8 * ( _c_psi*_c_theta - _s_phi * _s_psi * _s_theta) ;
+            positionFrame_(CART_Z) = r3 + (d6+d7) * _c_phi * _c_theta + 
+                              r8 * ( _c_psi*_s_theta + _c_theta*_s_phi*_s_psi ) ; 
             break;   
         }
     }
@@ -188,12 +183,7 @@ Eigen::Matrix3f Platform::rotationMatrix(frame_chain frame) //! orientation of t
   Eigen::Matrix3f rotationMatrix_;
   rotationMatrix_.setIdentity();
 
-  float c_theta = cos(_position(PITCH) );
-  float c_phi = cos(_position(ROLL) );
-  float c_psi = cos(_position(YAW));
-  float s_theta = sin(_position(PITCH) );
-  float s_phi = sin(_position(ROLL) );
-  float s_psi = sin(_position(YAW));
+
 
     switch (frame)
     {
@@ -230,8 +220,8 @@ Eigen::Matrix3f Platform::rotationMatrix(frame_chain frame) //! orientation of t
         case FRAME_ROLL:
         {
             rotationMatrix_ << 0.0f    , 1.0f ,    0.0f,
-                            -s_theta , 0.0f , c_theta,
-                             c_theta , 0.0f , s_theta; 
+                            -_s_theta , 0.0f , _c_theta,
+                             _c_theta , 0.0f , _s_theta; 
             break;   
         }
 
@@ -240,44 +230,44 @@ Eigen::Matrix3f Platform::rotationMatrix(frame_chain frame) //! orientation of t
         {
 
             
-            rotationMatrix_ << -c_phi         ,  0.0f    ,          s_phi,
-                             -s_phi*s_theta , -c_theta , -c_phi*s_theta,
-                              c_theta*s_phi , -s_theta ,  c_phi*c_theta; 
+            rotationMatrix_ << -_c_phi         ,  0.0f    ,          _s_phi,
+                             -_s_phi*_s_theta , -_c_theta , -_c_phi*_s_theta,
+                              _c_theta*_s_phi , -_s_theta ,  _c_phi*_c_theta; 
             break;   
         }
 
         case FRAME_FS:
         {
-            rotationMatrix_(0,0) = c_phi*s_psi;
-            rotationMatrix_(1,0) = s_phi*s_psi*s_theta -  c_psi*c_theta;
-            rotationMatrix_(2, 0) = - (c_psi * s_theta + c_theta * s_phi * s_psi);
-            rotationMatrix_(0, 1) = c_phi*c_psi;
-            rotationMatrix_(1, 1) = c_theta*s_psi + c_psi*s_phi*s_theta;
-            rotationMatrix_(2, 1) = s_psi*s_theta - c_psi*c_theta*s_phi;
-            rotationMatrix_(0, 2) = s_phi;
-            rotationMatrix_(1, 2) = -c_phi*s_theta;
-            rotationMatrix_(2, 2) = c_phi*c_theta;
+            rotationMatrix_(0,0) = _c_phi*_s_psi;
+            rotationMatrix_(1,0) = _s_phi*_s_psi*_s_theta -  _c_psi*_c_theta;
+            rotationMatrix_(2, 0) = - (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi);
+            rotationMatrix_(0, 1) = _c_phi*_c_psi;
+            rotationMatrix_(1, 1) = _c_theta*_s_psi + _c_psi*_s_phi*_s_theta;
+            rotationMatrix_(2, 1) = _s_psi*_s_theta - _c_psi*_c_theta*_s_phi;
+            rotationMatrix_(0, 2) = _s_phi;
+            rotationMatrix_(1, 2) = -_c_phi*_s_theta;
+            rotationMatrix_(2, 2) = _c_phi*_c_theta;
 
-        //    rotationMatrix_ <<  c_phi*s_psi                         ,  c_phi*c_psi                         ,  s_phi,
-        //                     s_phi*s_psi*s_theta -  c_psi*c_theta , c_theta*s_psi + c_psi*s_phi*s_theta , -c_phi*s_theta,
-        //                     -(c_psi*s_theta + c_theta*s_phi*s_psi) , s_psi*s_theta - c_psi*c_theta*s_phi  ,  c_phi*c_theta; 
+        //    rotationMatrix_ <<  _c_phi*_s_psi                         ,  _c_phi*_c_psi                         ,  _s_phi,
+        //                     _s_phi*_s_psi*_s_theta -  _c_psi*_c_theta , _c_theta*_s_psi + _c_psi*_s_phi*_s_theta , -_c_phi*_s_theta,
+        //                     -(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) , _s_psi*_s_theta - _c_psi*_c_theta*_s_phi  ,  _c_phi*_c_theta; 
             break;   
         }
         
         case FRAME_PEDAL ... FRAME_EPOINT:
         {
-            rotationMatrix_(0,0) = -c_phi*s_psi;
-            rotationMatrix_(1,0) = -(s_phi*s_psi*s_theta -  c_psi*c_theta);
-            rotationMatrix_(2,0) = c_psi * s_theta + c_theta * s_phi * s_psi;
-            rotationMatrix_(0,1) = -c_phi*c_psi;
-            rotationMatrix_(1,1) = -( c_theta*s_psi + c_psi*s_phi*s_theta);
-            rotationMatrix_(2,1) = -( s_psi*s_theta - c_psi*c_theta*s_phi);
-            rotationMatrix_(0,2) = s_phi;
-            rotationMatrix_(1,2) = -c_phi*s_theta;
-            rotationMatrix_(2,2) = c_phi*c_theta;
-            //    rotationMatrix_ <<  -c_phi*s_psi                            , -c_phi*c_psi                            ,  s_phi,
-            //  -(s_phi*s_psi*s_theta -  c_psi*c_theta) , -( c_theta*s_psi + c_psi*s_phi*s_theta) , -c_phi*s_theta,
-            //    c_psi*s_theta + c_theta*s_phi*s_psi    , -( s_psi*s_theta - c_psi*c_theta*s_phi) ,  c_phi*c_theta;
+            rotationMatrix_(0,0) = -_c_phi*_s_psi;
+            rotationMatrix_(1,0) = -(_s_phi*_s_psi*_s_theta -  _c_psi*_c_theta);
+            rotationMatrix_(2,0) = _c_psi * _s_theta + _c_theta * _s_phi * _s_psi;
+            rotationMatrix_(0,1) = -_c_phi*_c_psi;
+            rotationMatrix_(1,1) = -( _c_theta*_s_psi + _c_psi*_s_phi*_s_theta);
+            rotationMatrix_(2,1) = -( _s_psi*_s_theta - _c_psi*_c_theta*_s_phi);
+            rotationMatrix_(0,2) = _s_phi;
+            rotationMatrix_(1,2) = -_c_phi*_s_theta;
+            rotationMatrix_(2,2) = _c_phi*_c_theta;
+            //    rotationMatrix_ <<  -_c_phi*_s_psi                            , -_c_phi*_c_psi                            ,  _s_phi,
+            //  -(_s_phi*_s_psi*_s_theta -  _c_psi*_c_theta) , -( _c_theta*_s_psi + _c_psi*_s_phi*_s_theta) , -_c_phi*_s_theta,
+            //    _c_psi*_s_theta + _c_theta*_s_phi*_s_psi    , -( _s_psi*_s_theta - _c_psi*_c_theta*_s_phi) ,  _c_phi*_c_theta;
                 break;
         }
 
@@ -292,13 +282,6 @@ Eigen::Matrix<float,6,NB_AXIS> Platform::geometricJacobian(frame_chain frame)
 
     Eigen::Matrix<float, 6, NB_AXIS> J;
     J.setConstant(0.0f);
-
-    float c_theta = cos(_position(PITCH) );
-    float c_phi = cos(_position(ROLL) );
-    float c_psi = cos(_position(YAW));
-    float s_theta = sin(_position(PITCH) );
-    float s_phi = sin(_position(ROLL) );
-    float s_psi = sin(_position(YAW));
 
     switch (frame)
     {
@@ -341,14 +324,14 @@ Eigen::Matrix<float,6,NB_AXIS> Platform::geometricJacobian(frame_chain frame)
             J(1, 0) = 1.0f;
             J(0, 1) = 1.0f;
             J(3, 2) = 1.0f;
-            J(4, 3) = c_theta;
-            J(5, 3) = s_theta;
+            J(4, 3) = _c_theta;
+            J(5, 3) = _s_theta;
             // J<< 0.0f, 1.0f, 0.0f,    0.0f, 0.0f,
             //     1.0f, 0.0f, 0.0f,    0.0f, 0.0f,
             //     0.0f, 0.0f, 0.0f,    0.0f, 0.0f,
             //     0.0f, 0.0f, 1.0f,    0.0f, 0.0f,
-            //     0.0f, 0.0f, 0.0f, c_theta, 0.0f,
-            //     0.0f, 0.0f, 0.0f, s_theta, 0.0f;
+            //     0.0f, 0.0f, 0.0f, _c_theta, 0.0f,
+            //     0.0f, 0.0f, 0.0f, _s_theta, 0.0f;
 
 
             
@@ -359,24 +342,24 @@ Eigen::Matrix<float,6,NB_AXIS> Platform::geometricJacobian(frame_chain frame)
         {
             J(1, 0) = 1.0f;
             J(0, 1) = 1.0f;
-            J(1, 2) = -d6 * c_phi * c_theta;
-            J(2, 2) = -d6 * c_phi * s_theta;
+            J(1, 2) = -d6 * _c_phi * _c_theta;
+            J(2, 2) = -d6 * _c_phi * _s_theta;
             J(3, 2) = 1.0f;
-            J(0, 3) = d6 * c_phi;
-            J(1, 3) = d6 * s_phi * s_theta;
-            J(2, 3) = -d6 * c_theta * s_phi;
-            J(4, 3) = c_theta;
-            J(5, 3) = s_theta;
-            J(3, 4) = s_phi;
-            J(4, 4) = -c_phi * s_theta;
-            J(5, 4) = c_phi * c_theta;
+            J(0, 3) = d6 * _c_phi;
+            J(1, 3) = d6 * _s_phi * _s_theta;
+            J(2, 3) = -d6 * _c_theta * _s_phi;
+            J(4, 3) = _c_theta;
+            J(5, 3) = _s_theta;
+            J(3, 4) = _s_phi;
+            J(4, 4) = -_c_phi * _s_theta;
+            J(5, 4) = _c_phi * _c_theta;
 
-            // J<< 0.0f, 1.0f,              0.0f, d6*c_phi*c_theta*c_theta + d6*c_phi*s_theta*s_theta,           0.0f,
-            //     1.0f, 0.0f, -d6*c_phi*c_theta,                                    d6*s_phi*s_theta,           0.0f,
-            //     0.0f, 0.0f, -d6*c_phi*s_theta,                                   -d6*c_theta*s_phi,           0.0f,
-            //     0.0f, 0.0f,              1.0f,                                                0.0f,          s_phi,
-            //     0.0f, 0.0f,              0.0f,                                             c_theta, -c_phi*s_theta,
-            //     0.0f, 0.0f,              0.0f,                                             s_theta,  c_phi*c_theta;
+            // J<< 0.0f, 1.0f,              0.0f, d6*_c_phi*_c_theta*_c_theta + d6*_c_phi*_s_theta*_s_theta,           0.0f,
+            //     1.0f, 0.0f, -d6*_c_phi*_c_theta,                                    d6*_s_phi*_s_theta,           0.0f,
+            //     0.0f, 0.0f, -d6*_c_phi*_s_theta,                                   -d6*_c_theta*_s_phi,           0.0f,
+            //     0.0f, 0.0f,              1.0f,                                                0.0f,          _s_phi,
+            //     0.0f, 0.0f,              0.0f,                                             _c_theta, -_c_phi*_s_theta,
+            //     0.0f, 0.0f,              0.0f,                                             _s_theta,  _c_phi*_c_theta;
             break;   
         }
         
@@ -385,26 +368,26 @@ Eigen::Matrix<float,6,NB_AXIS> Platform::geometricJacobian(frame_chain frame)
 
             J(1, 0) = 1.0f;
             J(0, 1) = 1.0f;
-            J(1, 2) = -(d6+d7) * c_phi * c_theta;
-            J(2, 2) = -(d6+d7) * c_phi * s_theta;
+            J(1, 2) = -(d6+d7) * _c_phi * _c_theta;
+            J(2, 2) = -(d6+d7) * _c_phi * _s_theta;
             J(3, 2) = 1.0f;
-            J(0, 3) = (d6+d7) * c_phi ;
-            J(1, 3) = (d6+d7) * s_phi * s_theta;
-            J(2, 3) = -(d6+d7) * c_theta * s_phi;
-            J(4, 3) = c_theta;
-            J(5, 3) = s_theta;
+            J(0, 3) = (d6+d7) * _c_phi ;
+            J(1, 3) = (d6+d7) * _s_phi * _s_theta;
+            J(2, 3) = -(d6+d7) * _c_theta * _s_phi;
+            J(4, 3) = _c_theta;
+            J(5, 3) = _s_theta;
             J(0, 4) = 0.0f;
             J(1, 4) = 0.0f;
             J(2, 4) = 0.0f;
-            J(3, 4) = s_phi;
-            J(4, 4) = -c_phi * s_theta;
-            J(5, 4) = c_phi * c_theta;
-            // J<< 0.0f, 1.0f,                                  0.0f, c_theta*(d6*c_phi*c_theta + d7*c_phi*c_theta) + s_theta*(d6*c_phi*s_theta + d7*c_phi*s_theta), c_phi*c_theta*(d6*c_phi*s_theta + d7*c_phi*s_theta) - c_phi*s_theta*(d6*c_phi*c_theta + d7*c_phi*c_theta),
-            //     1.0f, 0.0f, - d6*c_phi*c_theta - d7*c_phi*c_theta,                                                                 s_theta*(d6*s_phi + d7*s_phi),                         c_phi*c_theta*(d6*s_phi + d7*s_phi) - s_phi*(d6*c_phi*c_theta + d7*c_phi*c_theta),
-            //     0.0f, 0.0f, - d6*c_phi*s_theta - d7*c_phi*s_theta,                                                                -c_theta*(d6*s_phi + d7*s_phi),                         c_phi*s_theta*(d6*s_phi + d7*s_phi) - s_phi*(d6*c_phi*s_theta + d7*c_phi*s_theta),
-            //     0.0f, 0.0f,                                  1.0f,                                                                                          0.0f,                                                                                                     s_phi,
-            //     0.0f, 0.0f,                                  0.0f,                                                                                       c_theta,                                                                                            -c_phi*s_theta,
-            //     0.0f, 0.0f,                                  0.0f,                                                                                       s_theta,                                                                                             c_phi*c_theta;
+            J(3, 4) = _s_phi;
+            J(4, 4) = -_c_phi * _s_theta;
+            J(5, 4) = _c_phi * _c_theta;
+            // J<< 0.0f, 1.0f,                                  0.0f, _c_theta*(d6*_c_phi*_c_theta + d7*_c_phi*_c_theta) + _s_theta*(d6*_c_phi*_s_theta + d7*_c_phi*_s_theta), _c_phi*_c_theta*(d6*_c_phi*_s_theta + d7*_c_phi*_s_theta) - _c_phi*_s_theta*(d6*_c_phi*_c_theta + d7*_c_phi*_c_theta),
+            //     1.0f, 0.0f, - d6*_c_phi*_c_theta - d7*_c_phi*_c_theta,                                                                 _s_theta*(d6*_s_phi + d7*_s_phi),                         _c_phi*_c_theta*(d6*_s_phi + d7*_s_phi) - _s_phi*(d6*_c_phi*_c_theta + d7*_c_phi*_c_theta),
+            //     0.0f, 0.0f, - d6*_c_phi*_s_theta - d7*_c_phi*_s_theta,                                                                -_c_theta*(d6*_s_phi + d7*_s_phi),                         _c_phi*_s_theta*(d6*_s_phi + d7*_s_phi) - _s_phi*(d6*_c_phi*_s_theta + d7*_c_phi*_s_theta),
+            //     0.0f, 0.0f,                                  1.0f,                                                                                          0.0f,                                                                                                     _s_phi,
+            //     0.0f, 0.0f,                                  0.0f,                                                                                       _c_theta,                                                                                            -_c_phi*_s_theta,
+            //     0.0f, 0.0f,                                  0.0f,                                                                                       _s_theta,                                                                                             _c_phi*_c_theta;
             break; 
         }
          case FRAME_EPOINT:
@@ -412,39 +395,39 @@ Eigen::Matrix<float,6,NB_AXIS> Platform::geometricJacobian(frame_chain frame)
 
             J(1, 0) = 1.0f;
             J(0, 1) = 1.0f;
-            J(1, 2) = -(d6 + d7) * c_phi * c_theta - r8 * (c_psi * s_theta + c_theta * s_phi * s_psi);
-            J(2, 2) = -(d6 + d7) * c_phi * s_theta - r8 * (c_psi * c_theta + s_theta * s_phi * s_psi);
+            J(1, 2) = -(d6 + d7) * _c_phi * _c_theta - r8 * (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi);
+            J(2, 2) = -(d6 + d7) * _c_phi * _s_theta - r8 * (_c_psi * _c_theta + _s_theta * _s_phi * _s_psi);
             J(3, 2) = 1.0f;
-            J(0, 3) = c_theta * (d6 * c_phi * c_theta + d7 * c_phi * c_theta + r8 * c_psi * s_theta +
-                      r8 * c_theta * s_phi * s_psi) + s_theta * (d6 * c_phi * s_theta - 
-                      r8 * c_psi * c_theta + d7 * c_phi * s_theta + r8 * s_phi * s_psi * s_theta);
-            J(1, 3) = s_theta * (d6 * s_phi + d7 * s_phi - r8 * c_phi * s_psi);
-            J(2, 3) = -c_theta * (d6 * s_phi + d7 * s_phi - r8 * c_phi * s_psi);
-            J(4, 3) = c_theta;
-            J(5, 3) = s_theta;
-            J(0, 4) = c_phi * c_theta * (d6 * c_phi * s_theta - 
-                      r8 * c_psi * c_theta + d7 * c_phi * s_theta + 
-                      r8 * s_phi * s_psi * s_theta) - c_phi * s_theta * (d6 * c_phi * c_theta + 
-                      d7 * c_phi * c_theta + r8 * c_psi * s_theta + 
-                      r8 * c_theta * s_phi * s_psi);
-            J(1, 4) = c_phi*c_theta*(d6*s_phi + d7*s_phi - 
-                      r8*c_phi*s_psi) - s_phi*(d6*c_phi*c_theta + 
-                      d7*c_phi*c_theta + r8*c_psi*s_theta + 
-                      r8*c_theta*s_phi*s_psi);
-            J(2, 4) = c_phi * s_theta * (d6 * s_phi + d7 * s_phi - r8 * c_phi * s_psi) - 
-                    s_phi * (d6 * c_phi * s_theta - 
-                    r8 * c_psi * c_theta + d7 * c_phi * s_theta + 
-                    r8 * s_phi * s_psi * s_theta);
-            J(3, 4) = s_phi;
-            J(4, 4) = -c_phi * s_theta;
-            J(5, 4) = c_phi * c_theta;
+            J(0, 3) = _c_theta * (d6 * _c_phi * _c_theta + d7 * _c_phi * _c_theta + r8 * _c_psi * _s_theta +
+                      r8 * _c_theta * _s_phi * _s_psi) + _s_theta * (d6 * _c_phi * _s_theta - 
+                      r8 * _c_psi * _c_theta + d7 * _c_phi * _s_theta + r8 * _s_phi * _s_psi * _s_theta);
+            J(1, 3) = _s_theta * (d6 * _s_phi + d7 * _s_phi - r8 * _c_phi * _s_psi);
+            J(2, 3) = -_c_theta * (d6 * _s_phi + d7 * _s_phi - r8 * _c_phi * _s_psi);
+            J(4, 3) = _c_theta;
+            J(5, 3) = _s_theta;
+            J(0, 4) = _c_phi * _c_theta * (d6 * _c_phi * _s_theta - 
+                      r8 * _c_psi * _c_theta + d7 * _c_phi * _s_theta + 
+                      r8 * _s_phi * _s_psi * _s_theta) - _c_phi * _s_theta * (d6 * _c_phi * _c_theta + 
+                      d7 * _c_phi * _c_theta + r8 * _c_psi * _s_theta + 
+                      r8 * _c_theta * _s_phi * _s_psi);
+            J(1, 4) = _c_phi*_c_theta*(d6*_s_phi + d7*_s_phi - 
+                      r8*_c_phi*_s_psi) - _s_phi*(d6*_c_phi*_c_theta + 
+                      d7*_c_phi*_c_theta + r8*_c_psi*_s_theta + 
+                      r8*_c_theta*_s_phi*_s_psi);
+            J(2, 4) = _c_phi * _s_theta * (d6 * _s_phi + d7 * _s_phi - r8 * _c_phi * _s_psi) - 
+                    _s_phi * (d6 * _c_phi * _s_theta - 
+                    r8 * _c_psi * _c_theta + d7 * _c_phi * _s_theta + 
+                    r8 * _s_phi * _s_psi * _s_theta);
+            J(3, 4) = _s_phi;
+            J(4, 4) = -_c_phi * _s_theta;
+            J(5, 4) = _c_phi * _c_theta;
 
-            // J<< 0.0f, 1.0f,                                                                              0.0f, c_theta*(d6*c_phi*c_theta + d7*c_phi*c_theta + r8*c_psi*s_theta + r8*c_theta*s_phi*s_psi) + s_theta*(d6*c_phi*s_theta - r8*c_psi*c_theta + d7*c_phi*s_theta + r8*s_phi*s_psi*s_theta) , c_phi*c_theta*(d6*c_phi*s_theta - r8*c_psi*c_theta + d7*c_phi*s_theta + r8*s_phi*s_psi*s_theta) - c_phi*s_theta*(d6*c_phi*c_theta + d7*c_phi*c_theta + r8*c_psi*s_theta + r8*c_theta*s_phi*s_psi),
-            //     1.0f, 0.0f, - d6*c_phi*c_theta - d7*c_phi*c_theta - r8*c_psi*s_theta - r8*c_theta*s_phi*s_psi,                                                                                                                                        s_theta*(d6*s_phi + d7*s_phi - r8*c_phi*s_psi) ,                                                    c_phi*c_theta*(d6*s_phi + d7*s_phi - r8*c_phi*s_psi) - s_phi*(d6*c_phi*c_theta + d7*c_phi*c_theta + r8*c_psi*s_theta + r8*c_theta*s_phi*s_psi),
-            //     0.0f, 0.0f,   r8*c_psi*c_theta - d6*c_phi*s_theta - d7*c_phi*s_theta - r8*s_phi*s_psi*s_theta,                                                                                                                                       -c_theta*(d6*s_phi + d7*s_phi - r8*c_phi*s_psi) ,                                                    c_phi*s_theta*(d6*s_phi + d7*s_phi - r8*c_phi*s_psi) - s_phi*(d6*c_phi*s_theta - r8*c_psi*c_theta + d7*c_phi*s_theta + r8*s_phi*s_psi*s_theta),
-            //     0.0f, 0.0f,                                                                              1.0f,                                                                                                                                                                                  0.0f ,                                                                                                                                                                                             s_phi,
-            //     0.0f, 0.0f,                                                                              0.0f,                                                                                                                                                                               c_theta ,                                                                                                                                                                                    -c_phi*s_theta,
-            //     0.0f, 0.0f,                                                                              0.0f,                                                                                                                                                                               s_theta ,                                                                                                                                                                                     c_phi*c_theta;
+            // J<< 0.0f, 1.0f,                                                                              0.0f, _c_theta*(d6*_c_phi*_c_theta + d7*_c_phi*_c_theta + r8*_c_psi*_s_theta + r8*_c_theta*_s_phi*_s_psi) + _s_theta*(d6*_c_phi*_s_theta - r8*_c_psi*_c_theta + d7*_c_phi*_s_theta + r8*_s_phi*_s_psi*_s_theta) , _c_phi*_c_theta*(d6*_c_phi*_s_theta - r8*_c_psi*_c_theta + d7*_c_phi*_s_theta + r8*_s_phi*_s_psi*_s_theta) - _c_phi*_s_theta*(d6*_c_phi*_c_theta + d7*_c_phi*_c_theta + r8*_c_psi*_s_theta + r8*_c_theta*_s_phi*_s_psi),
+            //     1.0f, 0.0f, - d6*_c_phi*_c_theta - d7*_c_phi*_c_theta - r8*_c_psi*_s_theta - r8*_c_theta*_s_phi*_s_psi,                                                                                                                                        _s_theta*(d6*_s_phi + d7*_s_phi - r8*_c_phi*_s_psi) ,                                                    _c_phi*_c_theta*(d6*_s_phi + d7*_s_phi - r8*_c_phi*_s_psi) - _s_phi*(d6*_c_phi*_c_theta + d7*_c_phi*_c_theta + r8*_c_psi*_s_theta + r8*_c_theta*_s_phi*_s_psi),
+            //     0.0f, 0.0f,   r8*_c_psi*_c_theta - d6*_c_phi*_s_theta - d7*_c_phi*_s_theta - r8*_s_phi*_s_psi*_s_theta,                                                                                                                                       -_c_theta*(d6*_s_phi + d7*_s_phi - r8*_c_phi*_s_psi) ,                                                    _c_phi*_s_theta*(d6*_s_phi + d7*_s_phi - r8*_c_phi*_s_psi) - _s_phi*(d6*_c_phi*_s_theta - r8*_c_psi*_c_theta + d7*_c_phi*_s_theta + r8*_s_phi*_s_psi*_s_theta),
+            //     0.0f, 0.0f,                                                                              1.0f,                                                                                                                                                                                  0.0f ,                                                                                                                                                                                             _s_phi,
+            //     0.0f, 0.0f,                                                                              0.0f,                                                                                                                                                                               _c_theta ,                                                                                                                                                                                    -_c_phi*_s_theta,
+            //     0.0f, 0.0f,                                                                              0.0f,                                                                                                                                                                               _s_theta ,                                                                                                                                                                                     _c_phi*_c_theta;
  
 
                     break; 
@@ -458,12 +441,12 @@ Eigen::Vector3f Platform::comLinkWRTBase(link_chain link) {
   Eigen::Vector3f positionCOMLink_;
   positionCOMLink_.setConstant(0.0f);
 
-  float c_theta = cos(_position(PITCH));
-  float c_phi = cos(_position(ROLL));
-  float c_psi = cos(_position(YAW));
-  float s_theta = sin(_position(PITCH));
-  float s_phi = sin(_position(ROLL));
-  float s_psi = sin(_position(YAW));
+  float _c_theta = cos(_position(PITCH));
+  float _c_phi = cos(_position(ROLL));
+  float _c_psi = cos(_position(YAW));
+  float _s_theta = sin(_position(PITCH));
+  float _s_phi = sin(_position(ROLL));
+  float _s_psi = sin(_position(YAW));
 
   switch (link) {
     case LINK_BASE: {
@@ -496,25 +479,25 @@ Eigen::Vector3f Platform::comLinkWRTBase(link_chain link) {
 
     {
         positionCOMLink_(CART_X) = LINKS_COM[LINK_PITCH][2] + _position(X);
-        positionCOMLink_(CART_Y) = _position(Y) - LINKS_COM[LINK_PITCH][1] * c_theta -
-                            LINKS_COM[LINK_PITCH][0] * s_theta;
-        positionCOMLink_(CART_Z) = LINKS_COM[LINK_PITCH][0] * c_theta -
-                            LINKS_COM[LINK_PITCH][1] * s_theta + r3;
+        positionCOMLink_(CART_Y) = _position(Y) - LINKS_COM[LINK_PITCH][1] * _c_theta -
+                            LINKS_COM[LINK_PITCH][0] * _s_theta;
+        positionCOMLink_(CART_Z) = LINKS_COM[LINK_PITCH][0] * _c_theta -
+                            LINKS_COM[LINK_PITCH][1] * _s_theta + r3;
         break;
     }
 
     case LINK_ROLL:
 
     {
-        positionCOMLink_(CART_X) = _position(X) + LINKS_COM[LINK_ROLL][1] * c_phi +
-                            LINKS_COM[LINK_ROLL][0] * s_phi;
+        positionCOMLink_(CART_X) = _position(X) + LINKS_COM[LINK_ROLL][1] * _c_phi +
+                            LINKS_COM[LINK_ROLL][0] * _s_phi;
         positionCOMLink_(CART_Y) = _position(Y) -
-                            s_theta * (LINKS_COM[LINK_ROLL][0] * c_phi -
-                                        LINKS_COM[LINK_ROLL][1] * s_phi) +
-                            LINKS_COM[LINK_ROLL][2] * c_theta;
-        positionCOMLink_(CART_Z) = c_theta * (LINKS_COM[LINK_ROLL][0] * c_phi -
-                                        LINKS_COM[LINK_ROLL][1] * s_phi) +
-                            LINKS_COM[LINK_ROLL][2] * s_theta + r3;
+                            _s_theta * (LINKS_COM[LINK_ROLL][0] * _c_phi -
+                                        LINKS_COM[LINK_ROLL][1] * _s_phi) +
+                            LINKS_COM[LINK_ROLL][2] * _c_theta;
+        positionCOMLink_(CART_Z) = _c_theta * (LINKS_COM[LINK_ROLL][0] * _c_phi -
+                                        LINKS_COM[LINK_ROLL][1] * _s_phi) +
+                            LINKS_COM[LINK_ROLL][2] * _s_theta + r3;
         break;
     }
 
@@ -522,41 +505,41 @@ Eigen::Vector3f Platform::comLinkWRTBase(link_chain link) {
 
     {
         positionCOMLink_(CART_X) = _position(X) -
-                            c_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                    LINKS_COM[LINK_YAW][1] * s_psi) +
-                            LINKS_COM[LINK_YAW][2] * s_phi;
+                            _c_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                    LINKS_COM[LINK_YAW][1] * _s_psi) +
+                            LINKS_COM[LINK_YAW][2] * _s_phi;
         positionCOMLink_(CART_Y) =_position(Y) -
-                            c_theta *
-                                (LINKS_COM[LINK_YAW][1] * c_psi + LINKS_COM[LINK_YAW][0] * s_psi) -
-                            s_phi * s_theta *
-                                (LINKS_COM[LINK_YAW][0] * c_psi - LINKS_COM[LINK_YAW][1] * s_psi) -
-                            LINKS_COM[LINK_YAW][2] * c_phi * s_theta;
+                            _c_theta *
+                                (LINKS_COM[LINK_YAW][1] * _c_psi + LINKS_COM[LINK_YAW][0] * _s_psi) -
+                            _s_phi * _s_theta *
+                                (LINKS_COM[LINK_YAW][0] * _c_psi - LINKS_COM[LINK_YAW][1] * _s_psi) -
+                            LINKS_COM[LINK_YAW][2] * _c_phi * _s_theta;
         positionCOMLink_(CART_Z) =
-                            c_theta * s_phi *
-                                (LINKS_COM[LINK_YAW][0] * c_psi - LINKS_COM[LINK_YAW][1] * s_psi) -
-                            s_theta *
-                                (LINKS_COM[LINK_YAW][1] * c_psi + LINKS_COM[LINK_YAW][0] * s_psi) +
-                            LINKS_COM[LINK_YAW][2] * c_phi * c_theta + r3;
+                            _c_theta * _s_phi *
+                                (LINKS_COM[LINK_YAW][0] * _c_psi - LINKS_COM[LINK_YAW][1] * _s_psi) -
+                            _s_theta *
+                                (LINKS_COM[LINK_YAW][1] * _c_psi + LINKS_COM[LINK_YAW][0] * _s_psi) +
+                            LINKS_COM[LINK_YAW][2] * _c_phi * _c_theta + r3;
         break;
     }
 
     case LINK_PEDAL:
 
     {
-        positionCOMLink_(CART_X) = _position(X) + d6 * s_phi +
-                            LINKS_COM[LINK_PEDAL][2] * s_phi +
-                            LINKS_COM[LINK_PEDAL][1] * c_phi * c_psi +
-                            LINKS_COM[LINK_PEDAL][0] * c_phi * s_psi;
+        positionCOMLink_(CART_X) = _position(X) + d6 * _s_phi +
+                            LINKS_COM[LINK_PEDAL][2] * _s_phi +
+                            LINKS_COM[LINK_PEDAL][1] * _c_phi * _c_psi +
+                            LINKS_COM[LINK_PEDAL][0] * _c_phi * _s_psi;
         positionCOMLink_(CART_Y) =
-            _position(Y) - d6 * c_phi * s_theta +
-            LINKS_COM[LINK_PEDAL][1] * (c_theta * s_psi + c_psi * s_phi * s_theta) -
-            LINKS_COM[LINK_PEDAL][0] * (c_psi * c_theta - s_phi * s_psi * s_theta) -
-            LINKS_COM[LINK_PEDAL][2] * c_phi * s_theta;
+            _position(Y) - d6 * _c_phi * _s_theta +
+            LINKS_COM[LINK_PEDAL][1] * (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) -
+            LINKS_COM[LINK_PEDAL][0] * (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) -
+            LINKS_COM[LINK_PEDAL][2] * _c_phi * _s_theta;
         positionCOMLink_(CART_Z) =
-            d6 * c_phi * c_theta -
-            LINKS_COM[LINK_PEDAL][0] * (c_psi * s_theta + c_theta * s_phi * s_psi) +
-            LINKS_COM[LINK_PEDAL][1] * (s_psi * s_theta - c_psi * c_theta * s_phi) +
-            LINKS_COM[LINK_PEDAL][2] * c_phi * c_theta + r3;
+            d6 * _c_phi * _c_theta -
+            LINKS_COM[LINK_PEDAL][0] * (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi) +
+            LINKS_COM[LINK_PEDAL][1] * (_s_psi * _s_theta - _c_psi * _c_theta * _s_phi) +
+            LINKS_COM[LINK_PEDAL][2] * _c_phi * _c_theta + r3;
 
         break;
     }
@@ -569,12 +552,7 @@ Eigen::Matrix3f Platform::comRotationMatrix(link_chain link){
   Eigen::Matrix3f comRotationMatrix_;
   comRotationMatrix_.setIdentity();
 
-  float c_theta = cos(_position(PITCH) );
-  float c_phi = cos(_position(ROLL) );
-  float c_psi = cos(_position(YAW));
-  float s_theta = sin(_position(PITCH) );
-  float s_phi = sin(_position(ROLL) );
-  float s_psi = sin(_position(YAW));
+
 
     switch (link)
     {
@@ -603,16 +581,16 @@ Eigen::Matrix3f Platform::comRotationMatrix(link_chain link){
         case LINK_PITCH:
         {
             comRotationMatrix_ <<      0.0f,        0.0f, 1.0f,
-                                   -s_theta,    -c_theta, 0.0f,
-                                    c_theta,    -s_theta, 0.0f;  
+                                   -_s_theta,    -_c_theta, 0.0f,
+                                    _c_theta,    -_s_theta, 0.0f;  
             break;  
         }
 
         case LINK_ROLL:
         {
-            comRotationMatrix_ <<             s_phi,          c_phi,    0.0f,
-                                     -c_phi*s_theta,  s_phi*s_theta, c_theta,
-                                      c_phi*c_theta, -c_theta*s_phi, s_theta;
+            comRotationMatrix_ <<             _s_phi,          _c_phi,    0.0f,
+                                     -_c_phi*_s_theta,  _s_phi*_s_theta, _c_theta,
+                                      _c_phi*_c_theta, -_c_theta*_s_phi, _s_theta;
             break;
         }
 
@@ -621,9 +599,9 @@ Eigen::Matrix3f Platform::comRotationMatrix(link_chain link){
         {
 
             
-            comRotationMatrix_ <<                         -c_phi*c_psi,                           c_phi*s_psi,          s_phi,
-                                 - c_theta*s_psi - c_psi*s_phi*s_theta,   s_phi*s_psi*s_theta - c_psi*c_theta, -c_phi*s_theta,
-                                   c_psi*c_theta*s_phi - s_psi*s_theta, - c_psi*s_theta - c_theta*s_phi*s_psi,  c_phi*c_theta;
+            comRotationMatrix_ <<                         -_c_phi*_c_psi,                           _c_phi*_s_psi,          _s_phi,
+                                 - _c_theta*_s_psi - _c_psi*_s_phi*_s_theta,   _s_phi*_s_psi*_s_theta - _c_psi*_c_theta, -_c_phi*_s_theta,
+                                   _c_psi*_c_theta*_s_phi - _s_psi*_s_theta, - _c_psi*_s_theta - _c_theta*_s_phi*_s_psi,  _c_phi*_c_theta;
  
             break;   
         }
@@ -631,9 +609,9 @@ Eigen::Matrix3f Platform::comRotationMatrix(link_chain link){
         case LINK_PEDAL: // THis link is measured w.r.t to FRAME_FS
         {
 
-        comRotationMatrix_ <<                          c_phi*s_psi,                         c_phi*c_psi,          s_phi,
-                               s_phi*s_psi*s_theta - c_psi*c_theta, c_theta*s_psi + c_psi*s_phi*s_theta, -c_phi*s_theta,
-                             - c_psi*s_theta - c_theta*s_phi*s_psi, s_psi*s_theta - c_psi*c_theta*s_phi,  c_phi*c_theta;
+        comRotationMatrix_ <<                          _c_phi*_s_psi,                         _c_phi*_c_psi,          _s_phi,
+                               _s_phi*_s_psi*_s_theta - _c_psi*_c_theta, _c_theta*_s_psi + _c_psi*_s_phi*_s_theta, -_c_phi*_s_theta,
+                             - _c_psi*_s_theta - _c_theta*_s_phi*_s_psi, _s_psi*_s_theta - _c_psi*_c_theta*_s_phi,  _c_phi*_c_theta;
             break;   
         }
 
@@ -646,13 +624,6 @@ Eigen::Matrix<float, 6, NB_AXIS> Platform::comGeometricJacobian(link_chain link)
 
     Eigen::Matrix<float, 6, NB_AXIS> comJ;
     comJ.setConstant(0.0f);
-
-    float c_theta = cos(_position(PITCH) );
-    float c_phi = cos(_position(ROLL) );
-    float c_psi = cos(_position(YAW));
-    float s_theta = sin(_position(PITCH) );
-    float s_phi = sin(_position(ROLL) );
-    float s_psi = sin(_position(YAW));
 
     switch (link)
     {
@@ -678,12 +649,11 @@ Eigen::Matrix<float, 6, NB_AXIS> Platform::comGeometricJacobian(link_chain link)
         {
             
           comJ<< 0.0f, 1.0f,                                                                  0.0f, 0.0f, 0.0f,
-                 1.0f, 0.0f,   LINKS_COM[LINK_PITCH][1]*s_theta - LINKS_COM[LINK_PITCH][0]*c_theta, 0.0f, 0.0f,
-                 0.0f, 0.0f, - LINKS_COM[LINK_PITCH][1]*c_theta - LINKS_COM[LINK_PITCH][0]*s_theta, 0.0f, 0.0f,
+                 1.0f, 0.0f,   LINKS_COM[LINK_PITCH][1]*_s_theta - LINKS_COM[LINK_PITCH][0]*_c_theta, 0.0f, 0.0f,
+                 0.0f, 0.0f, - LINKS_COM[LINK_PITCH][1]*_c_theta - LINKS_COM[LINK_PITCH][0]*_s_theta, 0.0f, 0.0f,
                  0.0f, 0.0f,                                                                  1.0f, 0.0f, 0.0f,
                  0.0f, 0.0f,                                                                  0.0f, 0.0f, 0.0f,
                  0.0f, 0.0f,                                                                  0.0f, 0.0f, 0.0f;
-;
             break;  
         }
 
@@ -691,34 +661,34 @@ Eigen::Matrix<float, 6, NB_AXIS> Platform::comGeometricJacobian(link_chain link)
         {
             comJ(1, 0) = 1.0f;
             comJ(0, 1) = 1.0f;
-            comJ(1, 2) = -LINKS_COM[LINK_ROLL][2] * s_theta -
-                         c_theta * (LINKS_COM[LINK_ROLL][0] * c_phi -
-                         LINKS_COM[LINK_ROLL][1] * s_phi);
+            comJ(1, 2) = -LINKS_COM[LINK_ROLL][2] * _s_theta -
+                         _c_theta * (LINKS_COM[LINK_ROLL][0] * _c_phi -
+                         LINKS_COM[LINK_ROLL][1] * _s_phi);
             
-            comJ(2, 2) = LINKS_COM[LINK_ROLL][2] * c_theta -
-                         s_theta * (LINKS_COM[LINK_ROLL][0] * c_phi -
-                                    LINKS_COM[LINK_ROLL][1] * s_phi);
+            comJ(2, 2) = LINKS_COM[LINK_ROLL][2] * _c_theta -
+                         _s_theta * (LINKS_COM[LINK_ROLL][0] * _c_phi -
+                                    LINKS_COM[LINK_ROLL][1] * _s_phi);
             comJ(3, 2) = 1.0f;
 
             comJ(0, 3) =
-                        c_theta * (LINKS_COM[LINK_ROLL][2] * s_theta +
-                        c_theta * (LINKS_COM[LINK_ROLL][0] * c_phi -
-                        LINKS_COM[LINK_ROLL][1] * s_phi)) +
-                        s_theta * (s_theta * (LINKS_COM[LINK_ROLL][0] * c_phi -
-                        LINKS_COM[LINK_ROLL][1] * s_phi) -
-                        LINKS_COM[LINK_ROLL][2] * c_theta);
-            comJ(1, 3) = s_theta * (LINKS_COM[LINK_ROLL][1] * c_phi +
-                                    LINKS_COM[LINK_ROLL][0] * s_phi);
-            comJ(2, 3) = -c_theta * (LINKS_COM[LINK_ROLL][1] * c_phi +
-                                     LINKS_COM[LINK_ROLL][0] * s_phi);
-            comJ(4, 3) = c_theta;
-            comJ(5, 3) = s_theta;
-            // comJ<<  0.0f, 1.0f,                                                                                                        0.0f, c_theta*(LINKS_COM[LINK_ROLL][2]*s_theta + c_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi)) + s_theta*(s_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi) - LINKS_COM[LINK_ROLL][2]*c_theta), 0.0f,
-            //         1.0f, 0.0f, - LINKS_COM[LINK_ROLL][2]*s_theta - c_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi),                                                                                                                                                                   s_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi), 0.0f,
-            //         0.0f, 0.0f,   LINKS_COM[LINK_ROLL][2]*c_theta - s_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi),                                                                                                                                                                  -c_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi), 0.0f,
+                        _c_theta * (LINKS_COM[LINK_ROLL][2] * _s_theta +
+                        _c_theta * (LINKS_COM[LINK_ROLL][0] * _c_phi -
+                        LINKS_COM[LINK_ROLL][1] * _s_phi)) +
+                        _s_theta * (_s_theta * (LINKS_COM[LINK_ROLL][0] * _c_phi -
+                        LINKS_COM[LINK_ROLL][1] * _s_phi) -
+                        LINKS_COM[LINK_ROLL][2] * _c_theta);
+            comJ(1, 3) = _s_theta * (LINKS_COM[LINK_ROLL][1] * _c_phi +
+                                    LINKS_COM[LINK_ROLL][0] * _s_phi);
+            comJ(2, 3) = -_c_theta * (LINKS_COM[LINK_ROLL][1] * _c_phi +
+                                     LINKS_COM[LINK_ROLL][0] * _s_phi);
+            comJ(4, 3) = _c_theta;
+            comJ(5, 3) = _s_theta;
+            // comJ<<  0.0f, 1.0f,                                                                                                        0.0f, _c_theta*(LINKS_COM[LINK_ROLL][2]*_s_theta + _c_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi)) + _s_theta*(_s_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi) - LINKS_COM[LINK_ROLL][2]*_c_theta), 0.0f,
+            //         1.0f, 0.0f, - LINKS_COM[LINK_ROLL][2]*_s_theta - _c_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi),                                                                                                                                                                   _s_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi), 0.0f,
+            //         0.0f, 0.0f,   LINKS_COM[LINK_ROLL][2]*_c_theta - _s_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi),                                                                                                                                                                  -_c_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi), 0.0f,
             //         0.0f, 0.0f,                                                                                                        1.0f,                                                                                                                                                                                                                                      0.0f, 0.0f,
-            //         0.0f, 0.0f,                                                                                                        0.0f,                                                                                                                                                                                                                                   c_theta, 0.0f,
-            //         0.0f, 0.0f,                                                                                                        0.0f,                                                                                                                                                                                                                                   s_theta, 0.0f;
+            //         0.0f, 0.0f,                                                                                                        0.0f,                                                                                                                                                                                                                                   _c_theta, 0.0f,
+            //         0.0f, 0.0f,                                                                                                        0.0f,                                                                                                                                                                                                                                   _s_theta, 0.0f;
             break;   
         }
 
@@ -727,78 +697,78 @@ Eigen::Matrix<float, 6, NB_AXIS> Platform::comGeometricJacobian(link_chain link)
         {
             comJ(1, 0) = 1.0f;
             comJ(0, 1) = 1.0f;
-            comJ(1, 2) = s_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                    LINKS_COM[LINK_YAW][0] * s_psi) -
-                         LINKS_COM[LINK_YAW][2] * c_phi * c_theta -
-                         c_theta * s_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                            LINKS_COM[LINK_YAW][1] * s_psi);
-            comJ(2, 2) = -c_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                     LINKS_COM[LINK_YAW][0] * s_psi) -
-                         LINKS_COM[LINK_YAW][2] * c_phi * s_theta -
-                         s_phi * s_theta * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                            LINKS_COM[LINK_YAW][1] * s_psi);
+            comJ(1, 2) = _s_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                    LINKS_COM[LINK_YAW][0] * _s_psi) -
+                         LINKS_COM[LINK_YAW][2] * _c_phi * _c_theta -
+                         _c_theta * _s_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                            LINKS_COM[LINK_YAW][1] * _s_psi);
+            comJ(2, 2) = -_c_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                     LINKS_COM[LINK_YAW][0] * _s_psi) -
+                         LINKS_COM[LINK_YAW][2] * _c_phi * _s_theta -
+                         _s_phi * _s_theta * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                            LINKS_COM[LINK_YAW][1] * _s_psi);
             comJ(3,2) = 1.0f;
             comJ(0,3) =
-                c_theta * (LINKS_COM[LINK_YAW][2] * c_phi * c_theta -
-                           s_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                      LINKS_COM[LINK_YAW][0] * s_psi) +
-                           c_theta * s_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                              LINKS_COM[LINK_YAW][1] * s_psi)) +
-                s_theta * (c_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                      LINKS_COM[LINK_YAW][0] * s_psi) +
-                           LINKS_COM[LINK_YAW][2] * c_phi * s_theta +
-                           s_phi * s_theta * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                              LINKS_COM[LINK_YAW][1] * s_psi));
+                _c_theta * (LINKS_COM[LINK_YAW][2] * _c_phi * _c_theta -
+                           _s_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                      LINKS_COM[LINK_YAW][0] * _s_psi) +
+                           _c_theta * _s_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                              LINKS_COM[LINK_YAW][1] * _s_psi)) +
+                _s_theta * (_c_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                      LINKS_COM[LINK_YAW][0] * _s_psi) +
+                           LINKS_COM[LINK_YAW][2] * _c_phi * _s_theta +
+                           _s_phi * _s_theta * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                              LINKS_COM[LINK_YAW][1] * _s_psi));
 
-            comJ(1,3) = s_theta * (LINKS_COM[LINK_YAW][2] * s_phi -
-                                    c_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                             LINKS_COM[LINK_YAW][1] * s_psi));
-            comJ(2, 3) = -c_theta * (LINKS_COM[LINK_YAW][2] * s_phi -
-                                     c_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                              LINKS_COM[LINK_YAW][1] * s_psi));
-            comJ(4, 3) = c_theta;
-            comJ(5, 3) = s_theta;
+            comJ(1,3) = _s_theta * (LINKS_COM[LINK_YAW][2] * _s_phi -
+                                    _c_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                             LINKS_COM[LINK_YAW][1] * _s_psi));
+            comJ(2, 3) = -_c_theta * (LINKS_COM[LINK_YAW][2] * _s_phi -
+                                     _c_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                              LINKS_COM[LINK_YAW][1] * _s_psi));
+            comJ(4, 3) = _c_theta;
+            comJ(5, 3) = _s_theta;
             comJ(0, 4) =
-                c_phi * c_theta *
-                    (c_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                LINKS_COM[LINK_YAW][0] * s_psi) +
-                     LINKS_COM[LINK_YAW][2] * c_phi * s_theta +
-                     s_phi * s_theta * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                        LINKS_COM[LINK_YAW][1] * s_psi)) -
-                c_phi * s_theta *
-                    (LINKS_COM[LINK_YAW][2] * c_phi * c_theta -
-                     s_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                LINKS_COM[LINK_YAW][0] * s_psi) +
-                     c_theta * s_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                        LINKS_COM[LINK_YAW][1] * s_psi));
+                _c_phi * _c_theta *
+                    (_c_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                LINKS_COM[LINK_YAW][0] * _s_psi) +
+                     LINKS_COM[LINK_YAW][2] * _c_phi * _s_theta +
+                     _s_phi * _s_theta * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                        LINKS_COM[LINK_YAW][1] * _s_psi)) -
+                _c_phi * _s_theta *
+                    (LINKS_COM[LINK_YAW][2] * _c_phi * _c_theta -
+                     _s_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                LINKS_COM[LINK_YAW][0] * _s_psi) +
+                     _c_theta * _s_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                        LINKS_COM[LINK_YAW][1] * _s_psi));
             comJ(1, 4) =
-                c_phi * c_theta * (LINKS_COM[LINK_YAW][2] * s_phi -
-                                   c_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                            LINKS_COM[LINK_YAW][1] * s_psi)) -
-                s_phi * (LINKS_COM[LINK_YAW][2] * c_phi * c_theta -
-                         s_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                    LINKS_COM[LINK_YAW][0] * s_psi) +
-                         c_theta * s_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                            LINKS_COM[LINK_YAW][1] * s_psi));
+                _c_phi * _c_theta * (LINKS_COM[LINK_YAW][2] * _s_phi -
+                                   _c_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                            LINKS_COM[LINK_YAW][1] * _s_psi)) -
+                _s_phi * (LINKS_COM[LINK_YAW][2] * _c_phi * _c_theta -
+                         _s_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                    LINKS_COM[LINK_YAW][0] * _s_psi) +
+                         _c_theta * _s_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                            LINKS_COM[LINK_YAW][1] * _s_psi));
             comJ(2, 4) =
-                c_phi * s_theta * (LINKS_COM[LINK_YAW][2] * s_phi -
-                                   c_phi * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                            LINKS_COM[LINK_YAW][1] * s_psi)) -
-                s_phi * (c_theta * (LINKS_COM[LINK_YAW][1] * c_psi +
-                                    LINKS_COM[LINK_YAW][0] * s_psi) +
-                         LINKS_COM[LINK_YAW][2] * c_phi * s_theta +
-                         s_phi * s_theta * (LINKS_COM[LINK_YAW][0] * c_psi -
-                                            LINKS_COM[LINK_YAW][1] * s_psi));
+                _c_phi * _s_theta * (LINKS_COM[LINK_YAW][2] * _s_phi -
+                                   _c_phi * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                            LINKS_COM[LINK_YAW][1] * _s_psi)) -
+                _s_phi * (_c_theta * (LINKS_COM[LINK_YAW][1] * _c_psi +
+                                    LINKS_COM[LINK_YAW][0] * _s_psi) +
+                         LINKS_COM[LINK_YAW][2] * _c_phi * _s_theta +
+                         _s_phi * _s_theta * (LINKS_COM[LINK_YAW][0] * _c_psi -
+                                            LINKS_COM[LINK_YAW][1] * _s_psi));
 
-            comJ(3,4) = s_phi;
-            comJ(4,4) = -c_phi*s_theta;
-            comJ(5,4) = c_phi*c_theta;;                                            
-            // comJ<< 0.0f, 1.0f,                                                                                                                                                                                         0.0f, c_theta*(LINKS_COM[LINK_YAW][2]*c_phi*c_theta - s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) + s_theta*(c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi*s_theta + s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)), c_phi*c_theta*(c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi*s_theta + s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - c_phi*s_theta*(LINKS_COM[LINK_YAW][2]*c_phi*c_theta - s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)),
-            //        1.0f, 0.0f,   s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) - LINKS_COM[LINK_YAW][2]*c_phi*c_theta - c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi),                                                                                                                                                                                                                                                                                                s_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)),                                                                                                 c_phi*c_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - s_phi*(LINKS_COM[LINK_YAW][2]*c_phi*c_theta - s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)),
-            //        0.0f, 0.0f, - c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) - LINKS_COM[LINK_YAW][2]*c_phi*s_theta - s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi),                                                                                                                                                                                                                                                                                               -c_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)),                                                                                                 c_phi*s_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - s_phi*(c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi*s_theta + s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)),
-            //        0.0f, 0.0f,                                                                                                                                                                                         1.0f,                                                                                                                                                                                                                                                                                                                                                                                                           0,                                                                                                                                                                                                                                                                                                                                                                                                                   s_phi,
-            //        0.0f, 0.0f,                                                                                                                                                                                         0.0f,                                                                                                                                                                                                                                                                                                                                                                                                     c_theta,                                                                                                                                                                                                                                                                                                                                                                                                          -c_phi*s_theta,
-            //        0.0f, 0.0f,                                                                                                                                                                                         0.0f,                                                                                                                                                                                                                                                                                                                                                                                                     s_theta,                                                                                                                                                                                                                                                                                                                                                                                                           c_phi*c_theta;
+            comJ(3,4) = _s_phi;
+            comJ(4,4) = -_c_phi*_s_theta;
+            comJ(5,4) = _c_phi*_c_theta;;                                            
+            // comJ<< 0.0f, 1.0f,                                                                                                                                                                                         0.0f, _c_theta*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) + _s_theta*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)), _c_phi*_c_theta*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),
+            //        1.0f, 0.0f,   _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) - LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi),                                                                                                                                                                                                                                                                                                _s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),                                                                                                 _c_phi*_c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _s_phi*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),
+            //        0.0f, 0.0f, - _c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) - LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta - _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi),                                                                                                                                                                                                                                                                                               -_c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),                                                                                                 _c_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _s_phi*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),
+            //        0.0f, 0.0f,                                                                                                                                                                                         1.0f,                                                                                                                                                                                                                                                                                                                                                                                                           0,                                                                                                                                                                                                                                                                                                                                                                                                                   _s_phi,
+            //        0.0f, 0.0f,                                                                                                                                                                                         0.0f,                                                                                                                                                                                                                                                                                                                                                                                                     _c_theta,                                                                                                                                                                                                                                                                                                                                                                                                          -_c_phi*_s_theta,
+            //        0.0f, 0.0f,                                                                                                                                                                                         0.0f,                                                                                                                                                                                                                                                                                                                                                                                                     _s_theta,                                                                                                                                                                                                                                                                                                                                                                                                           _c_phi*_c_theta;
 ;
 
             
@@ -810,82 +780,82 @@ Eigen::Matrix<float, 6, NB_AXIS> Platform::comGeometricJacobian(link_chain link)
             comJ(1, 0) = 1.0f;
             comJ(0, 1) = 1.0f;
             comJ(1, 2) = LINKS_COM[LINK_PEDAL][0] *
-                             (c_psi * s_theta + c_theta * s_phi * s_psi) -
+                             (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi) -
                          LINKS_COM[LINK_PEDAL][1] *
-                             (s_psi * s_theta - c_psi * c_theta * s_phi) -
-                         d6 * c_phi * c_theta -
-                         LINKS_COM[LINK_PEDAL][2] * c_phi * c_theta;
+                             (_s_psi * _s_theta - _c_psi * _c_theta * _s_phi) -
+                         d6 * _c_phi * _c_theta -
+                         LINKS_COM[LINK_PEDAL][2] * _c_phi * _c_theta;
             comJ(2, 2) = LINKS_COM[LINK_PEDAL][1] *
-                             (c_theta * s_psi + c_psi * s_phi * s_theta) -
+                             (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) -
                          LINKS_COM[LINK_PEDAL][0] *
-                             (c_psi * c_theta - s_phi * s_psi * s_theta) -
-                         d6 * c_phi * s_theta -
-                         LINKS_COM[LINK_PEDAL][2] * c_phi * s_theta;
+                             (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) -
+                         d6 * _c_phi * _s_theta -
+                         LINKS_COM[LINK_PEDAL][2] * _c_phi * _s_theta;
             comJ(3,2) = 1.0f;
             comJ(1, 3) =
-                c_theta * (LINKS_COM[LINK_PEDAL][1] *
-                               (s_psi * s_theta - c_psi * c_theta * s_phi) -
+                _c_theta * (LINKS_COM[LINK_PEDAL][1] *
+                               (_s_psi * _s_theta - _c_psi * _c_theta * _s_phi) -
                            LINKS_COM[LINK_PEDAL][0] *
-                               (c_psi * s_theta + c_theta * s_phi * s_psi) +
-                           d6 * c_phi * c_theta +
-                           LINKS_COM[LINK_PEDAL][2] * c_phi * c_theta) +
-                s_theta * (LINKS_COM[LINK_PEDAL][0] *
-                               (c_psi * c_theta - s_phi * s_psi * s_theta) -
+                               (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi) +
+                           d6 * _c_phi * _c_theta +
+                           LINKS_COM[LINK_PEDAL][2] * _c_phi * _c_theta) +
+                _s_theta * (LINKS_COM[LINK_PEDAL][0] *
+                               (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) -
                            LINKS_COM[LINK_PEDAL][1] *
-                               (c_theta * s_psi + c_psi * s_phi * s_theta) +
-                           d6 * c_phi * s_theta +
-                           LINKS_COM[LINK_PEDAL][2] * c_phi * s_theta);
+                               (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) +
+                           d6 * _c_phi * _s_theta +
+                           LINKS_COM[LINK_PEDAL][2] * _c_phi * _s_theta);
             comJ(2, 3) =
-                -c_theta * (d6 * s_phi + LINKS_COM[LINK_PEDAL][2] * s_phi +
-                            LINKS_COM[LINK_PEDAL][1] * c_phi * c_psi +
-                            LINKS_COM[LINK_PEDAL][0] * c_phi * s_psi);
-            comJ(4, 3) = c_theta;
-            comJ(5, 3) = s_theta;
-            comJ(0, 4) = c_phi * c_theta *
+                -_c_theta * (d6 * _s_phi + LINKS_COM[LINK_PEDAL][2] * _s_phi +
+                            LINKS_COM[LINK_PEDAL][1] * _c_phi * _c_psi +
+                            LINKS_COM[LINK_PEDAL][0] * _c_phi * _s_psi);
+            comJ(4, 3) = _c_theta;
+            comJ(5, 3) = _s_theta;
+            comJ(0, 4) = _c_phi * _c_theta *
                              (LINKS_COM[LINK_PEDAL][0] *
-                                  (c_psi * c_theta - s_phi * s_psi * s_theta) -
+                                  (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) -
                               LINKS_COM[LINK_PEDAL][1] *
-                                  (c_theta * s_psi + c_psi * s_phi * s_theta) +
-                              d6 * c_phi * s_theta +
-                              LINKS_COM[LINK_PEDAL][2] * c_phi * s_theta) -
-                         c_phi * s_theta *
+                                  (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) +
+                              d6 * _c_phi * _s_theta +
+                              LINKS_COM[LINK_PEDAL][2] * _c_phi * _s_theta) -
+                         _c_phi * _s_theta *
                              (LINKS_COM[LINK_PEDAL][1] *
-                                  (s_psi * s_theta - c_psi * c_theta * s_phi) -
+                                  (_s_psi * _s_theta - _c_psi * _c_theta * _s_phi) -
                               LINKS_COM[LINK_PEDAL][0] *
-                                  (c_psi * s_theta + c_theta * s_phi * s_psi) +
-                              d6 * c_phi * c_theta +
-                              LINKS_COM[LINK_PEDAL][2] * c_phi * c_theta);
+                                  (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi) +
+                              d6 * _c_phi * _c_theta +
+                              LINKS_COM[LINK_PEDAL][2] * _c_phi * _c_theta);
             comJ(1,4) =
-                      c_phi * c_theta *
-                          (d6 * s_phi + LINKS_COM[LINK_PEDAL][2] * s_phi +
-                           LINKS_COM[LINK_PEDAL][1] * c_phi * c_psi +
-                           LINKS_COM[LINK_PEDAL][0] * c_phi * s_psi) -
-                      s_phi * (LINKS_COM[LINK_PEDAL][1] *
-                                   (s_psi * s_theta - c_psi * c_theta * s_phi) -
+                      _c_phi * _c_theta *
+                          (d6 * _s_phi + LINKS_COM[LINK_PEDAL][2] * _s_phi +
+                           LINKS_COM[LINK_PEDAL][1] * _c_phi * _c_psi +
+                           LINKS_COM[LINK_PEDAL][0] * _c_phi * _s_psi) -
+                      _s_phi * (LINKS_COM[LINK_PEDAL][1] *
+                                   (_s_psi * _s_theta - _c_psi * _c_theta * _s_phi) -
                                LINKS_COM[LINK_PEDAL][0] *
-                                   (c_psi * s_theta + c_theta * s_phi * s_psi) +
-                               d6 * c_phi * c_theta +
-                               LINKS_COM[LINK_PEDAL][2] * c_phi * c_theta);
+                                   (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi) +
+                               d6 * _c_phi * _c_theta +
+                               LINKS_COM[LINK_PEDAL][2] * _c_phi * _c_theta);
             comJ(2,4) = 
-                     c_phi * s_theta *
-                         (d6 * s_phi + LINKS_COM[LINK_PEDAL][2] * s_phi +
-                          LINKS_COM[LINK_PEDAL][1] * c_phi * c_psi +
-                          LINKS_COM[LINK_PEDAL][0] * c_phi * s_psi) -
-                     s_phi * (LINKS_COM[LINK_PEDAL][0] *
-                                  (c_psi * c_theta - s_phi * s_psi * s_theta) -
+                     _c_phi * _s_theta *
+                         (d6 * _s_phi + LINKS_COM[LINK_PEDAL][2] * _s_phi +
+                          LINKS_COM[LINK_PEDAL][1] * _c_phi * _c_psi +
+                          LINKS_COM[LINK_PEDAL][0] * _c_phi * _s_psi) -
+                     _s_phi * (LINKS_COM[LINK_PEDAL][0] *
+                                  (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) -
                               LINKS_COM[LINK_PEDAL][1] *
-                                  (c_theta * s_psi + c_psi * s_phi * s_theta) +
-                              d6 * c_phi * s_theta +
-                              LINKS_COM[LINK_PEDAL][2] * c_phi * s_theta);
-            comJ(3,4) =          s_phi;
-            comJ(4,4) = -c_phi*s_theta;
-            comJ(5,4) =  c_phi*c_theta;                  
-            //comJ<< 0.0f, 1.0f,                                                                                                                                                                                        0.0f, c_theta*(LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) + d6*c_phi*c_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta) + s_theta*(LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) + d6*c_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta), c_phi*c_theta*(LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) + d6*c_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta) - c_phi*s_theta*(LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) + d6*c_phi*c_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta),
-            //       1.0f, 0.0f, LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) - LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - d6*c_phi*c_theta - LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta,                                                                                                                                                                                                                                                                             s_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi),                                                                             c_phi*c_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi) - s_phi*(LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) + d6*c_phi*c_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta),
-            //       0.0f, 0.0f, LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) - LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - d6*c_phi*s_theta - LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta,                                                                                                                                                                                                                                                                            -c_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi),                                                                             c_phi*s_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi) - s_phi*(LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) + d6*c_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta),
-            //       0.0f, 0.0f,                                                                                                                                                                                        1.0f,                                                                                                                                                                                                                                                                                                                                                                                                          0.0f,                                                                                                                                                                                                                                                                                                                                                                                                                     s_phi,
-            //       0.0f, 0.0f,                                                                                                                                                                                        0.0f,                                                                                                                                                                                                                                                                                                                                                                                                       c_theta,                                                                                                                                                                                                                                                                                                                                                                                                            -c_phi*s_theta,
-            //       0.0f, 0.0f,                                                                                                                                                                                        0.0f,                                                                                                                                                                                                                                                                                                                                                                                                       s_theta,                                                                                                                                                                                                                                                                                                                                                                                                             c_phi*c_theta;
+                                  (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) +
+                              d6 * _c_phi * _s_theta +
+                              LINKS_COM[LINK_PEDAL][2] * _c_phi * _s_theta);
+            comJ(3,4) =          _s_phi;
+            comJ(4,4) = -_c_phi*_s_theta;
+            comJ(5,4) =  _c_phi*_c_theta;                  
+            //comJ<< 0.0f, 1.0f,                                                                                                                                                                                        0.0f, _c_theta*(LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) + d6*_c_phi*_c_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta) + _s_theta*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + d6*_c_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta), _c_phi*_c_theta*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + d6*_c_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta) - _c_phi*_s_theta*(LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) + d6*_c_phi*_c_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta),
+            //       1.0f, 0.0f, LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) - LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - d6*_c_phi*_c_theta - LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta,                                                                                                                                                                                                                                                                             _s_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi),                                                                             _c_phi*_c_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi) - _s_phi*(LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) + d6*_c_phi*_c_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta),
+            //       0.0f, 0.0f, LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) - LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - d6*_c_phi*_s_theta - LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta,                                                                                                                                                                                                                                                                            -_c_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi),                                                                             _c_phi*_s_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi) - _s_phi*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + d6*_c_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta),
+            //       0.0f, 0.0f,                                                                                                                                                                                        1.0f,                                                                                                                                                                                                                                                                                                                                                                                                          0.0f,                                                                                                                                                                                                                                                                                                                                                                                                                     _s_phi,
+            //       0.0f, 0.0f,                                                                                                                                                                                        0.0f,                                                                                                                                                                                                                                                                                                                                                                                                       _c_theta,                                                                                                                                                                                                                                                                                                                                                                                                            -_c_phi*_s_theta,
+            //       0.0f, 0.0f,                                                                                                                                                                                        0.0f,                                                                                                                                                                                                                                                                                                                                                                                                       _s_theta,                                                                                                                                                                                                                                                                                                                                                                                                             _c_phi*_c_theta;
  
             break;   
         }  
@@ -913,33 +883,25 @@ Eigen::Matrix4f Platform::dhTransform(float r,float d,float alpha,float beta)
 
 }
 
-
-#if (CORIOLIS_DEV_STRATEGY==CORIOLIS_KRONECKER)
+#if (CORIOLIS_DEV_STRATEGY == CORIOLIS_KRONECKER)
 
 Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> Platform::devQComGeomJacobian(link_chain link)
 {
     Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> devComJ;
     devComJ.setConstant(0.0f);
 
-    float c_theta = cos(_position(PITCH) );
-    float c_phi = cos(_position(ROLL) );
-    float c_psi = cos(_position(YAW));
-    float s_theta = sin(_position(PITCH) );
-    float s_phi = sin(_position(ROLL) );
-    float s_psi = sin(_position(YAW));
-
     switch (link)
     {
         case LINK_BASE ... LINK_X:
         {
-            //devComJ.setConstant(0.0f); -> already zero before the switchCase
+            devComJ.setConstant(0.0f); //-> already zero before the switchCase
             break;   
         }
 
         case LINK_PITCH:
         {
-            devComJ(12,1)=LINKS_COM[LINK_PITCH][1]* c_theta + LINKS_COM[LINK_PITCH][0]*s_theta;
-            devComJ(12, 2) = LINKS_COM[LINK_PITCH][1] * s_theta - LINKS_COM[LINK_PITCH][0] * c_theta;
+            devComJ(12,1)=LINKS_COM[LINK_PITCH][1]* _c_theta + LINKS_COM[LINK_PITCH][0]*_s_theta;
+            devComJ(12, 2) = LINKS_COM[LINK_PITCH][1] * _s_theta - LINKS_COM[LINK_PITCH][0] * _c_theta;
             break;  
 
         //    devComJ<<[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -953,17 +915,17 @@ Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> Platform::devQComGeomJacobian(link_ch
 
         case LINK_ROLL:
         {
-            devComJ(12, 1) =   s_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi) - LINKS_COM[LINK_ROLL][2]*c_theta;
-            devComJ(12, 2) = - LINKS_COM[LINK_ROLL][2]*s_theta - c_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi);               
-            devComJ(13, 1) =  c_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi) ;
-            devComJ(13, 2) =  s_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi) ;
-            devComJ(17, 1) =  c_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi);
-            devComJ(17, 2) =  s_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi);
-            devComJ(17, 4) = -s_theta;
-            devComJ(17, 5) =  c_theta;
-            devComJ(18, 0) = - c_theta*c_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi) - s_theta*s_theta*(LINKS_COM[LINK_ROLL][1]*c_phi + LINKS_COM[LINK_ROLL][0]*s_phi);
-            devComJ(18, 1) =                                                  s_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi);
-            devComJ(18, 2) =                                                 -c_theta*(LINKS_COM[LINK_ROLL][0]*c_phi - LINKS_COM[LINK_ROLL][1]*s_phi);
+            devComJ(12, 1) =   _s_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi) - LINKS_COM[LINK_ROLL][2]*_c_theta;
+            devComJ(12, 2) = - LINKS_COM[LINK_ROLL][2]*_s_theta - _c_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi);               
+            devComJ(13, 1) =  _c_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi) ;
+            devComJ(13, 2) =  _s_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi) ;
+            devComJ(17, 1) =  _c_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi);
+            devComJ(17, 2) =  _s_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi);
+            devComJ(17, 4) = -_s_theta;
+            devComJ(17, 5) =  _c_theta;
+            devComJ(18, 0) = - _c_theta*_c_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi) - _s_theta*_s_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi);
+            devComJ(18, 1) =                                                  _s_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi);
+            devComJ(18, 2) =                                                 -_c_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi);
         // devComJ<<  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                           0,                                        0, 0, 0, 0,                                        0, - cos(theta)^2*(r_y*cos(phi) + r_x*sin(phi)) - sin(theta)^2*(r_y*cos(phi) + r_x*sin(phi)), 0, 0, 0, 0, 0, 0]
         //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   sin(theta)*(r_x*cos(phi) - r_y*sin(phi)) - r_z*cos(theta), cos(theta)*(r_y*cos(phi) + r_x*sin(phi)), 0, 0, 0, cos(theta)*(r_y*cos(phi) + r_x*sin(phi)),                                                  sin(theta)*(r_x*cos(phi) - r_y*sin(phi)), 0, 0, 0, 0, 0, 0]
         //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, - r_z*sin(theta) - cos(theta)*(r_x*cos(phi) - r_y*sin(phi)), sin(theta)*(r_y*cos(phi) + r_x*sin(phi)), 0, 0, 0, sin(theta)*(r_y*cos(phi) + r_x*sin(phi)),                                                 -cos(theta)*(r_x*cos(phi) - r_y*sin(phi)), 0, 0, 0, 0, 0, 0]
@@ -977,79 +939,75 @@ Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> Platform::devQComGeomJacobian(link_ch
 
         case LINK_YAW:
         {
-            devComJ(12, 1) = c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi*s_theta + s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi);
-            devComJ(12, 2) = s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) - LINKS_COM[LINK_YAW][2]*c_phi*c_theta - c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi);
-            devComJ(13, 1) = LINKS_COM[LINK_YAW][2]*c_theta*s_phi - c_phi*c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)  ;
-            devComJ(13, 2) = LINKS_COM[LINK_YAW][2]*s_phi*s_theta - c_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)  ;
-            devComJ(14, 1) = s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi);
-            devComJ(14, 2) = s_phi*s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) - c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi);
-            devComJ(17, 1) = c_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi))  ;
-            devComJ(17, 2) = s_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi))  ;
-            devComJ(17, 4) = -s_theta  ;
-            devComJ(17, 5) =  c_theta  ;
-            devComJ(18, 0) =  - s_theta*(LINKS_COM[LINK_YAW][2]*s_phi*s_theta - c_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - c_theta*(LINKS_COM[LINK_YAW][2]*c_theta*s_phi - c_phi*c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) ;
-            devComJ(18, 1) =   s_theta*(s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi) ;
-            devComJ(18, 2) =  -c_theta*(s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi) ;
-            devComJ(19, 0) = s_theta*(c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) - s_phi*s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi)) - c_theta*(s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi));
-            devComJ(19, 1) =   c_phi*s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi);
-            devComJ(19, 2) =  -c_phi*c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi);
-            devComJ(22, 1) =  s_phi*(c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi*s_theta + s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - c_phi*s_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)); 
-            devComJ(22, 2) =  c_phi*c_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - s_phi*(LINKS_COM[LINK_YAW][2]*c_phi*c_theta - s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)); 
-            devComJ(22, 4) =  -c_phi*c_theta;
-            devComJ(22, 5) =  -c_phi*s_theta;
-            devComJ(23, 0) = s_phi*s_theta*(LINKS_COM[LINK_YAW][2]*c_phi*c_theta - s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - c_theta*s_phi*(c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi*s_theta + s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) + c_phi*s_theta*(LINKS_COM[LINK_YAW][2]*c_theta*s_phi - c_phi*c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - c_phi*c_theta*(LINKS_COM[LINK_YAW][2]*s_phi*s_theta - c_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi));
-            devComJ(23, 1) = s_phi*(LINKS_COM[LINK_YAW][2]*c_theta*s_phi - c_phi*c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - c_phi*(LINKS_COM[LINK_YAW][2]*c_phi*c_theta - s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) + c_phi*c_theta*(s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi) - c_theta*s_phi*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi));
-            devComJ(23, 2) = s_phi*(LINKS_COM[LINK_YAW][2]*s_phi*s_theta - c_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) - c_phi*(c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi*s_theta + s_phi*s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi)) + c_phi*s_theta*(s_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + LINKS_COM[LINK_YAW][2]*c_phi) - s_phi*s_theta*(LINKS_COM[LINK_YAW][2]*s_phi - c_phi*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi));
-            devComJ(23, 3) =             c_phi;
-            devComJ(23, 4) =  s_phi*s_theta;
-            devComJ(23, 5) = -c_theta*s_phi;
-            devComJ(24, 0) = c_phi*c_theta*(c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) - s_phi*s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi)) + c_phi*s_theta*(s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi)) ;
-            devComJ(24, 1) = s_phi*(s_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) + c_theta*s_phi*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi)) + c_phi*c_phi*c_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) ;
-            devComJ(24, 2) = c_phi*c_phi*s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi) - s_phi*(c_theta*(LINKS_COM[LINK_YAW][0]*c_psi - LINKS_COM[LINK_YAW][1]*s_psi) - s_phi*s_theta*(LINKS_COM[LINK_YAW][1]*c_psi + LINKS_COM[LINK_YAW][0]*s_psi)) ;
+            devComJ(12, 1) = _c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi);
+            devComJ(12, 2) = _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) - LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi);
+            devComJ(13, 1) = LINKS_COM[LINK_YAW][2]*_c_theta*_s_phi - _c_phi*_c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)  ;
+            devComJ(13, 2) = LINKS_COM[LINK_YAW][2]*_s_phi*_s_theta - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)  ;
+            devComJ(14, 1) = _s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi);
+            devComJ(14, 2) = _s_phi*_s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) - _c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi);
+            devComJ(17, 1) = _c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi))  ;
+            devComJ(17, 2) = _s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi))  ;
+            devComJ(17, 4) = -_s_theta  ;
+            devComJ(17, 5) =  _c_theta  ;
+            devComJ(18, 0) =  - _s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi*_s_theta - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_theta*(LINKS_COM[LINK_YAW][2]*_c_theta*_s_phi - _c_phi*_c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) ;
+            devComJ(18, 1) =   _s_theta*(_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi) ;
+            devComJ(18, 2) =  -_c_theta*(_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi) ;
+            devComJ(19, 0) = _s_theta*(_c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) - _s_phi*_s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi)) - _c_theta*(_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi));
+            devComJ(19, 1) =   _c_phi*_s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi);
+            devComJ(19, 2) =  -_c_phi*_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi);
+            devComJ(22, 1) =  _s_phi*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)); 
+            devComJ(22, 2) =  _c_phi*_c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _s_phi*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)); 
+            devComJ(22, 4) =  -_c_phi*_c_theta;
+            devComJ(22, 5) =  -_c_phi*_s_theta;
+            devComJ(23, 0) = _s_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_theta*_s_phi*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) + _c_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_c_theta*_s_phi - _c_phi*_c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_phi*_c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi*_s_theta - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi));
+            devComJ(23, 1) = _s_phi*(LINKS_COM[LINK_YAW][2]*_c_theta*_s_phi - _c_phi*_c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_phi*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) + _c_phi*_c_theta*(_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi) - _c_theta*_s_phi*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi));
+            devComJ(23, 2) = _s_phi*(LINKS_COM[LINK_YAW][2]*_s_phi*_s_theta - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_phi*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) + _c_phi*_s_theta*(_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi) - _s_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi));
+            devComJ(23, 3) =             _c_phi;
+            devComJ(23, 4) =  _s_phi*_s_theta;
+            devComJ(23, 5) = -_c_theta*_s_phi;
+            devComJ(24, 0) = _c_phi*_c_theta*(_c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) - _s_phi*_s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi)) + _c_phi*_s_theta*(_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi)) ;
+            devComJ(24, 1) = _s_phi*(_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi)) + _c_phi*_c_phi*_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) ;
+            devComJ(24, 2) = _c_phi*_c_phi*_s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) - _s_phi*(_c_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi) - _s_phi*_s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi)) ;
         // devComJ<<  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                                                                                           0,                                                                              0,                                                                                                0, 0, 0,                                                                     0, - sin(theta)*(yw_z*sin(phi)*sin(theta) - cos(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi))) - cos(theta)*(yw_z*cos(theta)*sin(phi) - cos(phi)*cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi))), sin(theta)*(cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi)) - sin(phi)*sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi))) - cos(theta)*(sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi)) + cos(theta)*sin(phi)*(yw_y*cos(psi) + yw_x*sin(psi))), 0, 0,                                                                                                                                                                                                                       0, sin(phi)*sin(theta)*(yw_z*cos(phi)*cos(theta) - sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) + cos(theta)*sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi))) - cos(theta)*sin(phi)*(cos(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) + yw_z*cos(phi)*sin(theta) + sin(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi))) + cos(phi)*sin(theta)*(yw_z*cos(theta)*sin(phi) - cos(phi)*cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi))) - cos(phi)*cos(theta)*(yw_z*sin(phi)*sin(theta) - cos(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi))), cos(phi)*cos(theta)*(cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi)) - sin(phi)*sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi))) + cos(phi)*sin(theta)*(sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi)) + cos(theta)*sin(phi)*(yw_y*cos(psi) + yw_x*sin(psi)))]
         //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, cos(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) + yw_z*cos(phi)*sin(theta) + sin(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi)), yw_z*cos(theta)*sin(phi) - cos(phi)*cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi)), sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi)) + cos(theta)*sin(phi)*(yw_y*cos(psi) + yw_x*sin(psi)), 0, 0, cos(theta)*(yw_z*sin(phi) - cos(phi)*(yw_x*cos(psi) - yw_y*sin(psi))),                                                                                                                       sin(theta)*(sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi)) + yw_z*cos(phi)),                                                                                                                                                                           cos(phi)*sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)), 0, 0, sin(phi)*(cos(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) + yw_z*cos(phi)*sin(theta) + sin(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi))) - cos(phi)*sin(theta)*(yw_z*sin(phi) - cos(phi)*(yw_x*cos(psi) - yw_y*sin(psi))),                                                                                                                sin(phi)*(yw_z*cos(theta)*sin(phi) - cos(phi)*cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi))) - cos(phi)*(yw_z*cos(phi)*cos(theta) - sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) + cos(theta)*sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi))) + cos(phi)*cos(theta)*(sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi)) + yw_z*cos(phi)) - cos(theta)*sin(phi)*(yw_z*sin(phi) - cos(phi)*(yw_x*cos(psi) - yw_y*sin(psi))),                                                                             sin(phi)*(sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi)) + cos(theta)*sin(phi)*(yw_y*cos(psi) + yw_x*sin(psi))) + cos(phi)^2*cos(theta)*(yw_y*cos(psi) + yw_x*sin(psi))]
         //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) - yw_z*cos(phi)*cos(theta) - cos(theta)*sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi)), yw_z*sin(phi)*sin(theta) - cos(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi)), sin(phi)*sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) - cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi)), 0, 0, sin(theta)*(yw_z*sin(phi) - cos(phi)*(yw_x*cos(psi) - yw_y*sin(psi))),                                                                                                                      -cos(theta)*(sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi)) + yw_z*cos(phi)),                                                                                                                                                                          -cos(phi)*cos(theta)*(yw_y*cos(psi) + yw_x*sin(psi)), 0, 0, cos(phi)*cos(theta)*(yw_z*sin(phi) - cos(phi)*(yw_x*cos(psi) - yw_y*sin(psi))) - sin(phi)*(yw_z*cos(phi)*cos(theta) - sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) + cos(theta)*sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi))),                                                                                                                sin(phi)*(yw_z*sin(phi)*sin(theta) - cos(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi))) - cos(phi)*(cos(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) + yw_z*cos(phi)*sin(theta) + sin(phi)*sin(theta)*(yw_x*cos(psi) - yw_y*sin(psi))) + cos(phi)*sin(theta)*(sin(phi)*(yw_x*cos(psi) - yw_y*sin(psi)) + yw_z*cos(phi)) - sin(phi)*sin(theta)*(yw_z*sin(phi) - cos(phi)*(yw_x*cos(psi) - yw_y*sin(psi))),                                                                             cos(phi)^2*sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)) - sin(phi)*(cos(theta)*(yw_x*cos(psi) - yw_y*sin(psi)) - sin(phi)*sin(theta)*(yw_y*cos(psi) + yw_x*sin(psi)))]
         //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                                                                                           0,                                                                              0,                                                                                                0, 0, 0,                                                                     0,                                                                                                                                                                                           0,                                                                                                                                                                                                                             0, 0, 0,                                                                                                                                                                                                                       0,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            cos(phi),                                                                                                                                                                                                                                               0]
         //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                                                                                           0,                                                                              0,                                                                                                0, 0, 0,                                                           -sin(theta),                                                                                                                                                                                           0,                                                                                                                                                                                                                             0, 0, 0,                                                                                                                                                                                                    -cos(phi)*cos(theta),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 sin(phi)*sin(theta),                                                                                                                                                                                                                                               0]
-        //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                                                                                           0,                                                                              0,                                                                                                0, 0, 0,                                                            cos(theta),                                                                                                                                                                                           0,                                                                                                                                                                                                                             0, 0, 0,                                                                                                                                                                                                    -cos(phi)*sin(theta),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -cos(theta)*sin(phi),                                                                                                                                                                                                                                               0]
- 
-;
-
-            
+        //            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                                                                                           0,                                                                              0,                                                                                                0, 0, 0,                                                            cos(theta),                                                                                                                                                                                           0,                                                                                                                                                                                                                             0, 0, 0,                                                                                                                                                                                                    -cos(phi)*sin(theta),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -cos(theta)*sin(phi),                                                                                                                                                                                                                                               0]           
              break;   
         }
 
         case LINK_PEDAL:
         {
-            devComJ(12, 1) = LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) + d6*c_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta;
-            devComJ(12, 2) =  LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) - LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - d6*c_phi*c_theta - LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta;
-            devComJ(13, 1) = d6*c_theta*s_phi + LINKS_COM[LINK_PEDAL][2]*c_theta*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*c_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*c_theta*s_psi;
-            devComJ(13, 2) =  d6*s_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*s_phi*s_theta + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*s_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi*s_theta;
-            devComJ(14, 1) = - LINKS_COM[LINK_PEDAL][0]*(s_psi*s_theta - c_psi*c_theta*s_phi) - LINKS_COM[LINK_PEDAL][1]*(c_psi*s_theta + c_theta*s_phi*s_psi);
-            devComJ(14, 2) =    LINKS_COM[LINK_PEDAL][0]*(c_theta*s_psi + c_psi*s_phi*s_theta) + LINKS_COM[LINK_PEDAL][1]*(c_psi*c_theta - s_phi*s_psi*s_theta);
-            devComJ(17, 1) = c_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi);
-            devComJ(17, 2) =  s_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi);
-            devComJ(17, 4) = -s_theta;
-            devComJ(17, 5) =  c_theta;
-            devComJ(18, 0) = - c_theta*(d6*c_theta*s_phi + LINKS_COM[LINK_PEDAL][2]*c_theta*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*c_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*c_theta*s_psi) - s_theta*(d6*s_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*s_phi*s_theta + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*s_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi*s_theta);
-            devComJ(18, 1) =  s_theta*(d6*c_phi + LINKS_COM[LINK_PEDAL][2]*c_phi - LINKS_COM[LINK_PEDAL][1]*c_psi*s_phi - LINKS_COM[LINK_PEDAL][0]*s_phi*s_psi);
-            devComJ(18, 2) =  -c_theta*(d6*c_phi + LINKS_COM[LINK_PEDAL][2]*c_phi - LINKS_COM[LINK_PEDAL][1]*c_psi*s_phi - LINKS_COM[LINK_PEDAL][0]*s_phi*s_psi);
-            devComJ(19, 0) =  c_theta*(LINKS_COM[LINK_PEDAL][0]*(s_psi*s_theta - c_psi*c_theta*s_phi) + LINKS_COM[LINK_PEDAL][1]*(c_psi*s_theta + c_theta*s_phi*s_psi)) - s_theta*(LINKS_COM[LINK_PEDAL][0]*(c_theta*s_psi + c_psi*s_phi*s_theta) + LINKS_COM[LINK_PEDAL][1]*(c_psi*c_theta - s_phi*s_psi*s_theta));
-            devComJ(19, 1) =   s_theta*(LINKS_COM[LINK_PEDAL][0]*c_phi*c_psi - LINKS_COM[LINK_PEDAL][1]*c_phi*s_psi);
-            devComJ(19, 2) =  -c_theta*(LINKS_COM[LINK_PEDAL][0]*c_phi*c_psi - LINKS_COM[LINK_PEDAL][1]*c_phi*s_psi);
-            devComJ(22, 1) =  s_phi*(LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) + d6*c_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta) - c_phi*s_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi);
-            devComJ(22, 2) =  c_phi*c_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi) - s_phi*(LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) + d6*c_phi*c_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta);
-            devComJ(22, 4) =  -c_phi*c_theta;
-            devComJ(22, 5) =  -c_phi*s_theta;
-            devComJ(23, 0) =  s_phi*s_theta*(LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) + d6*c_phi*c_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta) - c_theta*s_phi*(LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) + d6*c_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta) + c_phi*s_theta*(d6*c_theta*s_phi + LINKS_COM[LINK_PEDAL][2]*c_theta*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*c_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*c_theta*s_psi) - c_phi*c_theta*(d6*s_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*s_phi*s_theta + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*s_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi*s_theta);
-            devComJ(23, 1) =  s_phi*(d6*c_theta*s_phi + LINKS_COM[LINK_PEDAL][2]*c_theta*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*c_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*c_theta*s_psi) - c_phi*(LINKS_COM[LINK_PEDAL][1]*(s_psi*s_theta - c_psi*c_theta*s_phi) - LINKS_COM[LINK_PEDAL][0]*(c_psi*s_theta + c_theta*s_phi*s_psi) + d6*c_phi*c_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*c_theta) + c_phi*c_theta*(d6*c_phi + LINKS_COM[LINK_PEDAL][2]*c_phi - LINKS_COM[LINK_PEDAL][1]*c_psi*s_phi - LINKS_COM[LINK_PEDAL][0]*s_phi*s_psi) - c_theta*s_phi*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi);
-            devComJ(23, 2) =  s_phi*(d6*s_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*s_phi*s_theta + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi*s_theta + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi*s_theta) - c_phi*(LINKS_COM[LINK_PEDAL][0]*(c_psi*c_theta - s_phi*s_psi*s_theta) - LINKS_COM[LINK_PEDAL][1]*(c_theta*s_psi + c_psi*s_phi*s_theta) + d6*c_phi*s_theta + LINKS_COM[LINK_PEDAL][2]*c_phi*s_theta) + c_phi*s_theta*(d6*c_phi + LINKS_COM[LINK_PEDAL][2]*c_phi - LINKS_COM[LINK_PEDAL][1]*c_psi*s_phi - LINKS_COM[LINK_PEDAL][0]*s_phi*s_psi) - s_phi*s_theta*(d6*s_phi + LINKS_COM[LINK_PEDAL][2]*s_phi + LINKS_COM[LINK_PEDAL][1]*c_phi*c_psi + LINKS_COM[LINK_PEDAL][0]*c_phi*s_psi);
-            devComJ(23, 3) =   c_phi;
-            devComJ(23, 4) =   s_phi*s_theta;
-            devComJ(23, 5) =  -c_theta*s_phi;
-            devComJ(24, 0) =  - c_phi*s_theta*(LINKS_COM[LINK_PEDAL][0]*(s_psi*s_theta - c_psi*c_theta*s_phi) + LINKS_COM[LINK_PEDAL][1]*(c_psi*s_theta + c_theta*s_phi*s_psi)) - c_phi*c_theta*(LINKS_COM[LINK_PEDAL][0]*(c_theta*s_psi + c_psi*s_phi*s_theta) + LINKS_COM[LINK_PEDAL][1]*(c_psi*c_theta - s_phi*s_psi*s_theta));
-            devComJ(24, 1) =  c_phi*c_theta*(LINKS_COM[LINK_PEDAL][0]*c_phi*c_psi - LINKS_COM[LINK_PEDAL][1]*c_phi*s_psi) - s_phi*(LINKS_COM[LINK_PEDAL][0]*(s_psi*s_theta - c_psi*c_theta*s_phi) + LINKS_COM[LINK_PEDAL][1]*(c_psi*s_theta + c_theta*s_phi*s_psi));
-            devComJ(24, 2) =  s_phi*(LINKS_COM[LINK_PEDAL][0]*(c_theta*s_psi + c_psi*s_phi*s_theta) + LINKS_COM[LINK_PEDAL][1]*(c_psi*c_theta - s_phi*s_psi*s_theta)) + c_phi*s_theta*(LINKS_COM[LINK_PEDAL][0]*c_phi*c_psi - LINKS_COM[LINK_PEDAL][1]*c_phi*s_psi);
+            devComJ(12, 1) = LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + d6*_c_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta;
+            devComJ(12, 2) =  LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) - LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - d6*_c_phi*_c_theta - LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta;
+            devComJ(13, 1) = d6*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][2]*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_c_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_theta*_s_psi;
+            devComJ(13, 2) =  d6*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_s_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi*_s_theta;
+            devComJ(14, 1) = - LINKS_COM[LINK_PEDAL][0]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - LINKS_COM[LINK_PEDAL][1]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi);
+            devComJ(14, 2) =    LINKS_COM[LINK_PEDAL][0]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + LINKS_COM[LINK_PEDAL][1]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta);
+            devComJ(17, 1) = _c_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi);
+            devComJ(17, 2) =  _s_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi);
+            devComJ(17, 4) = -_s_theta;
+            devComJ(17, 5) =  _c_theta;
+            devComJ(18, 0) = - _c_theta*(d6*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][2]*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_c_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_theta*_s_psi) - _s_theta*(d6*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_s_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi*_s_theta);
+            devComJ(18, 1) =  _s_theta*(d6*_c_phi + LINKS_COM[LINK_PEDAL][2]*_c_phi - LINKS_COM[LINK_PEDAL][1]*_c_psi*_s_phi - LINKS_COM[LINK_PEDAL][0]*_s_phi*_s_psi);
+            devComJ(18, 2) =  -_c_theta*(d6*_c_phi + LINKS_COM[LINK_PEDAL][2]*_c_phi - LINKS_COM[LINK_PEDAL][1]*_c_psi*_s_phi - LINKS_COM[LINK_PEDAL][0]*_s_phi*_s_psi);
+            devComJ(19, 0) =  _c_theta*(LINKS_COM[LINK_PEDAL][0]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) + LINKS_COM[LINK_PEDAL][1]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi)) - _s_theta*(LINKS_COM[LINK_PEDAL][0]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + LINKS_COM[LINK_PEDAL][1]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta));
+            devComJ(19, 1) =   _s_theta*(LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_psi - LINKS_COM[LINK_PEDAL][1]*_c_phi*_s_psi);
+            devComJ(19, 2) =  -_c_theta*(LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_psi - LINKS_COM[LINK_PEDAL][1]*_c_phi*_s_psi);
+            devComJ(22, 1) =  _s_phi*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + d6*_c_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta) - _c_phi*_s_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi);
+            devComJ(22, 2) =  _c_phi*_c_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi) - _s_phi*(LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) + d6*_c_phi*_c_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta);
+            devComJ(22, 4) =  -_c_phi*_c_theta;
+            devComJ(22, 5) =  -_c_phi*_s_theta;
+            devComJ(23, 0) =  _s_phi*_s_theta*(LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) + d6*_c_phi*_c_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta) - _c_theta*_s_phi*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + d6*_c_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta) + _c_phi*_s_theta*(d6*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][2]*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_c_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_theta*_s_psi) - _c_phi*_c_theta*(d6*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_s_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi*_s_theta);
+            devComJ(23, 1) =  _s_phi*(d6*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][2]*_c_theta*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_c_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_theta*_s_psi) - _c_phi*(LINKS_COM[LINK_PEDAL][1]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) - LINKS_COM[LINK_PEDAL][0]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi) + d6*_c_phi*_c_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_c_theta) + _c_phi*_c_theta*(d6*_c_phi + LINKS_COM[LINK_PEDAL][2]*_c_phi - LINKS_COM[LINK_PEDAL][1]*_c_psi*_s_phi - LINKS_COM[LINK_PEDAL][0]*_s_phi*_s_psi) - _c_theta*_s_phi*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi);
+            devComJ(23, 2) =  _s_phi*(d6*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi*_s_theta + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi*_s_theta) - _c_phi*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + d6*_c_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta) + _c_phi*_s_theta*(d6*_c_phi + LINKS_COM[LINK_PEDAL][2]*_c_phi - LINKS_COM[LINK_PEDAL][1]*_c_psi*_s_phi - LINKS_COM[LINK_PEDAL][0]*_s_phi*_s_psi) - _s_phi*_s_theta*(d6*_s_phi + LINKS_COM[LINK_PEDAL][2]*_s_phi + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi);
+            devComJ(23, 3) =   _c_phi;
+            devComJ(23, 4) =   _s_phi*_s_theta;
+            devComJ(23, 5) =  -_c_theta*_s_phi;
+            devComJ(24, 0) =  - _c_phi*_s_theta*(LINKS_COM[LINK_PEDAL][0]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) + LINKS_COM[LINK_PEDAL][1]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi)) - _c_phi*_c_theta*(LINKS_COM[LINK_PEDAL][0]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + LINKS_COM[LINK_PEDAL][1]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta));
+            devComJ(24, 1) =  _c_phi*_c_theta*(LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_psi - LINKS_COM[LINK_PEDAL][1]*_c_phi*_s_psi) - _s_phi*(LINKS_COM[LINK_PEDAL][0]*(_s_psi*_s_theta - _c_psi*_c_theta*_s_phi) + LINKS_COM[LINK_PEDAL][1]*(_c_psi*_s_theta + _c_theta*_s_phi*_s_psi));
+            devComJ(24, 2) =  _s_phi*(LINKS_COM[LINK_PEDAL][0]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + LINKS_COM[LINK_PEDAL][1]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta)) + _c_phi*_s_theta*(LINKS_COM[LINK_PEDAL][0]*_c_phi*_c_psi - LINKS_COM[LINK_PEDAL][1]*_c_phi*_s_psi);
 
             //devComJ<< [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                                                                                                                                                  0,                                                                                                                                  0,                                                                                                                             0, 0, 0,                                                                                                   0, - cos(theta)*(d6*cos(theta)*sin(phi) + pedal_z*cos(theta)*sin(phi) + pedal_y*cos(phi)*cos(psi)*cos(theta) + pedal_x*cos(phi)*cos(theta)*sin(psi)) - sin(theta)*(d6*sin(phi)*sin(theta) + pedal_z*sin(phi)*sin(theta) + pedal_y*cos(phi)*cos(psi)*sin(theta) + pedal_x*cos(phi)*sin(psi)*sin(theta)), cos(theta)*(pedal_x*(sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi)) + pedal_y*(cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi))) - sin(theta)*(pedal_x*(cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta)) + pedal_y*(cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta))), 0, 0,                                                                                                                                                                                                                                                                                                            0, sin(phi)*sin(theta)*(pedal_y*(sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi)) - pedal_x*(cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi)) + d6*cos(phi)*cos(theta) + pedal_z*cos(phi)*cos(theta)) - cos(theta)*sin(phi)*(pedal_x*(cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta)) - pedal_y*(cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta)) + d6*cos(phi)*sin(theta) + pedal_z*cos(phi)*sin(theta)) + cos(phi)*sin(theta)*(d6*cos(theta)*sin(phi) + pedal_z*cos(theta)*sin(phi) + pedal_y*cos(phi)*cos(psi)*cos(theta) + pedal_x*cos(phi)*cos(theta)*sin(psi)) - cos(phi)*cos(theta)*(d6*sin(phi)*sin(theta) + pedal_z*sin(phi)*sin(theta) + pedal_y*cos(phi)*cos(psi)*sin(theta) + pedal_x*cos(phi)*sin(psi)*sin(theta)), - cos(phi)*sin(theta)*(pedal_x*(sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi)) + pedal_y*(cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi))) - cos(phi)*cos(theta)*(pedal_x*(cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta)) + pedal_y*(cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta)))]
             //          [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, pedal_x*(cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta)) - pedal_y*(cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta)) + d6*cos(phi)*sin(theta) + pedal_z*cos(phi)*sin(theta), d6*cos(theta)*sin(phi) + pedal_z*cos(theta)*sin(phi) + pedal_y*cos(phi)*cos(psi)*cos(theta) + pedal_x*cos(phi)*cos(theta)*sin(psi), - pedal_x*(sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi)) - pedal_y*(cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi)), 0, 0, cos(theta)*(d6*sin(phi) + pedal_z*sin(phi) + pedal_y*cos(phi)*cos(psi) + pedal_x*cos(phi)*sin(psi)),                                                                                                                                                                                                 sin(theta)*(d6*cos(phi) + pedal_z*cos(phi) - pedal_y*cos(psi)*sin(phi) - pedal_x*sin(phi)*sin(psi)),                                                                                                                                                                                                                  sin(theta)*(pedal_x*cos(phi)*cos(psi) - pedal_y*cos(phi)*sin(psi)), 0, 0, sin(phi)*(pedal_x*(cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta)) - pedal_y*(cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta)) + d6*cos(phi)*sin(theta) + pedal_z*cos(phi)*sin(theta)) - cos(phi)*sin(theta)*(d6*sin(phi) + pedal_z*sin(phi) + pedal_y*cos(phi)*cos(psi) + pedal_x*cos(phi)*sin(psi)),                                                                                                                                                               sin(phi)*(d6*cos(theta)*sin(phi) + pedal_z*cos(theta)*sin(phi) + pedal_y*cos(phi)*cos(psi)*cos(theta) + pedal_x*cos(phi)*cos(theta)*sin(psi)) - cos(phi)*(pedal_y*(sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi)) - pedal_x*(cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi)) + d6*cos(phi)*cos(theta) + pedal_z*cos(phi)*cos(theta)) + cos(phi)*cos(theta)*(d6*cos(phi) + pedal_z*cos(phi) - pedal_y*cos(psi)*sin(phi) - pedal_x*sin(phi)*sin(psi)) - cos(theta)*sin(phi)*(d6*sin(phi) + pedal_z*sin(phi) + pedal_y*cos(phi)*cos(psi) + pedal_x*cos(phi)*sin(psi)),                                                                                    cos(phi)*cos(theta)*(pedal_x*cos(phi)*cos(psi) - pedal_y*cos(phi)*sin(psi)) - sin(phi)*(pedal_x*(sin(psi)*sin(theta) - cos(psi)*cos(theta)*sin(phi)) + pedal_y*(cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi)))]
@@ -1061,9 +1019,7 @@ Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> Platform::devQComGeomJacobian(link_ch
             break;   
         }  
     }
-  return devComJ;
-
-
+ return devComJ;
 }
 
 Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS * NB_AXIS>
@@ -1073,12 +1029,7 @@ Platform::devQComRotationMatrix(link_chain link)
   Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS * NB_AXIS> devComRotationMatrix_;
   devComRotationMatrix_.setIdentity();
 
-  float c_theta = cos(_position(PITCH) );
-  float c_phi = cos(_position(ROLL) );
-  float c_psi = cos(_position(YAW));
-  float s_theta = sin(_position(PITCH) );
-  float s_phi = sin(_position(ROLL) );
-  float s_psi = sin(_position(YAW));
+
 
     switch (link)
     {
@@ -1090,10 +1041,10 @@ Platform::devQComRotationMatrix(link_chain link)
 
         case LINK_PITCH:
         {
-            devComRotationMatrix_(1,2) = -c_theta;
-            devComRotationMatrix_(2,2) = -s_theta;
-            devComRotationMatrix_(1,7) =  s_theta;
-            devComRotationMatrix_(2,7) = -c_theta;
+            devComRotationMatrix_(1,2) = -_c_theta;
+            devComRotationMatrix_(2,2) = -_s_theta;
+            devComRotationMatrix_(1,7) =  _s_theta;
+            devComRotationMatrix_(2,7) = -_c_theta;
             // devComRotationMatrix_ << [ 0, 0,           0, 0, 0, 0, 0,           0, 0, 0, 0, 0, 0, 0, 0]
             //                          [ 0, 0, -cos(theta), 0, 0, 0, 0,  sin(theta), 0, 0, 0, 0, 0, 0, 0]
             //                          [ 0, 0, -sin(theta), 0, 0, 0, 0, -cos(theta), 0, 0, 0, 0, 0, 0, 0]
@@ -1102,18 +1053,18 @@ Platform::devQComRotationMatrix(link_chain link)
 
         case LINK_ROLL:
         {
-            devComRotationMatrix_(1,2) = -c_phi*c_theta;
-            devComRotationMatrix_(2,2) = -c_phi*s_theta;
-            devComRotationMatrix_(0,3) =             c_phi;
-            devComRotationMatrix_(1,3) =  s_phi*s_theta;
-            devComRotationMatrix_(2,3) = -c_theta*s_phi;
-            devComRotationMatrix_(1,7) = c_theta*s_phi;
-            devComRotationMatrix_(2,7) = s_phi*s_theta;
-            devComRotationMatrix_(0,8) =            -s_phi;
-            devComRotationMatrix_(1,8) =  c_phi*s_theta;
-            devComRotationMatrix_(2,8) = -c_phi*c_theta;
-            devComRotationMatrix_(1,12) = -s_theta;
-            devComRotationMatrix_(2,12) = c_theta;
+            devComRotationMatrix_(1,2) = -_c_phi*_c_theta;
+            devComRotationMatrix_(2,2) = -_c_phi*_s_theta;
+            devComRotationMatrix_(0,3) =             _c_phi;
+            devComRotationMatrix_(1,3) =  _s_phi*_s_theta;
+            devComRotationMatrix_(2,3) = -_c_theta*_s_phi;
+            devComRotationMatrix_(1,7) = _c_theta*_s_phi;
+            devComRotationMatrix_(2,7) = _s_phi*_s_theta;
+            devComRotationMatrix_(0,8) =            -_s_phi;
+            devComRotationMatrix_(1,8) =  _c_phi*_s_theta;
+            devComRotationMatrix_(2,8) = -_c_phi*_c_theta;
+            devComRotationMatrix_(1,12) = -_s_theta;
+            devComRotationMatrix_(2,12) = _c_theta;
 
          //devComRotationMatrix_ <<  [ 0, 0,                    0,             cos(phi), 0, 0, 0,                   0,            -sin(phi), 0, 0, 0,           0, 0, 0]
          //                          [ 0, 0, -cos(phi)*cos(theta),  sin(phi)*sin(theta), 0, 0, 0, cos(theta)*sin(phi),  cos(phi)*sin(theta), 0, 0, 0, -sin(theta), 0, 0]
@@ -1124,27 +1075,27 @@ Platform::devQComRotationMatrix(link_chain link)
 
         case LINK_YAW:
         {
-            devComRotationMatrix_(1,2)  =    s_psi*s_theta - c_psi*c_theta*s_phi ;
-            devComRotationMatrix_(2,2)  =  - c_theta*s_psi - c_psi*s_phi*s_theta ;
-            devComRotationMatrix_(0,3)  =   c_psi*s_phi ;
-            devComRotationMatrix_(1,3)  =  -c_phi*c_psi*s_theta ;
-            devComRotationMatrix_(2,3)  =   c_phi*c_psi*c_theta ;
-            devComRotationMatrix_(0,4)  =   c_phi*s_psi;
-            devComRotationMatrix_(1,4)  =    s_phi*s_psi*s_theta - c_psi*c_theta;
-            devComRotationMatrix_(2,4)  =  - c_psi*s_theta - c_theta*s_phi*s_psi;
-            devComRotationMatrix_(1,7)  =   c_psi*s_theta + c_theta*s_phi*s_psi;
-            devComRotationMatrix_(2,7)  =   s_phi*s_psi*s_theta - c_psi*c_theta;
-            devComRotationMatrix_(0,8)  =   -s_phi*s_psi;
-            devComRotationMatrix_(1,8)  =    c_phi*s_psi*s_theta;
-            devComRotationMatrix_(2,8)  =   -c_phi*c_theta*s_psi;
-            devComRotationMatrix_(0,9)  =    c_phi*c_psi;
-            devComRotationMatrix_(1,9)  =   c_theta*s_psi + c_psi*s_phi*s_theta;
-            devComRotationMatrix_(2,9)  =   s_psi*s_theta - c_psi*c_theta*s_phi;
-            devComRotationMatrix_(1,12) =   -c_phi*c_theta;
-            devComRotationMatrix_(2,12) =   -c_phi*s_theta;
-            devComRotationMatrix_(0,13) =    c_phi;
-            devComRotationMatrix_(1,13) =   s_phi*s_theta;
-            devComRotationMatrix_(2,13) =  -c_theta*s_phi;
+            devComRotationMatrix_(1,2)  =    _s_psi*_s_theta - _c_psi*_c_theta*_s_phi ;
+            devComRotationMatrix_(2,2)  =  - _c_theta*_s_psi - _c_psi*_s_phi*_s_theta ;
+            devComRotationMatrix_(0,3)  =   _c_psi*_s_phi ;
+            devComRotationMatrix_(1,3)  =  -_c_phi*_c_psi*_s_theta ;
+            devComRotationMatrix_(2,3)  =   _c_phi*_c_psi*_c_theta ;
+            devComRotationMatrix_(0,4)  =   _c_phi*_s_psi;
+            devComRotationMatrix_(1,4)  =    _s_phi*_s_psi*_s_theta - _c_psi*_c_theta;
+            devComRotationMatrix_(2,4)  =  - _c_psi*_s_theta - _c_theta*_s_phi*_s_psi;
+            devComRotationMatrix_(1,7)  =   _c_psi*_s_theta + _c_theta*_s_phi*_s_psi;
+            devComRotationMatrix_(2,7)  =   _s_phi*_s_psi*_s_theta - _c_psi*_c_theta;
+            devComRotationMatrix_(0,8)  =   -_s_phi*_s_psi;
+            devComRotationMatrix_(1,8)  =    _c_phi*_s_psi*_s_theta;
+            devComRotationMatrix_(2,8)  =   -_c_phi*_c_theta*_s_psi;
+            devComRotationMatrix_(0,9)  =    _c_phi*_c_psi;
+            devComRotationMatrix_(1,9)  =   _c_theta*_s_psi + _c_psi*_s_phi*_s_theta;
+            devComRotationMatrix_(2,9)  =   _s_psi*_s_theta - _c_psi*_c_theta*_s_phi;
+            devComRotationMatrix_(1,12) =   -_c_phi*_c_theta;
+            devComRotationMatrix_(2,12) =   -_c_phi*_s_theta;
+            devComRotationMatrix_(0,13) =    _c_phi;
+            devComRotationMatrix_(1,13) =   _s_phi*_s_theta;
+            devComRotationMatrix_(2,13) =  -_c_theta*_s_phi;
 
 
          //devComRotationMatrix_ << [ 0, 0,                                                    0,             cos(psi)*sin(phi),                                    cos(phi)*sin(psi), 0, 0,                                                  0,            -sin(phi)*sin(psi),                                  cos(phi)*cos(psi), 0, 0,                    0,             cos(phi), 0]
@@ -1156,27 +1107,27 @@ Platform::devQComRotationMatrix(link_chain link)
 
         case LINK_PEDAL: // THis link is measured w.r.t to FRAME_FS
         {
-            devComRotationMatrix_(1,2)  =   c_psi*s_theta + c_theta*s_phi*s_psi;
-            devComRotationMatrix_(2,2)  =   s_phi*s_psi*s_theta - c_psi*c_theta;
-            devComRotationMatrix_(0,3)  =   -s_phi*s_psi;
-            devComRotationMatrix_(1,3)  =    c_phi*s_psi*s_theta;
-            devComRotationMatrix_(2,3)  =   -c_phi*c_theta*s_psi;
-            devComRotationMatrix_(0,4)  =   c_phi*c_psi;
-            devComRotationMatrix_(1,4)  =   c_theta*s_psi + c_psi*s_phi*s_theta;
-            devComRotationMatrix_(2,4)  =   s_psi*s_theta - c_psi*c_theta*s_phi;
-            devComRotationMatrix_(1,7)  =   c_psi*c_theta*s_phi - s_psi*s_theta;
-            devComRotationMatrix_(2,7)  =   c_theta*s_psi + c_psi*s_phi*s_theta;
-            devComRotationMatrix_(0,8)  =   -c_psi*s_phi;
-            devComRotationMatrix_(1,8)  =    c_phi*c_psi*s_theta;
-            devComRotationMatrix_(2,8)  =   -c_phi*c_psi*c_theta;
-            devComRotationMatrix_(0,9)  =   -c_phi*s_psi;
-            devComRotationMatrix_(1,9)  =   c_psi*c_theta - s_phi*s_psi*s_theta;
-            devComRotationMatrix_(2,9)  =   c_psi*s_theta + c_theta*s_phi*s_psi;
-            devComRotationMatrix_(1,12) =   -c_phi*c_theta;
-            devComRotationMatrix_(2,12) =   -c_phi*s_theta;
-            devComRotationMatrix_(0,13) =    c_phi;
-            devComRotationMatrix_(1,13) =    s_phi*s_theta;
-            devComRotationMatrix_(2,13) =   -c_theta*s_phi;
+            devComRotationMatrix_(1,2)  =   _c_psi*_s_theta + _c_theta*_s_phi*_s_psi;
+            devComRotationMatrix_(2,2)  =   _s_phi*_s_psi*_s_theta - _c_psi*_c_theta;
+            devComRotationMatrix_(0,3)  =   -_s_phi*_s_psi;
+            devComRotationMatrix_(1,3)  =    _c_phi*_s_psi*_s_theta;
+            devComRotationMatrix_(2,3)  =   -_c_phi*_c_theta*_s_psi;
+            devComRotationMatrix_(0,4)  =   _c_phi*_c_psi;
+            devComRotationMatrix_(1,4)  =   _c_theta*_s_psi + _c_psi*_s_phi*_s_theta;
+            devComRotationMatrix_(2,4)  =   _s_psi*_s_theta - _c_psi*_c_theta*_s_phi;
+            devComRotationMatrix_(1,7)  =   _c_psi*_c_theta*_s_phi - _s_psi*_s_theta;
+            devComRotationMatrix_(2,7)  =   _c_theta*_s_psi + _c_psi*_s_phi*_s_theta;
+            devComRotationMatrix_(0,8)  =   -_c_psi*_s_phi;
+            devComRotationMatrix_(1,8)  =    _c_phi*_c_psi*_s_theta;
+            devComRotationMatrix_(2,8)  =   -_c_phi*_c_psi*_c_theta;
+            devComRotationMatrix_(0,9)  =   -_c_phi*_s_psi;
+            devComRotationMatrix_(1,9)  =   _c_psi*_c_theta - _s_phi*_s_psi*_s_theta;
+            devComRotationMatrix_(2,9)  =   _c_psi*_s_theta + _c_theta*_s_phi*_s_psi;
+            devComRotationMatrix_(1,12) =   -_c_phi*_c_theta;
+            devComRotationMatrix_(2,12) =   -_c_phi*_s_theta;
+            devComRotationMatrix_(0,13) =    _c_phi;
+            devComRotationMatrix_(1,13) =    _s_phi*_s_theta;
+            devComRotationMatrix_(2,13) =   -_c_theta*_s_phi;
 
          //devComRotationMatrix_ << [ 0, 0,                                                  0,            -sin(phi)*sin(psi),                                  cos(phi)*cos(psi), 0, 0,                                                  0,            -cos(psi)*sin(phi),                                 -cos(phi)*sin(psi), 0, 0,                    0,             cos(phi), 0]
          //                         [ 0, 0, cos(psi)*sin(theta) + cos(theta)*sin(phi)*sin(psi),  cos(phi)*sin(psi)*sin(theta), cos(theta)*sin(psi) + cos(psi)*sin(phi)*sin(theta), 0, 0, cos(psi)*cos(theta)*sin(phi) - sin(psi)*sin(theta),  cos(phi)*cos(psi)*sin(theta), cos(psi)*cos(theta) - sin(phi)*sin(psi)*sin(theta), 0, 0, -cos(phi)*cos(theta),  sin(phi)*sin(theta), 0]
