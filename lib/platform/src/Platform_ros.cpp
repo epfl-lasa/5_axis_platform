@@ -21,11 +21,17 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
     me->_flagInputReceived[c] = true; //! To be used specially for the telemanipulation state
   }
 
-  for (uint k=0; k<NB_AXIS; k++)
+  for (uint k=0; k<PITCH; k++)
   {
       me->_ros_position[k]=msg.ros_position[rosAxis[k]];
       me->_ros_speed[k]=msg.ros_speed[rosAxis[k]];
       me->_ros_effort[k] = msg.ros_effort[rosAxis[k]];
+  }
+  
+  for (uint k = PITCH; k < YAW; k++) {
+    me->_ros_position[k] = msg.ros_position[rosAxis[k]]*DEG_TO_RAD;
+    me->_ros_speed[k] = msg.ros_speed[rosAxis[k]] * DEG_TO_RAD;
+    me->_ros_effort[k] = msg.ros_effort[rosAxis[k]];
   }
 }
 

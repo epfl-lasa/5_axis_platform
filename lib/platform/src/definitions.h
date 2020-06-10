@@ -79,10 +79,6 @@ const float POSITION_PID_SAMPLE_P =  2 * CTRL_LOOP;  //! [us]
 const float WS_LIMITS[NB_AXIS] = {Y_RANGE / 2.0, X_RANGE / 2.0,
                                   PITCH_RANGE / 2.0f, ROLL_RANGE / 2.0f,
                                   YAW_RANGE / 2.0f};
-const float COMP_WS_LIMITS[NB_AXIS] = {Y_RANGE / 2.0,
-                                        X_RANGE / 2.0,
-                                  51.0 / 2.0f, 50.0 / 2.0f,
-                                  YAW_RANGE / 2.0f};
 
 const float C_WS_LIMIT_Y = (Y_RANGE / 2)  * 0.8;
 const float C_WS_LIMIT_X = (X_RANGE/ 2) * 0.8;

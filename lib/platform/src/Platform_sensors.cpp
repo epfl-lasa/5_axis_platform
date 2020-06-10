@@ -7,8 +7,8 @@
 #define ADC 1
 #define EFFORT_M ADC
 
-extern const float invSpeedSampT = (float) VELOCITY_PID_SAMPLE_P * 1e-6f;
-extern const float invAccSampT = (float)ACC_SAMPLE_P * 1e-6f;
+extern const float invSpeedSampT = (1.0f / ((float) VELOCITY_PID_SAMPLE_P * 1e-6f));
+extern const float invAccSampT = (1.0f/ ((float)ACC_SAMPLE_P * 1e-6f)) ;
 
 void Platform::getMotion()
 {
@@ -114,7 +114,6 @@ void Platform::getSpeed()
     }
     _positionPrev = _position;
     _speedSamplingStamp = _timestamp;
-    _flagSpeedSampledForCoriolis = true;
   }
 }
 
@@ -130,5 +129,6 @@ void Platform::getAcceleration()
     }
     _speedPrev = _speed;
     _accSamplingStamp = _timestamp;
+    _flagSpeedSampledForCoriolis = true;
   }
 }

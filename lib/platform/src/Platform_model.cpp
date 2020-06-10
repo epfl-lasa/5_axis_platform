@@ -66,10 +66,16 @@ extern const float LINKS_COM[NB_LINKS][NB_CART_AXIS] = {{0.06506077f, 0.23761375
 
 extern const float LINKS_MASS[NB_LINKS] = {6.20696344f, 1.86377694f, 3.45202011f, 6.40922346f, 1.17868723f, 0.09770847f,0.37200000f};
 
+extern const float mod_inertia_pitch = 0.09345014f - 0.09345014f  - 0.00213092f - 0.00004184f - (0.00335913f + LINKS_MASS[6]*d6*d6) + 0.2521f;
+
+extern const float mod_inertia_roll= 0.00126543f - 0.00126543f - 0.00003916f -(0.00049690f + LINKS_MASS[6]*d6*d6) + 0.1831f; 
+
+extern const float mod_inertia_yaw = 0.00000699f - 0.00000699f -  0.00351089f + 0.1867f;
+
 extern const float LINKS_MOMENT_OF_INERTIAS[NB_LINKS][NB_CART_AXIS*NB_CART_AXIS] = {
     {0.16517950f , 0.01377293f , -0.00179536f, 
      0.01377293f , 0.15434303f ,  0.01782405f, 
-    -0.00179536f , 0.01782405f ,  0.29648455f}  // LINK X  W.R.T COM_BASE
+    -0.00179536f , 0.01782405f ,  0.29648455f}  // LINK BASE  W.R.T COM_BASE
     ,
     {0.00343968f, 0.00007319f,0.00001718f,
 	 0.00007319f, 0.06820557f,0.00085107f,
@@ -81,15 +87,15 @@ extern const float LINKS_MOMENT_OF_INERTIAS[NB_LINKS][NB_CART_AXIS*NB_CART_AXIS]
     ,
     {0.10886020f, 0.00001273f, 0.00088705f,
      0.00001273f, 0.02644452f, 0.00000809f,
-	 0.00088705f, 0.00000809f, 0.09345014f} // LINK_PITCH W.R.T COM_PITCH 
+	 0.00088705f, 0.00000809f, mod_inertia_pitch} // LINK_PITCH W.R.T COM_PITCH 
     ,
-    { 0.00153790, -0.00000106,	0.00003310,
-	 -0.00000106,  0.00213092,	0.00000026,
-	  0.00003310,  0.00000026,	0.00126543} // LINK_ROLL W.R.T COM_ROLL 
+    { 0.00153790f, -0.00000106f,	0.00003310f,
+	 -0.00000106f,  0.00213092f,	0.00000026f,
+	  0.00003310f,  0.00000026f,	mod_inertia_roll} // LINK_ROLL W.R.T COM_ROLL 
     ,
     {0.00004184f, -0.00000023f, 0.00000000f,
 	-0.00000023f,  0.00003916f, 0.00000000f,
-	 0.00000000f,  0.00000000f, 0.00000699f} // LINK_YAW W.R.T COM_YAW
+	 0.00000000f,  0.00000000f, mod_inertia_yaw} // LINK_YAW W.R.T COM_YAW
     ,
     { 0.00049690f, -0.00001989f,  0.00016983f,
      -0.00001989f,  0.00335913f, -0.00000136f,
@@ -101,11 +107,11 @@ extern const float d7 = 0.023f;
 extern const float r8 = 0.209f;
 
 
-extern float const VISCOUS_K[NB_AXIS] = {3.0f, 3.0f, 46.0734f * RAD_TO_DEG,
-                                  62.3174f * RAD_TO_DEG, 0.0f * RAD_TO_DEG};
+//extern float const VISCOUS_K[NB_AXIS] = {2.0f, 2.0f, 46.0734f,62.3174f, 0.0f};
+extern float const VISCOUS_K[NB_AXIS] = {2.0f, 2.0f, 46.0734f*DEG_TO_RAD, 62.3174f*DEG_TO_RAD,10.0f*DEG_TO_RAD};
 
-// float const EMPIRICAL_INERTIA_K[NB_AXIS] = {13.6178f,13.7704f, 0.2521f * RAD_TO_DEG, 
-//                                   0.1831f * RAD_TO_DEG, 0.1867f * RAD_TO_DEG};
+// float const EMPIRICAL_INERTIA_K[NB_AXIS] = {13.6178f,13.7704f, 0.2521f, 
+//                                   0.1831f, 0.1867f};
 
 
 Eigen::Vector3f Platform::positionFrame(frame_chain frame)

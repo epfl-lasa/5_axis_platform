@@ -280,7 +280,7 @@ class Platform
 
   enum compensationComp {COMP_GRAVITY, COMP_VISC_FRICTION, COMP_INERTIA, COMP_CORIOLIS, COMP_DRY_FRICTION, NB_COMPENSATION_COMP};
 private:
-  void dynamicCompensation();
+  void dynamicCompensation(const int *  components_);
   void gravityCompensation();
   void dryFrictionCompensation();
   void viscFrictionCompensation();
@@ -317,7 +317,6 @@ private:
   #define CORIOLIS_DEV_STRATEGY CORIOLIS_TEMPORAL
 
   Eigen::Matrix<float,NB_AXIS,NB_COMPENSATION_COMP-1>  _compTorqueLims[NB_LIMS];
-  Eigen::Matrix<float,NB_AXIS,1>  _dryFrictionTorqueLims[NB_SIGN_COMP][NB_LIMS];
   Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeomJacobian[NB_LINKS];
   Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
   Eigen::Matrix<float, 3, 3> _rotationMatrixCOM[NB_LINKS];
@@ -330,9 +329,7 @@ private:
 
   //Platform_constrains.cpp
   void wsConstrains(int axis_);               //! -1 := all of them                 //! 1
-  void motionDamping(int axis_);             //! -1:= all of them                 //! 2
   void wsConstrainsDefault(int axis_);       //! 3
-  void motionDampingGainsDefault(int axis_); //! 4      
 
   //!Platform_clear.cpp
   private:

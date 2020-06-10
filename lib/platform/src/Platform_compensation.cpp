@@ -4,12 +4,12 @@
 #include "definitions.h"
 #include "definitions_2.h"
 
-float const SPEED_THRESHOLD[NB_AXIS] = {0.010f, 0.010f, 0.09f,
+float const SPEED_THRESHOLD[NB_AXIS] = {0.010f, 0.010f, 0.09f * DEG_TO_RAD,
                                         0.12f * DEG_TO_RAD, 0.12f * DEG_TO_RAD};
-extern float const VISC_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-2.0f, -2.0f , -0.6f, -0.5f, -0.5f}, {2.0f, 0.3f, 0.5f,0.5f}};
+extern float const VISC_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f, -3.0f , -0.6f, -0.5f, -0.5f}, {2.0f, 0.3f, 0.5f,0.5f}};
 extern float const GRAVITY_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{0.0f, 0.0f, -2.0f, -2.0f, -2.0f}, {0.0f, 2.0f, 2.0f, 2.0f}};
-extern float const INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-1.0f,-1.0f,-1.0f}, {3.0f, 3.0f, 1.0f, 1.0f, 1.0f}};
-extern float const CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.5f,-0.5f,-0.5f}, {3.0f, 3.0f, 0.5f, 0.5f, 0.5f}};
+extern float const INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-1.5f,-1.5f,-0.5f,-0.5f,-0.5f}, {1.0f, 1.0f, 0.5f, 0.5f, 0.5f}};
+extern float const CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.2f,-0.5f,-0.5f}, {3.0f, 3.0f, 0.5f, 0.5f, 0.5f}};
 extern float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_LIMS][NB_AXIS] = {{{-16.0498f,-8.55883f,0.0f,0.0f,0.0f}, { -3.10896f, -1.47001f, 0.0f, 0.0f, 0.0f}},
                                                                {{1.90903f,0.875992f,0.0f,0.0f,0.0f},{15.5236f, 6.60670f, 0.0f, 0.0f, 0.0f}}};
 
@@ -45,17 +45,24 @@ using namespace Eigen;
 
 //! 1
 
-void Platform::dynamicCompensation()
+void Platform::dynamicCompensation(const int* components_)
 {
-  //gravityCompensation();
-  dryFrictionCompensation();
-  //viscFrictionCompensation();
-  //inertiaCompensation();
-  // coriolisCompensation(); //! coriolis has to be compensated after the inertia;
+  if (*(components_+COMP_GRAVITY)==1)
+    {gravityCompensation();}
+  if (*(components_+COMP_VISC_FRICTION)==1)
+    {viscFrictionCompensation();}
+  if (*(components_+COMP_INERTIA)==1)
+   { inertiaCompensation();}
+  if (*(components_+COMP_CORIOLIS)==1){
+    coriolisCompensation(); //! coriolis has to be compensated after the inertia;
                              //! coriolis is too computationally expensive       
+  }
   //! Saturation of the compensation effort except the dry friction
-   _compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1) =
-   boundMat(_compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1), _compTorqueLims[L_MIN], _compTorqueLims[L_MAX]);
+  if (*(components_+COMP_DRY_FRICTION)==1)
+    {dryFrictionCompensation();}
+   
+  _compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1) =
+        boundMat(_compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1), _compTorqueLims[L_MIN], _compTorqueLims[L_MAX]);
   _effortD_ADD.col(COMPENSATION) = _compensationEffort.rowwise().sum();
 }
 
@@ -226,12 +233,13 @@ void Platform::viscFrictionCompensation()
 
          if (w_sign == POS || w_sign == NEG) {
            _compensationEffort(axis_, COMP_DRY_FRICTION) =
-               dry_scale * _dryFrictionEffortSign[w_sign][axis_];
+               dry_scale * _dryFrictionEffortSign[w_sign](axis_);
          } else {
            //! probabilistic deadzone
            float deadzone;
-           deadzone = map(smoothRise(((float)(rand() % 10) - 5.0f), -5.0f, 5.0f), 0.0f,1.0f, 0.7 * _dryFrictionEffortSign[NEG][axis_],0.7 * _dryFrictionEffortSign[POS][axis_]);
-           _compensationEffort(axis_, COMP_DRY_FRICTION) =comp_filter[axis_].update(deadzone);
+           //deadzone = map(smoothRise(((float)(rand() % 10) - 5.0f), -5.0f, 5.0f), 0.0f,1.0f, 0.7 * _dryFrictionEffortSign[NEG](axis_),0.7 * _dryFrictionEffortSign[POS](axis_));
+           //_compensationEffort(axis_, COMP_DRY_FRICTION) =comp_filter[axis_].update(deadzone);
+           _compensationEffort(axis_, COMP_DRY_FRICTION) = 0.0f;
            //! linear deazone
            //!_compensationEffort(axis_,COMP_DRY_FRICTION) = map(_speed(axis_),-SPEED_THRESHOLD[axis_],SPEED_THRESHOLD[axis_], 0.7f*_dryFrictionEffortSign[NEG][axis_], 0.7f*_dryFrictionEffortSign[POS][axis_]);
          }

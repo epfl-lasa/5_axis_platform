@@ -190,7 +190,8 @@ void Platform::step()
 
         if(_ros_effortComp[COMPENSATION] == 1)
         { _flagCalculateSinCos = true;
-          dynamicCompensation();
+          int comp_[] = {1,1,1,1,1}; //gravity, viscous, inertia, coriolis, dry
+          dynamicCompensation(comp_);
         }
         else
         {
@@ -203,12 +204,7 @@ void Platform::step()
             wsConstrains(_ros_ControlledAxis); //! workspace constraints : soft
                                                 //! limits, or joystick effect, etc
           }
-          else if (flagSpeedInControl()) 
-          {
-            motionDamping(_ros_ControlledAxis); //! Motion damping, to make it
-                                                //! easier to control the platform
-          }
-          }
+        }
           break;
         }
         
@@ -233,7 +229,16 @@ void Platform::step()
 
         // Main state
           totalEffortDClear(-1);
-            
+
+          if (_ros_effortComp[COMPENSATION] == 1) {
+            _flagCalculateSinCos = true;
+            int comp_[] = {1,1,1,1,0}; //gravity, viscous, inertia, coriolis, dry
+            dynamicCompensation(comp_);
+          } 
+          else 
+          {
+            _flagCalculateSinCos = false;
+          }
 
           if (flagPositionInControl()) {
             if (_flagInputReceived[MSG_POSITION]) {
@@ -287,10 +292,8 @@ void Platform::step()
                 _speedD[_ros_ControlledAxis] = _ros_speed[_ros_ControlledAxis];
               }
                   _flagInputReceived[MSG_SPEED] = false;
-            }
-              
+            }   
           }
-
           break;
         }
         

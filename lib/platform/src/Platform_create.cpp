@@ -292,14 +292,11 @@ _bias[POS].col(X) << 3.17075f;
 for (int lim_=L_MIN; lim_<NB_LIMS; lim_++)
 {
   _compTorqueLims[lim_].setConstant(0.0f);
-  _dryFrictionTorqueLims[NEG][lim_].setConstant(0.0f);
-  _dryFrictionTorqueLims[POS][lim_].setConstant(0.0f);
   _compTorqueLims[lim_].col(COMP_GRAVITY) = Eigen::Map<const Eigen::MatrixXf>(GRAVITY_EFFORT_LIMS[lim_],NB_AXIS,1);
   _compTorqueLims[lim_].col(COMP_VISC_FRICTION) = Eigen::Map<const Eigen::MatrixXf>(VISC_EFFORT_LIMS[lim_],NB_AXIS,1);
   _compTorqueLims[lim_].col(COMP_INERTIA) = Eigen::Map<const Eigen::MatrixXf>(INERTIA_EFFORT_LIMS[lim_],NB_AXIS,1);
   _compTorqueLims[lim_].col(COMP_CORIOLIS) = Eigen::Map<const Eigen::MatrixXf>(CORIOLIS_EFFORT_LIMS[lim_],NB_AXIS,1);;
-  _dryFrictionTorqueLims[NEG][lim_]=Eigen::Map<const Eigen::MatrixXf>(DRY_EFFORT_LIMS[NEG][lim_],NB_AXIS,1);
-  _dryFrictionTorqueLims[POS][lim_]=Eigen::Map<const Eigen::MatrixXf>(DRY_EFFORT_LIMS[POS][lim_],NB_AXIS,1);
+
 }
   
 
