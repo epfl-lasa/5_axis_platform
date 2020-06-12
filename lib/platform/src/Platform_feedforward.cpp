@@ -1,7 +1,6 @@
 #include "Platform.h"
 #include "LP_Filter.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 const float vibMagnitude = -240; //![N / m/s]
 const float vibDecayRate = 60; //! [1/s]

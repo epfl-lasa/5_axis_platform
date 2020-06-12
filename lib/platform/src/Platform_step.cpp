@@ -1,6 +1,5 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 #include <string>
 
 
@@ -8,7 +7,7 @@ void Platform::step()
 {
   memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
 
-  if ((_ros_state == RESET) || (_allEsconOk && _recoveringFromError))
+  if ((_ros_state == RESET_UC) || (_allEsconOk && _recoveringFromError))
   {
     sprintf(_logMsg, "%s : ABOUT TO RESTART THE PLATFORM CONTROLLER", Platform_Names[PLATFORM_ID]);
     _nh.loginfo(_logMsg);
@@ -21,7 +20,7 @@ void Platform::step()
   getMotion(); //! SPI
   
   _allEsconOk=1;
-  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  //for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
 
   if (!_allEsconOk || _flagEmergencyCalled)
   {
@@ -75,7 +74,7 @@ void Platform::step()
             _enterStateOnceFlag[HOMING]=true;
           }
 
-          _ros_controllerType=SPEED_ONLY;
+          _ros_controllerType=SPEED_CTRL;
 
           _speedD[X] = SPEED_D_HOMING_X; // m/s
           _speedD[Y] = SPEED_D_HOMING_Y; // m/s
@@ -130,7 +129,7 @@ void Platform::step()
             _enterStateOnceFlag[CENTERING]=true;
           }
           // Main State
-          _ros_controllerType = POSITION_ONLY;
+          _ros_controllerType = POSITION_CTRL;
 
           compEffortClear(-1, NORMAL);
           gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
@@ -153,7 +152,7 @@ void Platform::step()
           break;
         }
         case TELEOPERATION:
-            //NB In this state, the controller type (set from ROS) POSITION AND SPEED WILL REFER TO WANTING TO HAVE CONSTRAINS 
+            //NB In this state, the controller type (set from ROS) POSITION_CTRL AND SPEED WILL REFER TO WANTING TO HAVE CONSTRAINS 
         {
           // Init State
         if (!_enterStateOnceFlag[TELEOPERATION])
@@ -163,7 +162,7 @@ void Platform::step()
             _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
             _pidSpeed[k]->reset();
           }
-          _ros_controllerType = TORQUE_ONLY;
+          _ros_controllerType = TORQUE_CTRL;
           sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
           _nh.loginfo(_logMsg);
           _enableMotors->write(1);
@@ -185,7 +184,7 @@ void Platform::step()
         }
 
         // Main State
-        //# In this context: e.g. CtrlType=POSITION_ONLY-> "I should listen" to
+        //# In this context: e.g. CtrlType=POSITION_CTRL-> "I should listen" to
         //set_positions[k],
 
         if(_ros_effortComp[COMPENSATION] == 1)
@@ -220,7 +219,7 @@ void Platform::step()
               _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
             _pidSpeed[k]->reset();
           }
-          _ros_controllerType=TORQUE_ONLY;
+          _ros_controllerType=TORQUE_CTRL;
           //
             sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL", Platform_Names[PLATFORM_ID]);
             _nh.loginfo(_logMsg);
@@ -313,7 +312,7 @@ void Platform::step()
             releasePlatform();
             break;
         }
-        case RESET:
+        case RESET_UC:
         {
           //defined upstairs
           break;
@@ -336,13 +335,13 @@ void Platform::step()
 
 bool Platform::flagTorqueInControl()
  {
-   return _ros_controllerType == TORQUE_ONLY;
+   return _ros_controllerType == TORQUE_CTRL;
  }
 
 bool Platform::flagPositionInControl() {
-  return (_ros_controllerType != SPEED_ONLY) && !flagTorqueInControl();
+  return (_ros_controllerType != SPEED_CTRL) && !flagTorqueInControl();
 }
 
 bool Platform::flagSpeedInControl() {
-  return (_ros_controllerType != POSITION_ONLY) && !flagTorqueInControl();
+  return (_ros_controllerType != POSITION_CTRL) && !flagTorqueInControl();
 }

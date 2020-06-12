@@ -1,6 +1,5 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 //! 1
 void Platform::wsConstrains(int axis_)
@@ -13,7 +12,7 @@ void Platform::wsConstrains(int axis_)
   }
   else
   {
-    float wall = _c_wsLimits[axis_];
+    float wall = C_WS_LIMITS[axis_];
     
     if (_ros_flagDefaultControl) {
       wsConstrainsDefault(axis_);
@@ -53,11 +52,11 @@ void Platform::wsConstrainsDefault(int axis_)
   }
   else{
     switch(axis_){
-        case(Y): {_c_wsLimits[Y] = C_WS_LIMIT_Y;_kpPosition[Y]=C_WS_KP_POSITION_Y;_kiPosition[Y]=C_WS_KI_POSITION_Y;_kdPosition[Y]=C_WS_KD_POSITION_Y; break;}
-        case(X): {_c_wsLimits[X] = C_WS_LIMIT_X;_kpPosition[X]=C_WS_KP_POSITION_X;_kiPosition[X]=C_WS_KI_POSITION_X;_kdPosition[X]=C_WS_KD_POSITION_X; break;}
-        case(PITCH): {_c_wsLimits[PITCH] = C_WS_LIMIT_PITCH;_kpPosition[PITCH]=C_WS_KP_POSITION_PITCH;_kiPosition[PITCH]=C_WS_KI_POSITION_PITCH;_kdPosition[PITCH]=C_WS_KD_POSITION_PITCH;break;}
-        case(ROLL): {_c_wsLimits[ROLL] = C_WS_LIMIT_ROLL;_kpPosition[ROLL]=C_WS_KP_POSITION_ROLL;_kiPosition[ROLL]=C_WS_KI_POSITION_ROLL;_kdPosition[ROLL]=C_WS_KD_POSITION_ROLL;break;}
-        case(YAW): {_c_wsLimits[YAW] = C_WS_LIMIT_YAW;_kpPosition[YAW]=C_WS_KP_POSITION_YAW;_kiPosition[YAW]=C_WS_KI_POSITION_YAW;_kdPosition[YAW]=C_WS_KD_POSITION_YAW;break;}
+        case(Y): {_kpPosition[Y]=C_WS_KP_POSITION_Y;_kiPosition[Y]=C_WS_KI_POSITION_Y;_kdPosition[Y]=C_WS_KD_POSITION_Y; break;}
+        case(X): {_kpPosition[X]=C_WS_KP_POSITION_X;_kiPosition[X]=C_WS_KI_POSITION_X;_kdPosition[X]=C_WS_KD_POSITION_X; break;}
+        case(PITCH): {_kpPosition[PITCH]=C_WS_KP_POSITION_PITCH;_kiPosition[PITCH]=C_WS_KI_POSITION_PITCH;_kdPosition[PITCH]=C_WS_KD_POSITION_PITCH;break;}
+        case(ROLL): {_kpPosition[ROLL]=C_WS_KP_POSITION_ROLL;_kiPosition[ROLL]=C_WS_KI_POSITION_ROLL;_kdPosition[ROLL]=C_WS_KD_POSITION_ROLL;break;}
+        case(YAW): {_kpPosition[YAW]=C_WS_KP_POSITION_YAW;_kiPosition[YAW]=C_WS_KI_POSITION_YAW;_kdPosition[YAW]=C_WS_KD_POSITION_YAW;break;}
       }
   }
 }

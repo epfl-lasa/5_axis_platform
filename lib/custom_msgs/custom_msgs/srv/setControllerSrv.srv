@@ -1,4 +1,4 @@
-uint8 ros_controllerType # {TORQUE_ONLY, POSITION_ONLY, SPEED_ONLY, POSITION_SPEED_CASCADE, SPEED_POSITION_CASCADE}
+uint8 ros_controllerType # {TORQUE_CTRL, POSITION_CTRL, SPEED_CTRL}
 
 bool ros_defaultControl # 1: use values from definitions_2.h in firmware, 0: use the values
 

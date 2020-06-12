@@ -1,6 +1,5 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 Platform::~Platform()
 {

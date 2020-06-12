@@ -1,47 +1,22 @@
-#ifndef DEFINITIONS_2_HH
-#define DEFINITIONS_2_HH
+#ifndef DEFINITIONS_PID_H
+#define DEFINITIONS_PID_H
 
-#include "definitions.h"
-
-
-#define SCALE_GAINS_LINEAR_POSITION 1
-#define SCALE_GAINS_LINEAR_SPEED 1e-2f   
-const float SCALE_GAINS_ANGULAR_POSITION = 1e-4f * RAD_TO_DEG;
-const float SCALE_GAINS_ANGULAR_SPEED = 1e-5f * RAD_TO_DEG;
-
-//******************************CONSTRUCTOR*****************************
-    #define PLATFORM_SUBSCRIBER_NAME_LEFT "/FI_Input/Left"
-    #define PLATFORM_PUBLISHER_NAME_LEFT "/FI_Output/Left"
-    #define SERVICE_CHANGE_STATE_NAME_LEFT "update_left_state"
-    #define SERVICE_CHANGE_CTRL_NAME_LEFT "update_left_controller"
-    
-    #define PLATFORM_SUBSCRIBER_NAME_RIGHT "/FI_Input/Right"
-    #define PLATFORM_PUBLISHER_NAME_RIGHT "/FI_Output/Right"
-    #define SERVICE_CHANGE_STATE_NAME_RIGHT "update_right_state"
-    #define SERVICE_CHANGE_CTRL_NAME_RIGHT "update_right_controller"
+#include "definitions_main.h"
+#include "definitions_control.h"
 
 
-    #if (PLATFORM_ID == LEFT_PLATFORM) 
-        #define PLATFORM_SUBSCRIBER_NAME PLATFORM_SUBSCRIBER_NAME_LEFT
-        #define PLATFORM_PUBLISHER_NAME PLATFORM_PUBLISHER_NAME_LEFT
-        #define SERVICE_CHANGE_STATE_NAME SERVICE_CHANGE_STATE_NAME_LEFT
-        #define SERVICE_CHANGE_CTRL_NAME SERVICE_CHANGE_CTRL_NAME_LEFT
-    #else
-        #define PLATFORM_SUBSCRIBER_NAME PLATFORM_SUBSCRIBER_NAME_RIGHT
-        #define PLATFORM_PUBLISHER_NAME PLATFORM_PUBLISHER_NAME_RIGHT
-        #define SERVICE_CHANGE_STATE_NAME SERVICE_CHANGE_STATE_NAME_RIGHT
-        #define SERVICE_CHANGE_CTRL_NAME SERVICE_CHANGE_CTRL_NAME_RIGHT
-    #endif
+//! Filters
+const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
+const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
 
-
-
+//! List of Gains
 //******************************HOMING********************************
 
     #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
 
         #define SPEED_D_HOMING_X -1.0                                                //[m/s]                         
         #define SPEED_D_HOMING_Y 1.0                                                 //[deg/s]
-        #define SPEED_D_HOMING_PITCH 300.0 * DEG_TO_RAD                              //[deg/s]                             
+        const float SPEED_D_HOMING_PITCH = 300.0 * DEG_TO_RAD;                              //[deg/s]                             
         
         const float KP_HOMING_SPEED_Y = 2000.0f * SCALE_GAINS_LINEAR_SPEED;                  //[N.s/m]     
         const float KP_HOMING_SPEED_X = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                  //[N.s/m]     
@@ -55,7 +30,7 @@ const float SCALE_GAINS_ANGULAR_SPEED = 1e-5f * RAD_TO_DEG;
 
         #define SPEED_D_HOMING_Y 1.0                                                 //[m/s]
         #define SPEED_D_HOMING_X 1.0                                                 //[m/s]                    
-        #define SPEED_D_HOMING_PITCH -300 * DEG_TO_RAD                              //[deg/s]
+        const float SPEED_D_HOMING_PITCH  = -300 * DEG_TO_RAD;                              //[deg/s]
 
         const float KP_HOMING_SPEED_Y = 1500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m]   
         const float KP_HOMING_SPEED_X = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                 //[N.s/m]
@@ -161,56 +136,6 @@ const float SCALE_GAINS_ANGULAR_SPEED = 1e-5f * RAD_TO_DEG;
     
     #endif
 
-//*************************MOTION_DAMPING****AKA.SUPRESS_TREMOR****************************
 
 
-    #if (PLATFORM_ID==LEFT_PLATFORM)
-
-        const float MOTION_DAMPING_KP_SPEED_Y =  800.0f * SCALE_GAINS_LINEAR_SPEED;              //[N/m.s]
-        const float MOTION_DAMPING_KP_SPEED_X =  800.0f * SCALE_GAINS_LINEAR_SPEED;              //[N/m.s]                
-        const float MOTION_DAMPING_KP_SPEED_PITCH =  170.0f * SCALE_GAINS_ANGULAR_SPEED;         //[Nm/deg.s]
-        const float MOTION_DAMPING_KP_SPEED_ROLL =  170.0f * SCALE_GAINS_ANGULAR_SPEED;          //[Nm/deg.s]
-        const float MOTION_DAMPING_KP_SPEED_YAW = 170.0f * SCALE_GAINS_ANGULAR_SPEED;            //[Nm/deg.s]            
-
-           //***************************SHOULD-BE-ZERO****************/             
-
-            const float MOTION_DAMPING_KI_SPEED_Y =  0.0f * SCALE_GAINS_LINEAR_SPEED;             //[N.s/m.s]
-            const float MOTION_DAMPING_KI_SPEED_X =  0.0f * SCALE_GAINS_LINEAR_SPEED;             //[N.s/m.s]
-            const float MOTION_DAMPING_KI_SPEED_PITCH =  0.0f * SCALE_GAINS_ANGULAR_SPEED;        //[N.s/deg.s]
-            const float MOTION_DAMPING_KI_SPEED_ROLL =  0.0f * SCALE_GAINS_ANGULAR_SPEED;         //[N.s/deg.s]
-            const float MOTION_DAMPING_KI_SPEED_YAW = 0.0f * SCALE_GAINS_ANGULAR_SPEED;           //[N.s/deg.s]
-
-            const float MOTION_DAMPING_KD_SPEED_Y  = 0.0f* SCALE_GAINS_LINEAR_SPEED;              //[Nm.s/deg]
-            const float MOTION_DAMPING_KD_SPEED_X  = 0.0f* SCALE_GAINS_LINEAR_SPEED;               //[N.s/m]
-            const float MOTION_DAMPING_KD_SPEED_PITCH  = 0.0f* SCALE_GAINS_ANGULAR_SPEED;          //[Nm.s/deg]
-            const float MOTION_DAMPING_KD_SPEED_ROLL  = 0.0f* SCALE_GAINS_ANGULAR_SPEED;           //[Nm.s/deg]
-            const float MOTION_DAMPING_KD_SPEED_YAW = 0.0f* SCALE_GAINS_ANGULAR_SPEED;              //[N.s/m] 
-
-    #else 
-    
-        const float MOTION_DAMPING_KP_SPEED_Y  =  800.0f * SCALE_GAINS_LINEAR_SPEED;        //[N/m.s]
-        const float MOTION_DAMPING_KP_SPEED_X  =  800.0f * SCALE_GAINS_LINEAR_SPEED;        //[N/m.s]   
-        const float MOTION_DAMPING_KP_SPEED_PITCH  =  170.0f * SCALE_GAINS_ANGULAR_SPEED;   //[Nm/deg.s]
-        const float MOTION_DAMPING_KP_SPEED_ROLL  =  170.0f * SCALE_GAINS_ANGULAR_SPEED;    //[Nm/deg.s]
-        const float MOTION_DAMPING_KP_SPEED_YAW  = 170.0f * SCALE_GAINS_ANGULAR_SPEED;      //[Nm/deg.s]
-
-        //***************************SHOULD-BE-ZERO****************/ 
-
-            const float MOTION_DAMPING_KI_SPEED_Y  =  0.0f * SCALE_GAINS_LINEAR_SPEED;       //[N.s/m.s]
-            const float MOTION_DAMPING_KI_SPEED_X   = 0.0f * SCALE_GAINS_LINEAR_SPEED;       //[N.s/m.s]
-            const float MOTION_DAMPING_KI_SPEED_PITCH  =  0.0f * SCALE_GAINS_ANGULAR_SPEED;  //[N.s/deg.s]
-            const float MOTION_DAMPING_KI_SPEED_ROLL   = 0.0f * SCALE_GAINS_ANGULAR_SPEED;   //[N.s/deg.s]
-            const float MOTION_DAMPING_KI_SPEED_YAW  = 0.0f * SCALE_GAINS_ANGULAR_SPEED;     //[N.s/deg.s]
-              
-            const float MOTION_DAMPING_KD_SPEED_Y   = 0.0f * SCALE_GAINS_LINEAR_SPEED;        //[N.s/m]
-            const float MOTION_DAMPING_KD_SPEED_X  =  0.0f * SCALE_GAINS_LINEAR_SPEED;        //[N.s/m] 
-            const float MOTION_DAMPING_KD_SPEED_PITCH  =  0.0f * SCALE_GAINS_ANGULAR_SPEED;   //[Nm.s/deg]
-            const float MOTION_DAMPING_KD_SPEED_ROLL   = 0.0f * SCALE_GAINS_ANGULAR_SPEED;    //[Nm.s/deg]
-            const float MOTION_DAMPING_KD_SPEED_YAW  = 0.0f * SCALE_GAINS_ANGULAR_SPEED;      //[Nm.s/deg]
-
-
-    #endif
-
-
-
-#endif //DEFINITIONS_2_HH
+#endif //DEFINITIONS_PID_H

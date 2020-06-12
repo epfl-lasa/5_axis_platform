@@ -1,52 +1,22 @@
 #include "Platform.h"
-#include "LP_Filter.h"
-#include "MatLP_Filter.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
-float const SPEED_THRESHOLD[NB_AXIS] = {0.010f, 0.010f, 0.09f * DEG_TO_RAD,
-                                        0.12f * DEG_TO_RAD, 0.12f * DEG_TO_RAD};
-extern float const VISC_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-2.0f, -2.0f , -0.6f, -0.5f, -0.5f}, {2.0f, 2.0f, 0.5f,0.5f}};
-extern float const GRAVITY_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{0.0f, 0.0f, -2.0f, -2.0f, -2.0f}, {0.0f, 2.0f, 2.0f, 2.0f}};
-extern float const INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.5f,-0.5f,-0.5f}, {3.0f, 3.0f, 0.5f, 0.5f, 0.5f}};
-extern float const CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.5f,-0.5f,-0.5f}, {3.0f, 3.0f, 0.5f, 0.5f, 0.5f}};
-extern float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_LIMS][NB_AXIS] = {{{-16.0498f,-8.55883f,0.0f,0.0f,0.0f}, { -3.10896f, -1.47001f, 0.0f, 0.0f, 0.0f}},
-                                                               {{1.90903f,0.875992f,0.0f,0.0f,0.0f},{15.5236f, 6.60670f, 0.0f, 0.0f, 0.0f}}};
-
-extern const float invSpeedSampT;
-//! variables from Platform_model.cpp
-
-extern float const LINKS_COM[NB_LINKS][NB_CART_AXIS];
-extern float const LINKS_MASS[NB_LINKS];
-extern const float r3;
-extern const float d6; 
-extern const float d7; 
-extern const float r8;
-
-//! Filter of the probabilistic deadzone
-LP_Filter comp_filter[NB_STICTION_COMP]{0.9f, 0.9f};
-
-#if(false)
-#if (CORIOLIS_DEV_STRATEGY==CORIOLIS_TEMPORAL)
-#define aMat 0.5f
-#define lJMat 6
-#define wJMat 5
-#define lRMat 3
-#define wRMat 3
-
-MatLP_Filter filter_devLinkCOMGeometricJ[NB_LINKS]{{aMat,lJMat,wJMat}, {aMat,lJMat,wJMat}, {aMat,lJMat,wJMat}, {aMat,lJMat,wJMat}, {aMat,lJMat,wJMat},{aMat,lJMat,wJMat},{aMat,lJMat,wJMat}}; //! one alpha per link
-MatLP_Filter filter_devRotationMatrixCOM[NB_LINKS]{{aMat,lRMat,wRMat}, {aMat,lRMat,wRMat}, {aMat,lRMat,wRMat}, {aMat,lRMat,wRMat}, {aMat,lRMat,wRMat},{aMat,lRMat,wRMat},{aMat,lRMat,wRMat}}; //! one alpha per link
-#endif
-//! Filters for the derivatives of the rotation and jacobian matrices;
-#endif
 using namespace std;
 using namespace Eigen;
 
+//! Variables of the Quadratic Regression for Dry Friction
+
+Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS> betas[NB_SIGN_COMP];
+Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS> mean[NB_SIGN_COMP];
+Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS> stdInv[NB_SIGN_COMP];
+Eigen::Matrix<float, 1 , NB_STICTION_AXIS> bias[NB_SIGN_COMP];
+bool flagQuadraticRegressionInit=false;
+
 
 //! 1
-
 void Platform::dynamicCompensation(const int* components_)
 {
+  
   if (*(components_+COMP_GRAVITY)==1)
     {gravityCompensation();}
   if (*(components_+COMP_VISC_FRICTION)==1)
@@ -67,10 +37,8 @@ void Platform::dynamicCompensation(const int* components_)
 }
 
 
-#define MATRICIAL 0
-#define EQUATIONS 1
-#define COMPENSATION_TYPE MATRICIAL
-#if (COMPENSATION_TYPE == MATRICIAL)
+
+#if (COMPENSATION_TYPE == COMP_MATRICIAL)
 void Platform::gravityCompensation()
 {
   
@@ -193,55 +161,49 @@ void Platform::viscFrictionCompensation()
    }
 
    /**************************************FRICTION COMPENSATION*************************/
-#define LINEAR_MODEL 1
-#define GAUSSIAN_PROCESS 2
-
-#define MODEL_TYPE LINEAR_MODEL
 
    void Platform::dryFrictionCompensation() {
+
+
+
     #if (MODEL_TYPE == LINEAR_MODEL)
 
       quadraticRegression();
 
      for (int axis_ = 0; axis_ < NB_AXIS; axis_++) {
-       if (axis_ < NB_STICTION_COMP) {
+       if (axis_ < NB_STICTION_AXIS) {
          float dry_scale = 1.0f;
-         uint w_sign = MID;
+         uint w_sign = MID_FRIC;
 
          if (_speed(axis_) >= SPEED_THRESHOLD[axis_]) {
-           w_sign = POS;
+           w_sign = POS_FRIC;
          } 
          else if (_speed(axis_) <= -SPEED_THRESHOLD[axis_]) {
-           w_sign = NEG;
+           w_sign = NEG_FRIC;
          } 
          else {
-           w_sign = MID;
+           w_sign = MID_FRIC;
          }
 
          dry_scale =
              clip(abs(SPEED_THRESHOLD[axis_] / (_speed(axis_) + 1e-10f)), 0.95f,
                   1.0f);
 
-         _dryFrictionEffortSign[NEG](axis_) =
-             clip(_dryFrictionEffortSign[NEG](axis_),
-                  DRY_EFFORT_LIMS[NEG][L_MIN][axis_],
-                  DRY_EFFORT_LIMS[NEG][L_MAX][axis_]);
-         _dryFrictionEffortSign[POS](axis_) =
-             clip(_dryFrictionEffortSign[POS](axis_),
-                  DRY_EFFORT_LIMS[POS][L_MIN][axis_],
-                  DRY_EFFORT_LIMS[POS][L_MAX][axis_]);
+         _dryFrictionEffortSign[NEG_FRIC](axis_) =
+             clip(_dryFrictionEffortSign[NEG_FRIC](axis_),
+                  DRY_EFFORT_LIMS[NEG_FRIC][L_MIN][axis_],
+                  DRY_EFFORT_LIMS[NEG_FRIC][L_MAX][axis_]);
+         _dryFrictionEffortSign[POS_FRIC](axis_) =
+             clip(_dryFrictionEffortSign[POS_FRIC](axis_),
+                  DRY_EFFORT_LIMS[POS_FRIC][L_MIN][axis_],
+                  DRY_EFFORT_LIMS[POS_FRIC][L_MAX][axis_]);
 
-         if (w_sign == POS || w_sign == NEG) {
+         if (w_sign == POS_FRIC || w_sign == NEG_FRIC) {
            _compensationEffort(axis_, COMP_DRY_FRICTION) =
                dry_scale * _dryFrictionEffortSign[w_sign](axis_);
          } else {
            //! probabilistic deadzone
-           float deadzone;
-           //deadzone = map(smoothRise(((float)(rand() % 10) - 5.0f), -5.0f, 5.0f), 0.0f,1.0f, 0.7 * _dryFrictionEffortSign[NEG](axis_),0.7 * _dryFrictionEffortSign[POS](axis_));
-           //_compensationEffort(axis_, COMP_DRY_FRICTION) =comp_filter[axis_].update(deadzone);
-           _compensationEffort(axis_, COMP_DRY_FRICTION) = 0.0f;
-           //! linear deazone
-           //!_compensationEffort(axis_,COMP_DRY_FRICTION) = map(_speed(axis_),-SPEED_THRESHOLD[axis_],SPEED_THRESHOLD[axis_], 0.7f*_dryFrictionEffortSign[NEG][axis_], 0.7f*_dryFrictionEffortSign[POS][axis_]);
+               _compensationEffort(axis_, COMP_DRY_FRICTION) = 0.0f;
          }
        }
      }
@@ -249,15 +211,31 @@ void Platform::viscFrictionCompensation()
    }
 
 void Platform::quadraticRegression() {
-     for (int sign_ = 0; sign_ < NB_SIGN_COMP; sign_++) {
-    
-     for (int axis_ = 0; axis_ < NB_STICTION_COMP; axis_++) {
-         _predictors[sign_].block(0, axis_, NB_AXIS, 1) = _position;
-         _predictors[sign_].block(NB_AXIS, axis_, NB_AXIS, 1) = _position.cwiseProduct(_position);
+     
+    if (!flagQuadraticRegressionInit)
+     {
+       for (int sign_ = 0; sign_ < NB_SIGN_COMP; sign_++) {
+        betas[sign_].col(Y) = Eigen::Map<const Eigen::MatrixXf>(BETAS_QR_Y[sign_], 2 * NB_AXIS, 1);
+        mean[sign_].col(Y) = Eigen::Map<const Eigen::MatrixXf>(MEAN_QR_Y[sign_], 2 * NB_AXIS, 1);
+        stdInv[sign_].col(Y) = Eigen::Map<const Eigen::MatrixXf>(STDINV_QR_Y[sign_], 2 * NB_AXIS, 1);
+        betas[sign_].col(X) = Eigen::Map<const Eigen::MatrixXf>(BETAS_QR_X[sign_], 2 * NB_AXIS, 1);
+        mean[sign_].col(X) = Eigen::Map<const Eigen::MatrixXf>(MEAN_QR_X[sign_], 2 * NB_AXIS, 1);
+        stdInv[sign_].col(X) = Eigen::Map<const Eigen::MatrixXf>(STDINV_QR_X[sign_], 2 * NB_AXIS, 1);
+        bias[sign_] << BIAS_QR_Y[sign_] , BIAS_QR_X[sign_];
        }
-         _predictors[sign_] = (_predictors[sign_] - _mean[sign_]).cwiseProduct(_stdInv[sign_]);
+
+       flagQuadraticRegressionInit=true;
+     }
+
+     for (int sign_ = 0; sign_ < NB_SIGN_COMP; sign_++) {
+        
+        for (int axis_ = 0; axis_ < NB_STICTION_AXIS; axis_++) {
+            _predictors[sign_].block(0, axis_, NB_AXIS, 1) = _position;
+            _predictors[sign_].block(NB_AXIS, axis_, NB_AXIS, 1) = _position.cwiseProduct(_position);
+          }
+         _predictors[sign_] = (_predictors[sign_] - mean[sign_]).cwiseProduct(stdInv[sign_]);
          //! main formula!
-         _dryFrictionEffortSign[sign_] = ( (_betas[sign_].cwiseProduct(_predictors[sign_])).colwise().sum() +
-        _bias[sign_] ).transpose();
+         _dryFrictionEffortSign[sign_] = ( (betas[sign_].cwiseProduct(_predictors[sign_])).colwise().sum() +
+        bias[sign_] ).transpose();
      }
 }

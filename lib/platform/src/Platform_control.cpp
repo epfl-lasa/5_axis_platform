@@ -1,6 +1,5 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 //! 1
 void Platform::positionAllControl(EffortComp Component)
@@ -17,35 +16,30 @@ void Platform::positionAllControl(EffortComp Component)
 //! 2
 void Platform::positionAxisControl(EffortComp Component, int axis)
 {
-    if ((axis==X)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
+    if ((axis==X)&&((_ros_controllerType==POSITION_CTRL))){
       _pidPosition[X]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_X,EFFORT_LIMIT_DEFAULT_X); //!N
     }
 
-    if ((axis==Y)&&((_ros_controllerType==POSITION_ONLY)||(_ros_controllerType==SPEED_POSITION_CASCADE))){
+    if ((axis==Y)&&((_ros_controllerType==POSITION_CTRL))){
       _pidPosition[Y]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_Y,EFFORT_LIMIT_DEFAULT_Y); //!N
     }
 
     if (_platform_state==TELEOPERATION)
       {
-        if ((axis >= 2) && ((_ros_controllerType == POSITION_ONLY) || (_ros_controllerType == SPEED_POSITION_CASCADE)))
+        if ((axis >= 2) && ((_ros_controllerType == POSITION_CTRL) ))
         {
-            _pidPosition[axis]->setOutputLimits(-USER_MAX_EFFORTS[axis], USER_MAX_EFFORTS[axis]);
+            _pidPosition[axis]->setOutputLimits(-SAFETY_MAX_EFFORTS[axis], SAFETY_MAX_EFFORTS[axis]);
           //!Nm
         }
       }
     else
     {
-        if ((axis >= 2) && ((_ros_controllerType == POSITION_ONLY) || (_ros_controllerType == SPEED_POSITION_CASCADE)))
+        if ((axis >= 2) && ((_ros_controllerType == POSITION_CTRL)))
         {
             _pidPosition[axis]->setOutputLimits(-3, 3);
         }
     }
     
-
-
-    if (_ros_controllerType==SPEED_POSITION_CASCADE){
-      _positionD(axis)=_speedCtrlOut[axis];
-    }
 
     if (abs(_positionD(axis))>0.005) //! Only interpolate if greater than 5 millimiters / millidegrees
     {
@@ -63,8 +57,7 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
                                    _kdPosition[axis]);
     _pidPosition[axis]->compute();
 
-    if ((_ros_controllerType == POSITION_ONLY) ||
-        (_ros_controllerType == SPEED_POSITION_CASCADE)) {
+    if ((_ros_controllerType == POSITION_CTRL)) {
       _effortD_ADD(axis,Component) = _positionCtrlOut[axis];
     }
 }
@@ -72,27 +65,22 @@ void Platform::positionAxisControl(EffortComp Component, int axis)
 //! 3
 void Platform::speedAxisControl(EffortComp Component, int axis)
 {
-    if ((axis==X)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
+    if ((axis==X)&&((_ros_controllerType==SPEED_CTRL))){
       _pidSpeed[X]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_X,EFFORT_LIMIT_DEFAULT_X); //!N
     }
 
-     if ((axis==Y)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
+     if ((axis==Y)&&((_ros_controllerType==SPEED_CTRL))){
       _pidSpeed[Y]->setOutputLimits(-EFFORT_LIMIT_DEFAULT_Y,EFFORT_LIMIT_DEFAULT_Y); //!N
     }
 
-    if ((axis>=2)&&((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE))){
+    if ((axis>=2)&&((_ros_controllerType==SPEED_CTRL))){
       _pidSpeed[axis]->setOutputLimits(-3,3); //!Nm
     }
-
-    if (_ros_controllerType==POSITION_SPEED_CASCADE){
-      _speedD[axis]=_positionCtrlOut[axis];
-    }
-
 
      _pidSpeed[axis]->setTunings(_kpSpeed[axis], _kiSpeed[axis], _kdSpeed[axis]);
      _pidSpeed[axis]->compute();
 
-    if ((_ros_controllerType==SPEED_ONLY)||(_ros_controllerType==POSITION_SPEED_CASCADE)){
+    if ((_ros_controllerType==SPEED_CTRL)){
       _effortD_ADD(axis,NORMAL) = _speedCtrlOut[axis];
     }
 }

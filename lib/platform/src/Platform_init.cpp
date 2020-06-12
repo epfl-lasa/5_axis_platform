@@ -1,6 +1,5 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 void Platform::init()
 {
@@ -10,7 +9,7 @@ void Platform::init()
     for(int k = 0; k <NB_AXIS; k++)
     {
 
-     _motors[k]->period_us(200); // PWM (to ESCON) PERIOD 200 us-> 1kHz    
+     _motors[k]->period_us(200); // PWM (to ESCON) PERIOD 200 us-> 5kHz    
      _esconEnabled[k]->fall(&emergencyCallback);
 
     //}
@@ -26,7 +25,7 @@ void Platform::init()
   _spi->lock();
   for (uint k = 0; k<NB_AXIS; k++)
   {
-     _encoders[k]->QEC_init((int)k, _encoderScale[k], _encoderSign[k],_spi);
+     _encoders[k]->QEC_init((int)k, ENCODER_SCALE[k], ENCODER_SIGN[k],_spi);
   }
   _spi->unlock(); 
 

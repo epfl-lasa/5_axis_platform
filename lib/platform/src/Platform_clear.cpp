@@ -1,6 +1,5 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 
 //! 1
@@ -89,7 +88,7 @@ void Platform::clearLastState()
         _nh.loginfo(_logMsg);
         break;
       }
-      case(RESET):{break;}
+      case(RESET_UC):{break;}
     }
 }
 
@@ -99,12 +98,12 @@ void Platform::resetControllers()
 {
   switch(_platform_controllerType)
   {
-    case(TORQUE_ONLY):
+    case(TORQUE_CTRL):
     {
       compEffortClear(-1, NORMAL);
       break;
     }
-    case(POSITION_ONLY):
+    case(POSITION_CTRL):
       {
         for (uint k=0; k<NB_AXIS; k++)
         {
@@ -113,22 +112,12 @@ void Platform::resetControllers()
         }
         break;
       }
-    case (SPEED_ONLY): {
+    case (SPEED_CTRL): {
         for (uint k = 0; k < NB_AXIS; k++) {
           _pidSpeed[k]->reset();
           // _speedPIDIn[k]->reset();
         }
         break;
-      }
-    case (SPEED_POSITION_CASCADE):
-    case (POSITION_SPEED_CASCADE): {
-      for (uint k = 0; k < NB_AXIS; k++) {
-         _pidPosition[k]->reset();  _posDesiredFilters[k].reset();    
-        _pidSpeed[k]->reset();
-        // _positionPIDIn[k]->reset();
-        // _speedPIDIn[k]->reset();
-      }
-      break;
       }
   }
 }
@@ -174,7 +163,7 @@ void Platform::speedCtrlClear(int axis_)
 }
 
 //! 6
-void Platform::compEffortClear(int axis_, Platform::EffortComp component_)
+void Platform::compEffortClear(int axis_, EffortComp component_)
 {
   if (axis_==-1)
   {

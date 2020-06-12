@@ -10,7 +10,6 @@
 //#include "pid_interpolator.h"
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 #include "FootInputMsg_v2.h"
 #include "FootOutputMsg_v2.h"
 #include "setControllerSrv.h"
@@ -48,27 +47,11 @@ class Platform
     uint32_t _vibGenStamp;
     Timer _innerTimer; //! micros()
     uint64_t _innerCounterADC;
-
-  public:
-
-  enum cartesianAxis {CART_X, CART_Y, CART_Z,NB_CART_AXIS_COUNT};
-
-  #define NB_CART_AXIS (int) Platform::cartesianAxis::NB_CART_AXIS_COUNT
-
+  
   private:
     // Enum for axis ID
     
-    // enum Axis {Y,X,PITCH,ROLL,YAW} -> Move to definitions 
 
-    enum JointState {POSITION, SPEED, ACCELERATION}; 
-
-    enum EffortComp {NORMAL,CONSTRAINS,COMPENSATION,FEEDFORWARD}; //! Count := 4
-
-    // Enum for state machine
-    enum State {HOMING,CENTERING,TELEOPERATION,EMERGENCY,STANDBY,RESET,ROBOT_STATE_CONTROL}; 
-
-    // Enum for the controller that is directly ouput for the motors
-    enum Controller {TORQUE_ONLY, POSITION_ONLY, SPEED_ONLY, SPEED_POSITION_CASCADE, POSITION_SPEED_CASCADE}; //! F= D(K(x-xd)-x_dot) SPEED_POSITION_CASCADE IS AN IMPEDANCE CTRL MODULATED BY DYNAMICAL SYSTEM
     
     // ROS variables  
 
@@ -123,19 +106,7 @@ class Platform
     LP_Filter _accFilters[NB_AXIS];
     LP_Filter _effortMFilters[NB_AXIS];
     volatile uint _switchesState[NB_AXIS];
-    float _maxEffort[NB_AXIS];
-    float _maxCurrent[NB_AXIS];
-    float _transmisions[NB_AXIS];
-    float _torqueConstants[NB_AXIS];
-    int _encoderSign[NB_AXIS];
-    int _motorSign[NB_AXIS];
-    float _encoderScale[NB_AXIS];
-    float _c_wsLimits[NB_AXIS];
     bool _flagInWsConstrains;
-    float _wsRange[NB_AXIS];
-    float _effortLimits[NB_AXIS];
-    // PIDInterpolator *_positionPIDIn[NB_AXIS];
-    // PIDInterpolator *_speedPIDIn[NB_AXIS];
 
     // Hardware variables
     PinName _csPins[NB_AXIS];
@@ -158,9 +129,7 @@ class Platform
     volatile float _kiSpeed[NB_AXIS];
     volatile float _kdSpeed[NB_AXIS];
 
-
-
-    // PID 
+   // PID 
 
     PID* _pidPosition[NB_AXIS];
     PID* _pidSpeed[NB_AXIS];
@@ -254,31 +223,9 @@ class Platform
       void gotoPointAll(float pointX, float pointY, float pointPITCH,     
       float pointROLL, float pointYAW);                                   //! 6
       void gotoPointGainsDefault(int axis_);                              //! 7
-      
-
-
-
-
-    
 
     //! Platform_compensation.cpp
    
-
-  public:
-  #define NB_STICTION_COMP 2
-  #define NB_SIGN_COMP 2
-  #define NB_LIMS 2
-  #define L_MIN 0
-  #define L_MAX 1
-  #define NEG 0
-  #define POS 1
-  #define MID 3
-  
-  enum link_chain {LINK_BASE, LINK_Y, LINK_X, LINK_PITCH, LINK_ROLL, LINK_YAW, LINK_PEDAL, NB_LINKS_COUNT};
-
-  #define NB_LINKS Platform::link_chain::NB_LINKS_COUNT
-
-  enum compensationComp {COMP_GRAVITY, COMP_VISC_FRICTION, COMP_INERTIA, COMP_CORIOLIS, COMP_DRY_FRICTION, NB_COMPENSATION_COMP};
 private:
   void dynamicCompensation(const int *  components_);
   void gravityCompensation();
@@ -286,36 +233,12 @@ private:
   void viscFrictionCompensation();
   void inertiaCompensation();
   void coriolisCompensation();
-
   void quadraticRegression();
 
-  Eigen::Matrix<float, NB_STICTION_COMP, 1> _dryFrictionEffortSign[NB_SIGN_COMP];
+  Eigen::Matrix<float, NB_STICTION_AXIS, 1> _dryFrictionEffortSign[NB_SIGN_COMP];
   Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP> _compensationEffort;
-  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _predictors[NB_SIGN_COMP];
-  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _betas[NB_SIGN_COMP];
-  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _mean[NB_SIGN_COMP];
-  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_COMP> _stdInv[NB_SIGN_COMP];
-  Eigen::Matrix<float, 1 , NB_STICTION_COMP> _bias[NB_SIGN_COMP];
-
-  enum frame_chain {
-    FRAME_BASE,
-    FRAME_Y,
-    FRAME_X,
-    FRAME_Z,
-    FRAME_PITCH,
-    FRAME_ROLL,
-    FRAME_YAW,
-    FRAME_FS,
-    FRAME_PEDAL,
-    FRAME_EPOINT
-  };
-
-  #define CORIOLIS_KRONECKER 0
-
-  #define CORIOLIS_TEMPORAL 1
-
-  #define CORIOLIS_DEV_STRATEGY CORIOLIS_TEMPORAL
-
+  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS> _predictors[NB_SIGN_COMP]; 
+      
   Eigen::Matrix<float,NB_AXIS,NB_COMPENSATION_COMP-1>  _compTorqueLims[NB_LIMS];
   Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeomJacobian[NB_LINKS];
   Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
@@ -339,7 +262,7 @@ private:
       void positionCtrlClear(int axis_); //! Put gains and set point to zero of the Position Control
       void speedCtrlClear(int axis_); //! Put gains and set point to zero of the Speed Control
       void totalEffortDClear(int axis_);
-      void compEffortClear(int axis_, Platform::EffortComp comp_);
+      void compEffortClear(int axis_, EffortComp comp_);
       void clearLastState();
       void resetControllers();
 
@@ -372,15 +295,8 @@ private:
 
     Eigen::Matrix4f dhTransform(float r,float d,float alpha,float beta);
 
-#define WITH_FORCE_SENSOR 1
-#define WITHOUT_FORCE_SENSOR 0
-#define PRESENCE_FORCE_SENSOR WITHOUT_FORCE_SENSOR
 
     //! Platform_feedforward.cpp
-
-#define NB_FF_COMP 1
-
-#define FF_VIB 0
 
     void feedForwardControl();
     Eigen::Matrix<float, NB_AXIS, NB_FF_COMP> _feedForwardTorque;
@@ -396,12 +312,8 @@ private:
 
 /* TODO
 
- * 1. Remove position filters to avoid lag -> done
  * 2. Modify speed filters and acc filters -> done
  * 3. Include the PID gains in the parameter server
  * 5. Make multi-axis PID
- * 6. Make multi-axis FILTER
- * 7. Calculate Inertia Matrices, Coriolis and Gravity
- * 9. Eliminate uneeded matrices like _massLinks;
 
 */

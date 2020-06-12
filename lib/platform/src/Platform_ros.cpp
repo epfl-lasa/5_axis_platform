@@ -1,6 +1,5 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 const int rosAxis[] = {X,Y,PITCH,ROLL,YAW};//! This is because the first joint is Y and then X in the real platform and in the model... but in ros is X
 
@@ -41,7 +40,7 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
 //! 2
 void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_msgs::setStateSrvResponse &resp )
 {
-  Platform::State newState = (Platform::State) req.ros_machineState;
+  State newState = (State) req.ros_machineState;
   //! Update the dimensions of the motor commands -> reflected force (normal) + compensation , etc
   for (uint j=0; j<NB_EFFORT_COMPONENTS; j++){
       me->_ros_effortComp[j]=req.ros_effortComp[j];
@@ -61,7 +60,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
 {
 
 
-  Platform::Controller newController = (Platform::Controller) req.ros_controllerType;
+  Controller newController = (Controller) req.ros_controllerType;
   if (me->_ros_controllerType != newController)
   {
     me->_flagControllerTypeChanged = true;

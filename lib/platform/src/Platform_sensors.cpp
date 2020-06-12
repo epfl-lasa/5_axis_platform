@@ -1,14 +1,8 @@
 #include "Platform.h"
 #include "definitions.h"
-#include "definitions_2.h"
 
 //! #1
 
-#define ADC 1
-#define EFFORT_M ADC
-
-extern const float invSpeedSampT = (1.0f / ((float) VELOCITY_PID_SAMPLE_P * 1e-6f));
-extern const float invAccSampT = (1.0f/ ((float)ACC_SAMPLE_P * 1e-6f)) ;
 
 void Platform::getMotion()
 {
@@ -31,7 +25,7 @@ void Platform::readActualEffort() //! ADC
     for (uint k = 0; k < NB_AXIS; k++)
     {
       e_meas[k] = ADC_SIGN[k]*_motorCurrents[k]->read();
-      e_raw[k] = (e_meas[k] - 0.1f) * (2.0f * _maxEffort[k]) / (0.8f) - 1.0f * _maxEffort[k];
+      e_raw[k] = (e_meas[k] - 0.1f) * (2.0f * MAX_EFFORT[k]) / (0.8f) - 1.0f * MAX_EFFORT[k];
       e_raw[k] *= ADC_EFFORT_SCALE[k];
     }
 
