@@ -12,51 +12,31 @@ void Platform::wsConstrains(int axis_)
   }
   else
   {
-    float wall = C_WS_LIMITS[axis_];
+    _platform_kiPosition[axis_]=0.0f; // It is just a spring damper  
     
-    if (_ros_flagDefaultControl) {
-      wsConstrainsDefault(axis_);
+    if (!_platform_flagDefaultControl) {
+        _virtualWall(axis_)=fabs(_positionD(axis_)); //! A symmetric wall will be built on the set position
     }
-    else
-    {
-       wall=fabs(_ros_position[axis_]); //! A symmetric wall will be built on the set position
-       _kiPosition[axis_]=0.0f;
-    }
-
-    _positionD[axis_] = _position(axis_) >= wall ? wall : (_position(axis_) <= -wall ? -wall: 0.0f);
     
-    if (( _position(axis_) >= wall || _position(axis_) <= -wall )
-      )
+    if (( _position(axis_) >= _virtualWall(axis_) || _position(axis_) <= -_virtualWall(axis_) ))
       {
-          _flagInWsConstrains=true;
-           //_pidPosition[axis_]->reset();
+          _flagInWsConstrains[axis_]=true;
+           _positionD(axis_) = _virtualWall(axis_);
            positionAxisControl(CONSTRAINS, axis_);
-           
       }
       else    
       {
-        _flagInWsConstrains=false;
-        _effortD_ADD(axis_,CONSTRAINS)=0.0f;
+          _pidPosition[axis_]->reset();
+          _flagInWsConstrains[axis_]=false;
       }
   }
 }
 
+
 //! 3
-void Platform::wsConstrainsDefault(int axis_)
+void Platform::wsConstrainsGainsDefault()
 {
-  if (axis_==-1){
-    for (uint k=0; k<NB_AXIS; k++ )
-    {
-      wsConstrainsDefault(k);
-    }
-  }
-  else{
-    switch(axis_){
-        case(Y): {_kpPosition[Y]=C_WS_KP_POSITION_Y;_kiPosition[Y]=C_WS_KI_POSITION_Y;_kdPosition[Y]=C_WS_KD_POSITION_Y; break;}
-        case(X): {_kpPosition[X]=C_WS_KP_POSITION_X;_kiPosition[X]=C_WS_KI_POSITION_X;_kdPosition[X]=C_WS_KD_POSITION_X; break;}
-        case(PITCH): {_kpPosition[PITCH]=C_WS_KP_POSITION_PITCH;_kiPosition[PITCH]=C_WS_KI_POSITION_PITCH;_kdPosition[PITCH]=C_WS_KD_POSITION_PITCH;break;}
-        case(ROLL): {_kpPosition[ROLL]=C_WS_KP_POSITION_ROLL;_kiPosition[ROLL]=C_WS_KI_POSITION_ROLL;_kdPosition[ROLL]=C_WS_KD_POSITION_ROLL;break;}
-        case(YAW): {_kpPosition[YAW]=C_WS_KP_POSITION_YAW;_kiPosition[YAW]=C_WS_KI_POSITION_YAW;_kdPosition[YAW]=C_WS_KD_POSITION_YAW;break;}
-      }
-  }
+  _platform_kpPosition = Eigen::Map<const Eigen::MatrixXf>(C_WS_PID_GAINS[KP], NB_AXIS, 1);
+  _platform_kiPosition = Eigen::Map<const Eigen::MatrixXf>(C_WS_PID_GAINS[KI], NB_AXIS, 1);
+  _platform_kdPosition = Eigen::Map<const Eigen::MatrixXf>(C_WS_PID_GAINS[KD], NB_AXIS, 1);               
 }

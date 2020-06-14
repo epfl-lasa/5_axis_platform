@@ -11,7 +11,7 @@ float Platform::map(float x, float in_min, float in_max, float out_min, float ou
     mapping = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
   }
   else
-  {_nh.logfatal("You have inf or nan numbers");}
+  {_nh.logfatal("You have inf or nan numbers"); return 0.0f;}
 
   return mapping < out_min ? out_min : (mapping>out_max ? out_max : mapping);
 }

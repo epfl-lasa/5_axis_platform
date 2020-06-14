@@ -70,7 +70,7 @@ PID::~PID()
  **********************************************************************************/
 bool PID::compute()
 {
-   if(!inAuto) return false;
+   if(inAuto) return false;
    unsigned long now = myTimer->read_us();
    unsigned long timeChange = (now - lastTime);
    if(timeChange>=SampleTime)
@@ -190,8 +190,8 @@ void PID::setOutputLimits(float Min, float Max)
    if(Min >= Max) return;
    outMin = Min;
    outMax = Max;
-   outSumMax = 0.5f*outMax;
-   outSumMin = 0.5f*outMin;
+   outSumMax = 0.9f*outMax;
+   outSumMin = 0.9f*outMin;
 
 
    if(inAuto)

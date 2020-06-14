@@ -8,7 +8,6 @@ void Platform::init()
   // second edge capture, with a 1MHz clock rate
     for(int k = 0; k <NB_AXIS; k++)
     {
-
      _motors[k]->period_us(200); // PWM (to ESCON) PERIOD 200 us-> 5kHz    
      _esconEnabled[k]->fall(&emergencyCallback);
 
@@ -16,16 +15,15 @@ void Platform::init()
     _pidPosition[k]->setSampleTime(POSITION_PID_SAMPLE_P); //! [us]
     _pidSpeed[k]->setSampleTime(VELOCITY_PID_SAMPLE_P);
     }
+    loadDefaultPIDGains();
+    //! Attach interruptions to callbacks on falling edge
+    _limitSwitches[X]->fall(&switchCallbackX);
+    _limitSwitches[Y]->fall(&switchCallbackY);
+    _limitSwitches[PITCH]->fall(&switchCallbackPitch);
 
-  //! Attach interruptions to callbacks on falling edge 
-  _limitSwitches[X]->fall(&switchCallbackX);
-  _limitSwitches[Y]->fall(&switchCallbackY);
-  _limitSwitches[PITCH]->fall(&switchCallbackPitch);
-  
-  _spi->lock();
-  for (uint k = 0; k<NB_AXIS; k++)
-  {
-     _encoders[k]->QEC_init((int)k, ENCODER_SCALE[k], ENCODER_SIGN[k],_spi);
+    _spi->lock();
+    for (uint k = 0; k < NB_AXIS; k++) {
+      _encoders[k]->QEC_init((int)k, ENCODER_SCALE[k], ENCODER_SIGN[k], _spi);
   }
   _spi->unlock(); 
 

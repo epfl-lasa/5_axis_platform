@@ -45,17 +45,11 @@ const float MAX_EFFORT[] = {EFFORT_LIMIT_DEFAULT_Y ,EFFORT_LIMIT_DEFAULT_X,
 const float SAFETY_MAX_EFFORTS[NB_AXIS] = { EFFORT_LIMIT_DEFAULT_Y, EFFORT_LIMIT_DEFAULT_X,
                                             0.5f * EFFORT_LIMIT_DEFAULT_PITCH , 0.5f * EFFORT_LIMIT_DEFAULT_ROLL, 0.5f * EFFORT_LIMIT_DEFAULT_YAW};
 
-const float EFFORT_LIMITS_HOMING[] = {SAFETY_MAX_EFFORTS[Axis::Y],
-                                      SAFETY_MAX_EFFORTS[Axis::X],
-                                      0.4f * SAFETY_MAX_EFFORTS[Axis::PITCH],
-                                      0.4f * SAFETY_MAX_EFFORTS[Axis::ROLL],
-                                      0.4f * SAFETY_MAX_EFFORTS[Axis::YAW]};
-
-#define EFFORT_LIMIT_HOMING_Y EFFORT_LIMIT_DEFAULT_Y
-#define EFFORT_LIMIT_HOMING_X EFFORT_LIMIT_DEFAULT_X
-#define EFFORT_LIMIT_HOMING_PITCH 3
-#define EFFORT_LIMIT_HOMING_ROLL 3
-#define EFFORT_LIMIT_HOMING_YAW 3
+const float SAFETY_MAX_INIT[] = {SAFETY_MAX_EFFORTS[Axis::Y],
+                                    SAFETY_MAX_EFFORTS[Axis::X],
+                                    0.4f * SAFETY_MAX_EFFORTS[Axis::PITCH],
+                                    0.4f * SAFETY_MAX_EFFORTS[Axis::ROLL],
+                                    0.4f * SAFETY_MAX_EFFORTS[Axis::YAW]};
 
 const float SPEED_LIMIT_Y = Y_RANGE / 0.5;
 const float SPEED_LIMIT_X = X_RANGE / 0.5; //! s^-1

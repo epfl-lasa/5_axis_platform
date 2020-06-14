@@ -19,11 +19,16 @@ Platform::Platform()
     
   _effortD.setConstant(0.0f);
   _effortM.setConstant(0.0f);
+  _positionD.setConstant(0.0f);
+  _positionD_filtered.setConstant(0.0f);
   _position.setConstant(0.0f);
-  _speed.setConstant(0.0f);
-  _speedPrev.setConstant(0.0f);
-  _positionOffsets.setConstant(0.0f);
   _positionPrev.setConstant(0.0f);
+  _positionOffsets.setConstant(0.0f);
+  _virtualWall.setConstant(0.0f);
+  _speed.setConstant(0.0f);
+  _speedD.setConstant(0.0f);
+  _speedPrev.setConstant(0.0f);
+  _acceleration.setConstant(0.0f);
 
   _flagCalculateSinCos = false;
   _c_theta = 0.0f;
@@ -49,10 +54,13 @@ Platform::Platform()
     _ros_speed[k]=0.0f;
     _ros_effort[k] = 0.0f;
 
-    _pidPosition[k] = new PID(&_innerTimer, &_position(k), &_positionCtrlOut(k), &_positionD_filtered(k), _kpPosition[k], _kiPosition[k], _kdPosition[k], DIRECT, POS_PID_FILTER_GAINS[k]);
-    _pidPosition[k]->setMode(AUTOMATIC);
-    _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _kpSpeed[k], _kiSpeed[k], _kdSpeed[k],DIRECT, VEL_PID_FILTER_GAINS[k]);
-    _pidSpeed[k]->setMode(AUTOMATIC);
+    _pidPosition[k] = new PID(&_innerTimer, &_position(k), &_positionCtrlOut(k), &_positionD_filtered(k), _platform_kpPosition[k], _platform_kiPosition[k], _platform_kdPosition[k], DIRECT, POS_PID_FILTER_GAINS[k]);
+    _pidPosition[k]->setMode(MANUAL);
+    _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _platform_kpSpeed[k], _platform_kiSpeed[k], _platform_kdSpeed[k],DIRECT, VEL_PID_FILTER_GAINS[k]);
+    _pidSpeed[k]->setMode(MANUAL);
+
+    _flagInWsConstrains[k] = false;
+
   }
 
   _speedFilters[Y].setAlpha(0.96);
@@ -69,26 +77,29 @@ Platform::Platform()
 
   _innerCounterADC=0;
 
-  _ros_ControlledAxis = -1; //! all of them
+  _ros_controlledAxis = -1; //! all of them
+  _platform_controlledAxis = _ros_controlledAxis;
   _ros_controllerType=TORQUE_CTRL;
   _platform_controllerType=_ros_controllerType;
   _flagClearLastState=false;
   _flagControllerTypeChanged=false;
-  _flagInWsConstrains = false;
+  _flagDefaultCtrlNew = false;
+  _flagCtrlGainsNew = false;
 
   _ros_flagDefaultControl=true;
-  
+  _platform_flagDefaultControl = true;
+
   for(int c = 0; c<NB_FI_CATEGORY; c++)
   {
     _flagInputReceived[c] = false; //! To be used specially for the telemanipulation state
   }
-  
-   wsConstrainsDefault(-1);
-  
+
   for (uint j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
   {
     if (j<=1){ _ros_effortComp[j]=1;}
     else{_ros_effortComp[j]=0;}
+
+    _platform_effortComp[j] = _ros_effortComp[j];
   }
 
   _tic=false;
@@ -103,7 +114,6 @@ Platform::Platform()
   _enterStateOnceFlag[STANDBY]=false;
   _enterStateOnceFlag[ROBOT_STATE_CONTROL]=false;
 
-  _ros_controllerType= TORQUE_CTRL;
   /*******DESIGNATIONS OF PINS IN THE MICROCONTROLLER NUCLEO L476RG */
 
   _csPins[Y] = PB_10;  //! CS2  -> Dorsi/Plantar Flexion NOT as PWMX/XN
@@ -135,12 +145,6 @@ Platform::Platform()
   _motorCurrentsPins[ROLL]=PA_4;  
   _motorCurrentsPins[YAW]=PA_0;
 
-  // _motorCurrentsPins[X] = A5;
-  // _motorCurrentsPins[Y] = A3;
-  // _motorCurrentsPins[PITCH] = A4;
-  // _motorCurrentsPins[ROLL] = A2;
-  // _motorCurrentsPins[YAW] = A0;
-
   _enableMotors= new DigitalOut(PB_1);  
 
   _spi = new SPI(PA_7, PA_6, PA_5); // mosi, miso, sclk https://os.mbed.com/platforms/ST-Nucleo-L476RG/
@@ -168,53 +172,53 @@ Platform::Platform()
     }
       
    }
-_timestamp=0; // We don't read the timer until the platform is initialized
+  _timestamp=0; // We don't read the timer until the platform is initialized
 
-_recoveringFromError=false;
-_flagBiasADCOk=false;
-_allEsconOk = 1;
-
-
-_compensationEffort.setConstant(0.0f);
-
-for (int sign_=0; sign_<NB_SIGN_COMP; sign_++)
-{
-  _dryFrictionEffortSign[sign_].setConstant(0.0f);
-  _predictors[sign_].setConstant(0.0f);
-}
+  _recoveringFromError=false;
+  _flagBiasADCOk=false;
+  _allEsconOk = 1;
 
 
+  _compensationEffort.setConstant(0.0f);
 
-for (int lim_=L_MIN; lim_<NB_LIMS; lim_++)
-{
-  _compTorqueLims[lim_].setConstant(0.0f);
-  _compTorqueLims[lim_].col(COMP_GRAVITY) = Eigen::Map<const Eigen::MatrixXf>(GRAVITY_EFFORT_LIMS[lim_],NB_AXIS,1);
-  _compTorqueLims[lim_].col(COMP_VISC_FRICTION) = Eigen::Map<const Eigen::MatrixXf>(VISC_EFFORT_LIMS[lim_],NB_AXIS,1);
-  _compTorqueLims[lim_].col(COMP_INERTIA) = Eigen::Map<const Eigen::MatrixXf>(INERTIA_EFFORT_LIMS[lim_],NB_AXIS,1);
-  _compTorqueLims[lim_].col(COMP_CORIOLIS) = Eigen::Map<const Eigen::MatrixXf>(CORIOLIS_EFFORT_LIMS[lim_],NB_AXIS,1);;
+  for (int sign_=0; sign_<NB_SIGN_COMP; sign_++)
+  {
+    _dryFrictionEffortSign[sign_].setConstant(0.0f);
+    _predictors[sign_].setConstant(0.0f);
+  }
 
-}
-  
 
-//! Model
 
-_jointsViscosityGains = Eigen::Map<const Eigen::MatrixXf>(VISCOUS_K, NB_AXIS, 1);
-_massLinks = Eigen::Map<const Eigen::MatrixXf>(LINKS_MASS, NB_LINKS, 1);
-for (int link = 0; link < NB_LINKS; link++) {
-  _momentInertiaLinks[link] = Eigen::Map<const Eigen::Matrix<float,3,3,Eigen::RowMajor>>(LINKS_MOMENT_OF_INERTIAS[link]);
-  
-  _linkCOMGeomJacobian[link].setConstant(0.0f);
-  _linkCOMGeometricJ_prev[link].setConstant(0.0f);
-  _rotationMatrixCOM[link].setConstant(0.0f);
-  _rotationMatrixCOM_prev[link].setConstant(0.0f);
-  _devLinkCOMGeomJacobian[link].setConstant(0.0f);
-  _devRotationMatrixCOM[link].setConstant(0.0f);
-}
+  for (int lim_=L_MIN; lim_<NB_LIMS; lim_++)
+  {
+    _compTorqueLims[lim_].setConstant(0.0f);
+    _compTorqueLims[lim_].col(COMP_GRAVITY) = Eigen::Map<const Eigen::MatrixXf>(GRAVITY_EFFORT_LIMS[lim_],NB_AXIS,1);
+    _compTorqueLims[lim_].col(COMP_VISC_FRICTION) = Eigen::Map<const Eigen::MatrixXf>(VISC_EFFORT_LIMS[lim_],NB_AXIS,1);
+    _compTorqueLims[lim_].col(COMP_INERTIA) = Eigen::Map<const Eigen::MatrixXf>(INERTIA_EFFORT_LIMS[lim_],NB_AXIS,1);
+    _compTorqueLims[lim_].col(COMP_CORIOLIS) = Eigen::Map<const Eigen::MatrixXf>(CORIOLIS_EFFORT_LIMS[lim_],NB_AXIS,1);;
 
-  _flagSpeedSampledForCoriolis = false;
+  }
 
-  _flagContact=false;
-  _flagVibration=false;
-  _feedForwardTorque.setConstant(0.0f);
+
+  //! Model
+
+  _jointsViscosityGains = Eigen::Map<const Eigen::MatrixXf>(VISCOUS_K, NB_AXIS, 1);
+  _massLinks = Eigen::Map<const Eigen::MatrixXf>(LINKS_MASS, NB_LINKS, 1);
+  for (int link = 0; link < NB_LINKS; link++) {
+    _momentInertiaLinks[link] = Eigen::Map<const Eigen::Matrix<float,3,3,Eigen::RowMajor>>(LINKS_MOMENT_OF_INERTIAS[link]);
+
+    _linkCOMGeomJacobian[link].setConstant(0.0f);
+    _linkCOMGeometricJ_prev[link].setConstant(0.0f);
+    _rotationMatrixCOM[link].setConstant(0.0f);
+    _rotationMatrixCOM_prev[link].setConstant(0.0f);
+    _devLinkCOMGeomJacobian[link].setConstant(0.0f);
+    _devRotationMatrixCOM[link].setConstant(0.0f);
+  }
+
+    _flagSpeedSampledForCoriolis = false;
+
+    _flagContact=false;
+    _flagVibration=false;
+    _feedForwardTorque.setConstant(0.0f);
 
 }

@@ -8,7 +8,9 @@ enum Controller {
   TORQUE_CTRL,
   POSITION_CTRL,
   SPEED_CTRL,
-}; 
+  POS_SPEED_CTRL,
+  SPEED_POS_CTRL,
+};
 
 //! Sampling times and loops
 #define COMM_LOOP 100 //! [us] -> 2ms = 500Hz

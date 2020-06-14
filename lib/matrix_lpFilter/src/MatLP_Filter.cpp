@@ -1,21 +1,22 @@
 #include <MatLP_Filter.h>
 
-MatLP_Filter::MatLP_Filter(float alpha, int length,int width)
+MatLP_Filter::MatLP_Filter(MatrixXf alphas)
 {
-  _output = Eigen::MatrixXf::Zero(length,width);
-  _old_output = Eigen::MatrixXf::Zero(length, width);
-  _alpha=alpha;
-  _bias = Eigen::MatrixXf::Zero(length, width);
+  _output = Eigen::MatrixXf::Zero(alphas.rows(),alphas.cols());
+  _old_output = Eigen::MatrixXf::Zero(alphas.rows(), alphas.cols());
+  _alphas=alphas;
+  _alphasComp = (1.0f - alphas.array()).matrix();
+  _bias = Eigen::MatrixXf::Zero(alphas.rows(), alphas.cols());
 }
 
 
-Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> MatLP_Filter::update(Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> raw_matrix){
-  _output=_alpha*_old_output + (1.0f-_alpha)*raw_matrix;
+MatrixXf MatLP_Filter::update(MatrixXf raw_matrix){
+  _output=_alphas.cwiseProduct(_old_output) + _alphasComp.cwiseProduct(raw_matrix);
   _old_output=_output;
   return _output - _bias;
 }
 
-void MatLP_Filter::setBias(Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> bias_)
+void MatLP_Filter::setBias(MatrixXf bias_)
 {
   _bias=bias_;
 }
@@ -26,7 +27,7 @@ void MatLP_Filter::reset()
   _old_output.setConstant(0.0f);
 }
 
-void MatLP_Filter::setAlpha(float alpha)
+void MatLP_Filter::setAlphas(MatrixXf alphas)
 {
-  _alpha=alpha;
+  _alphas=alphas;
 }

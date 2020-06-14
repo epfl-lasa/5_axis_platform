@@ -68,7 +68,7 @@ class Platform
         volatile float _ros_effort[NB_AXIS];
 
         volatile bool _ros_flagDefaultControl;
-        volatile int8_t _ros_ControlledAxis;
+        volatile int8_t _ros_controlledAxis;
         volatile Controller _ros_controllerType;
         volatile uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
         volatile State _ros_state;
@@ -77,18 +77,24 @@ class Platform
 
     // State variables
     State _platform_state;
+    int8_t _platform_controlledAxis;
+    uint8_t _platform_effortComp[NB_EFFORT_COMPONENTS];
     Controller _platform_controllerType;
 
     volatile bool _flagClearLastState;
     volatile bool _flagControllerTypeChanged;
+    volatile bool _flagDefaultCtrlNew;
+    volatile bool _flagCtrlGainsNew;
     volatile bool _flagInputReceived[NB_FI_CATEGORY];
     volatile bool _flagEmergencyCalled;
     bool _enterStateOnceFlag[NB_MACHINE_STATES];
 
     bool _workspaceLimitReached[NB_AXIS];
+    bool _platform_flagDefaultControl;
 
     Eigen::Matrix<float, NB_AXIS, 1> _positionOffsets; //! in m or radians
     Eigen::Matrix<float, NB_AXIS, 1> _positionD;
+    Eigen::Matrix<float, NB_AXIS, 1> _virtualWall;
     Eigen::Matrix<float, NB_AXIS, 1> _positionD_filtered;
     Eigen::Matrix<float, NB_AXIS, 1> _positionCtrlOut;
     Eigen::Matrix<float, NB_AXIS, 1> _position;
@@ -106,7 +112,7 @@ class Platform
     LP_Filter _accFilters[NB_AXIS];
     LP_Filter _effortMFilters[NB_AXIS];
     volatile uint _switchesState[NB_AXIS];
-    bool _flagInWsConstrains;
+    bool _flagInWsConstrains[NB_AXIS];
 
     // Hardware variables
     PinName _csPins[NB_AXIS];
@@ -122,14 +128,21 @@ class Platform
 
     // PID variables
       //General Variables
-    volatile float _kpPosition[NB_AXIS];
-    volatile float _kiPosition[NB_AXIS];
-    volatile float _kdPosition[NB_AXIS];
-    volatile float _kpSpeed[NB_AXIS];
-    volatile float _kiSpeed[NB_AXIS];
-    volatile float _kdSpeed[NB_AXIS];
+    Matrix<float,NB_AXIS,1> _platform_kpPosition;
+    Matrix<float,NB_AXIS,1> _platform_kiPosition;
+    Matrix<float,NB_AXIS,1> _platform_kdPosition;
+    Matrix<float,NB_AXIS,1> _platform_kpSpeed;
+    Matrix<float,NB_AXIS,1> _platform_kiSpeed;
+    Matrix<float,NB_AXIS,1> _platform_kdSpeed;
 
-   // PID 
+    volatile float _ros_kpPosition[NB_AXIS];
+    volatile float _ros_kiPosition[NB_AXIS];
+    volatile float _ros_kdPosition[NB_AXIS];
+    volatile float _ros_kpSpeed[NB_AXIS];
+    volatile float _ros_kiSpeed[NB_AXIS];
+    volatile float _ros_kdSpeed[NB_AXIS];
+
+    // PID 
 
     PID* _pidPosition[NB_AXIS];
     PID* _pidSpeed[NB_AXIS];
@@ -179,8 +192,8 @@ class Platform
     void setEfforts();                                                     //! 1
   private:
     // Effort Computation for the ESCONS
-      void setEffortAxis(float effort,  PwmOut *pin, int sign, int axis);   //! 2
-      void setCurrentAxis(float torque, PwmOut *pin, int sign, int axis);   //! 3
+      void setEffortAxis(float effort, int axis);   //! 2
+      void setCurrentAxis(float torque,int axis);   //! 3
 
   //! Platform_utils.cpp
   public:  
@@ -222,40 +235,46 @@ class Platform
       void gotoPointAxis(int axis_, float point);                         //! 5
       void gotoPointAll(float pointX, float pointY, float pointPITCH,     
       float pointROLL, float pointYAW);                                   //! 6
-      void gotoPointGainsDefault(int axis_);                              //! 7
+      void gotoPointGainsDefault();                              //! 7
+      void speedPIDGainsDefault();                                 //!
+      void posCtrlLimitsSet();                                    //!
+      void speedCtrlLimitsSet();                                 //!
+      void posInterpolator(int axis);
+      void loadDefaultPIDGains();
+      void loadROSPIDGains();
+      //! Platform_compensation.cpp
 
-    //! Platform_compensation.cpp
-   
-private:
-  void dynamicCompensation(const int *  components_);
-  void gravityCompensation();
-  void dryFrictionCompensation();
-  void viscFrictionCompensation();
-  void inertiaCompensation();
-  void coriolisCompensation();
-  void quadraticRegression();
+          private : void dynamicCompensation(const int *components_);
+      void gravityCompensation();
+      void dryFrictionCompensation();
+      void viscFrictionCompensation();
+      void inertiaCompensation();
+      void coriolisCompensation();
+      void quadraticRegression();
 
-  Eigen::Matrix<float, NB_STICTION_AXIS, 1> _dryFrictionEffortSign[NB_SIGN_COMP];
-  Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP> _compensationEffort;
-  Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS> _predictors[NB_SIGN_COMP]; 
-      
-  Eigen::Matrix<float,NB_AXIS,NB_COMPENSATION_COMP-1>  _compTorqueLims[NB_LIMS];
-  Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeomJacobian[NB_LINKS];
-  Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
-  Eigen::Matrix<float, 3, 3> _rotationMatrixCOM[NB_LINKS];
-  Eigen::Matrix<float, 3, 3> _rotationMatrixCOM_prev[NB_LINKS];
-  
-  Eigen::Matrix<float, 6, NB_AXIS> _devLinkCOMGeomJacobian[NB_LINKS];
-  Eigen::Matrix<float, 3, 3> _devRotationMatrixCOM[NB_LINKS];
-  volatile bool _flagSpeedSampledForCoriolis;
+      Eigen::Matrix<float, NB_STICTION_AXIS, 1>
+          _dryFrictionEffortSign[NB_SIGN_COMP];
+      Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP> _compensationEffort;
+      Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS>
+          _predictors[NB_SIGN_COMP];
 
+      Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP - 1>
+          _compTorqueLims[NB_LIMS];
+      Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeomJacobian[NB_LINKS];
+      Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
+      Eigen::Matrix<float, 3, 3> _rotationMatrixCOM[NB_LINKS];
+      Eigen::Matrix<float, 3, 3> _rotationMatrixCOM_prev[NB_LINKS];
 
-  //Platform_constrains.cpp
-  void wsConstrains(int axis_);               //! -1 := all of them                 //! 1
-  void wsConstrainsDefault(int axis_);       //! 3
+      Eigen::Matrix<float, 6, NB_AXIS> _devLinkCOMGeomJacobian[NB_LINKS];
+      Eigen::Matrix<float, 3, 3> _devRotationMatrixCOM[NB_LINKS];
+      volatile bool _flagSpeedSampledForCoriolis;
 
-  //!Platform_clear.cpp
-  private:
+      // Platform_constrains.cpp
+      void wsConstrains(int axis_); //! -1 := all of them                 //! 1
+      void wsConstrainsGainsDefault(); //! 3
+
+      //! Platform_clear.cpp
+    private:
       //! Maintenance
       void limitSwitchesClear();
       void positionAllReset();
@@ -312,7 +331,6 @@ private:
 
 /* TODO
 
- * 2. Modify speed filters and acc filters -> done
  * 3. Include the PID gains in the parameter server
  * 5. Make multi-axis PID
 

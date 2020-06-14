@@ -8,16 +8,18 @@ using namespace Eigen;
 class MatLP_Filter
 {
 	public:
-		MatLP_Filter(float alpha, int length,int width);
-		Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> update(Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> raw_matrix);
-		void setAlpha(float alpha);		
-		void reset();
-		void setBias(Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> bias_);
+        MatLP_Filter(MatrixXf alphas);
+        ~MatLP_Filter();
+        MatrixXf update(MatrixXf raw_matrix);
+        void setAlphas(MatrixXf alphas);
+        void reset();
+        void setBias(MatrixXf bias_);
 	private:
-		Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> _bias;
-		float _alpha;
-		Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> _old_output;
-		Eigen::Matrix<float,Eigen::Dynamic,Eigen::Dynamic> _output;
+		MatrixXf _bias;
+		MatrixXf _alphas;
+		MatrixXf _alphasComp;
+		MatrixXf _old_output;
+		MatrixXf _output;
 };
 
 #endif /*__MATLP_FILTER__*/

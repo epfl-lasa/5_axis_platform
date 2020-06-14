@@ -59,40 +59,49 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
 void Platform::updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp )
 {
 
-
-  Controller newController = (Controller) req.ros_controllerType;
-  if (me->_ros_controllerType != newController)
+  if ((me->_platform_state==TELEOPERATION) || (me->_platform_state==ROBOT_STATE_CONTROL))
   {
-    me->_flagControllerTypeChanged = true;
-    me->_ros_controllerType = newController;
-  }
-
-  me->_ros_flagDefaultControl = req.ros_defaultControl;
-  me->_ros_ControlledAxis=req.ros_controlledAxis ==-1 ? -1:rosAxis[req.ros_controlledAxis]; 
-  
-  if ((me->_ros_state!=TELEOPERATION) && (me->_ros_state!=ROBOT_STATE_CONTROL))
-    { resp.platform_controlOk=false; }
-  else
-  {
-    resp.platform_controlOk=true;
+    Controller newController = (Controller) req.ros_controllerType;
+    if (me->_platform_controllerType != newController)
+    {
+      me->_flagControllerTypeChanged = true;
+      me->_ros_controllerType = newController;
+    }
+    bool newDefaultCtrl = req.ros_defaultControl;
+    if (newDefaultCtrl && !me->_platform_flagDefaultControl)
+    {
+      me->_flagDefaultCtrlNew = true;
+      me->_ros_flagDefaultControl = newDefaultCtrl;
+    }
+   me->_ros_controlledAxis=req.ros_controlledAxis ==-1 ? -1:rosAxis[req.ros_controlledAxis]; 
+   if (!newDefaultCtrl)
+   {
+    me->_flagCtrlGainsNew=true; 
     float scale=0.0f; 
     for (uint k=0; k<NB_AXIS; k++)
     { 
        if(k<PITCH) {scale=SCALE_GAINS_LINEAR_POSITION;}
        else{scale=SCALE_GAINS_ANGULAR_POSITION;}
 
-       me->_kpPosition[k]=req.ros_posP[rosAxis[k]] * scale;
-       me->_kiPosition[k]=req.ros_posI[rosAxis[k]] * scale;
-       me->_kdPosition[k]=req.ros_posD[rosAxis[k]] * scale; 
+       me->_ros_kpPosition[k]=req.ros_posP[rosAxis[k]] * scale;
+       me->_ros_kiPosition[k]=req.ros_posI[rosAxis[k]] * scale;
+       me->_ros_kdPosition[k]=req.ros_posD[rosAxis[k]] * scale; 
 
        if(k<PITCH) {scale=SCALE_GAINS_LINEAR_SPEED;}
        else{scale=SCALE_GAINS_ANGULAR_SPEED;}
 
-       me->_kpSpeed[k]=req.ros_speedP[rosAxis[k]] * scale;
-       me->_kiSpeed[k]=req.ros_speedI[rosAxis[k]] * scale;
-       me->_kdSpeed[k]=req.ros_speedD[rosAxis[k]] * scale; 
+       me->_ros_kpSpeed[k]=req.ros_speedP[rosAxis[k]] * scale;
+       me->_ros_kiSpeed[k]=req.ros_speedI[rosAxis[k]] * scale;
+       me->_ros_kdSpeed[k]=req.ros_speedD[rosAxis[k]] * scale; 
     }
+   }
+    resp.platform_controlOk=true;
   }
+  else
+  {
+    resp.platform_controlOk=false; 
+  }
+  
 }
 
 
@@ -118,12 +127,9 @@ void Platform::pubFootOutput()
   }
 
   _msgFootOutput.platform_effortM[0] = _timestep;
-  _msgFootOutput.platform_effortM[1] =
-    _acceleration(1);
-  _msgFootOutput.platform_effortM[2] =
-    _acceleration(2);
-  _msgFootOutput.platform_effortM[3] =
-    _acceleration(3);
+  _msgFootOutput.platform_effortM[1] =  _acceleration(1);
+  _msgFootOutput.platform_effortM[2] =  _acceleration(2);
+  _msgFootOutput.platform_effortM[3] =  _acceleration(3);
   _msgFootOutput.platform_controllerType = (uint8_t)_ros_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_ros_state;
   _pubFootOutput->publish(&_msgFootOutput);

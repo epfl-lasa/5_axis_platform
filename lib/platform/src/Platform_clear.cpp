@@ -108,14 +108,12 @@ void Platform::resetControllers()
         for (uint k=0; k<NB_AXIS; k++)
         {
            _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
-          // _positionPIDIn[k]->reset();
         }
         break;
       }
     case (SPEED_CTRL): {
         for (uint k = 0; k < NB_AXIS; k++) {
           _pidSpeed[k]->reset();
-          // _speedPIDIn[k]->reset();
         }
         break;
       }
@@ -125,17 +123,16 @@ void Platform::resetControllers()
     //! 4
 void Platform::positionCtrlClear(int axis_) {
   if (axis_==-1){
-    for (uint k=0; k<NB_AXIS; k++ )
-    {
+    for (int k = 0; k < NB_AXIS; k++) {
       positionCtrlClear(k);
     }
   }
   else
   {
-    _positionD[axis_]=0.0f;
-    _kpPosition[axis_]=0.0f;
-    _kiPosition[axis_]=0.0f;
-    _kdPosition[axis_]=0.0f;
+    _positionD[axis_]=_position[axis_];
+    _platform_kpPosition[axis_]=0.0f;
+    _platform_kiPosition[axis_]=0.0f;
+    _platform_kdPosition[axis_]=0.0f;
     _positionCtrlOut[axis_]=0.0f;
   }
   
@@ -145,17 +142,17 @@ void Platform::positionCtrlClear(int axis_) {
 void Platform::speedCtrlClear(int axis_)
 {
   if (axis_==-1){
-    for (uint k=0; k<NB_AXIS; k++ )
-    {
-      speedCtrlClear(k);
-    }
+    for (int k=0; k<NB_AXIS; k++)
+      {
+        speedCtrlClear(k);
+      }
   }
   else
   {
-    _speedD[axis_]=0.0f;
-    _kpSpeed[axis_]=0.0f;
-    _kiSpeed[axis_]=0.0f;
-    _kdSpeed[axis_]=0.0f;
+    _speedD[axis_]=_speed[axis_];
+    _platform_kpSpeed[axis_]=0.0f;
+    _platform_kiSpeed[axis_]=0.0f;
+    _platform_kdSpeed[axis_]=0.0f;
     _speedCtrlOut[axis_]=0.0f;
     
   }
