@@ -10,7 +10,7 @@
 //! Type of compensation. Matricial: computes matrices of the dynamic model, Equations: Hard-Coded equations pre-computed from Matlab
 #define COMP_MATRICIAL 0
 #define COMP_EQUATIONS 1
-#define COMPENSATION_TYPE COMP_MATRICIAL
+#define COMPENSATION_TYPE COMP_EQUATIONS
 
 //! Exact Model Compensation | Inverse Dynamics
 enum compensationComp {

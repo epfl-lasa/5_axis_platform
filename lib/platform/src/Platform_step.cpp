@@ -206,7 +206,7 @@ void Platform::step()
 
         if (_platform_effortComp[COMPENSATION] == 1) {
             _flagCalculateSinCos = true;
-            int comp_[] = {1, 1, 1, 1,1}; // gravity, viscous, inertia, coriolis, dry
+            int comp_[] = {1, 0, 0, 0,1}; // gravity, viscous, inertia, coriolis, dry
             dynamicCompensation(comp_);
           } else {
             _flagCalculateSinCos = false;

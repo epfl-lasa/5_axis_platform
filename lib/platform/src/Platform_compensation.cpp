@@ -58,12 +58,121 @@ void Platform::gravityCompensation()
 
 }
 
+void Platform::inertiaCompensation() {
+
+  Eigen::Matrix<float, NB_AXIS, NB_AXIS> inertiaJointGainMatrix; //! M(q)
+  inertiaJointGainMatrix.setZero();
+  for (int link_ = LINK_BASE; link_ < NB_LINKS; link_++) {
+    _linkCOMGeomJacobian[link_] = comGeometricJacobian((link_chain)link_);
+    _rotationMatrixCOM[link_] = comRotationMatrix((link_chain)link_);
+
+    inertiaJointGainMatrix +=
+        (_massLinks(link_) *
+             _linkCOMGeomJacobian[link_]
+                 .block(0, 0, NB_CART_AXIS, NB_AXIS)
+                 .transpose() *
+             _linkCOMGeomJacobian[link_].block(0, 0, NB_CART_AXIS, NB_AXIS) +
+         _linkCOMGeomJacobian[link_]
+                 .block(NB_CART_AXIS, 0, NB_CART_AXIS, NB_AXIS)
+                 .transpose() *
+             (_rotationMatrixCOM[link_] * _momentInertiaLinks[link_] *
+              _rotationMatrixCOM[link_].transpose()) *
+             _linkCOMGeomJacobian[link_].block(NB_CART_AXIS, 0, NB_CART_AXIS,
+                                               NB_AXIS));
+  }
+
+  _compensationEffort.col(COMP_INERTIA) =
+      inertiaJointGainMatrix * _acceleration;
+}
+
+void Platform::coriolisCompensation() {
+
+  if (_flagSpeedSampledForCoriolis) { // Calculate the derivative of the
+                                      // Jacobian and Rotation Matrices
+
+    // From bjerkeng2012
+    Eigen::Matrix<float, NB_AXIS, NB_AXIS> coriolisJointGainMatrix; //! V(q,q)
+    coriolisJointGainMatrix.setConstant(0.0f);
+
+#if (CORIOLIS_DEV_STRATEGY == CORIOLIS_KRONECKER)
+    Eigen::Matrix<float, NB_AXIS * NB_AXIS, NB_AXIS> kronProductSpeed;
+    kronProductSpeed = kroneckerProductEye(_speed);
+#endif
+
+    for (int link_ = LINK_BASE; link_ < NB_LINKS; link_++) {
+
+#if (CORIOLIS_DEV_STRATEGY == CORIOLIS_TEMPORAL)
+      //  _devLinkCOMGeomJacobian[link_] =
+      //  filter_devLinkCOMGeometricJ[link_].update((_linkCOMGeomJacobian[link_]
+      //  - _linkCOMGeometricJ_prev[link_])*invSpeedSampT ) ;
+      //  _devRotationMatrixCOM[link_] =
+      //  filter_devRotationMatrixCOM[link_].update((_rotationMatrixCOM[link_] -
+      //  _rotationMatrixCOM_prev[link_])* invSpeedSampT)  ;
+      _devLinkCOMGeomJacobian[link_] =
+          (_linkCOMGeomJacobian[link_] - _linkCOMGeometricJ_prev[link_]) *
+          invSpeedSampT;
+      _devRotationMatrixCOM[link_] =
+          (_rotationMatrixCOM[link_] - _rotationMatrixCOM_prev[link_]) *
+          invSpeedSampT;
+      _rotationMatrixCOM_prev[link_] = _rotationMatrixCOM[link_];
+      _linkCOMGeometricJ_prev[link_] = _linkCOMGeomJacobian[link_];
+
+#else
+      Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> temp;
+      temp = devQComGeomJacobian((link_chain)link_);
+      _devLinkCOMGeomJacobian[link_] =
+          temp * kronProductSpeed.block(0, 0, NB_AXIS * NB_AXIS, NB_AXIS);
+      Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS * NB_AXIS> temp2;
+      temp2 = devQComRotationMatrix((link_chain)link_);
+      _devRotationMatrixCOM[link_] =
+          temp2 * kronProductSpeed.block(0, 0, NB_AXIS * 3, 3);
+#endif
+
+      coriolisJointGainMatrix +=
+          -(_massLinks(link_) *
+                _linkCOMGeomJacobian[link_]
+                    .block(0, 0, NB_CART_AXIS, NB_AXIS)
+                    .transpose() *
+                _devLinkCOMGeomJacobian[link_].block(0, 0, NB_CART_AXIS,
+                                                     NB_AXIS) +
+            _linkCOMGeomJacobian[link_]
+                    .block(NB_CART_AXIS, 0, NB_CART_AXIS, NB_AXIS)
+                    .transpose() *
+                (_rotationMatrixCOM[link_] * _momentInertiaLinks[link_] *
+                 _rotationMatrixCOM[link_].transpose()) *
+                _devLinkCOMGeomJacobian[link_].block(NB_CART_AXIS, 0,
+                                                     NB_CART_AXIS, NB_AXIS) +
+            _linkCOMGeomJacobian[link_]
+                    .block(NB_CART_AXIS, 0, NB_CART_AXIS, NB_AXIS)
+                    .transpose() *
+                (_devRotationMatrixCOM[link_] * _momentInertiaLinks[link_] *
+                 _rotationMatrixCOM[link_].transpose()) *
+                _linkCOMGeomJacobian[link_].block(NB_CART_AXIS, 0, NB_CART_AXIS,
+                                                  NB_AXIS));
+    }
+
+    _compensationEffort.col(COMP_CORIOLIS) = coriolisJointGainMatrix * _speed;
+    _flagSpeedSampledForCoriolis = false;
+  }
+}
+
 #else
 
+
+void Platform::inertiaCompensation() {
+
+}
+
+void Platform::coriolisCompensation() {
+  
+}
+
 void Platform::gravityCompensation() {
-  _compensationEffort.col(COMP_GRAVITY).block(0,0,1,1) =  GRAVITY*_massLinks(LINK_PEDAL)*(LINKS_COM[LINK_PEDAL][0]*_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi)*_s_phi*_s_theta + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta + _c_phi*_s_theta*d6) + GRAVITY*_massLinks(LINK_YAW)*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi) + yw_x*_s_psi + yw_z*_c_phi*_s_theta + _s_phi*_s_theta*(yw_x*_c_psi) - LINKS_COM[LINK_YAW][1]*_s_psi) + GRAVITY*pitch_mass*(p_y*_c_theta + p_x*_s_theta) - GRAVITY*roll_mass*(r_z*_c_theta - _s_theta*(r_x*_c_phi - r_y*_s_phi));
-  _compensationEffort.col(COMP_GRAVITY).block(0,0,2,1) =  GRAVITY*_massLinks(LINK_YAW)*_c_theta*(yw_z*_s_phi - _c_phi*(yw_x*_c_psi) - LINKS_COM[LINK_YAW][1]*_s_psi) + GRAVITY*_massLinks(LINK_PEDAL)*_c_theta*(LINKS_COM[LINK_PEDAL][2]*_s_phi + _s_phi*d6 + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi) + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi + GRAVITY*roll_mass*_c_theta*(r_y*_c_phi + r_x*_s_phi);
-  _compensationEffort.col(COMP_GRAVITY).block(0,0,3,1) =  GRAVITY*_massLinks(LINK_YAW)*(_s_phi*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi) + yw_x*_s_psi + yw_z*_c_phi*_s_theta + _s_phi*_s_theta*(yw_x*_c_psi) - LINKS_COM[LINK_YAW][1]*_s_psi) - _c_phi*_s_theta*(yw_z*_s_phi - _c_phi*(yw_x*_c_psi) - LINKS_COM[LINK_YAW][1]*_s_psi)) + GRAVITY*_massLinks(LINK_PEDAL)*(_s_phi*(LINKS_COM[LINK_PEDAL][0]*_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi)*_s_phi*_s_theta) + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta + _c_phi*_s_theta*d6) - _c_phi*_s_theta*(LINKS_COM[LINK_PEDAL][2]*_s_phi + _s_phi*d6 + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi) + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi);
+   _compensationEffort(Y,COMP_GRAVITY) = 0.0f;
+   _compensationEffort(X, COMP_GRAVITY) = 0.0f;
+   _compensationEffort(PITCH,COMP_GRAVITY) = GRAVITY*_massLinks(LINK_PEDAL)*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta + _c_phi*_s_theta*d6) + GRAVITY*_massLinks(LINK_YAW)*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) + GRAVITY*_massLinks(LINK_PITCH)*(LINKS_COM[LINK_PITCH][1]*_c_theta + LINKS_COM[LINK_PITCH][0]*_s_theta) - GRAVITY*_massLinks(LINK_ROLL)*(LINKS_COM[LINK_ROLL][2]*_c_theta - _s_theta*(LINKS_COM[LINK_ROLL][0]*_c_phi - LINKS_COM[LINK_ROLL][1]*_s_phi));
+   _compensationEffort(ROLL,COMP_GRAVITY)  = GRAVITY*_massLinks(LINK_YAW)*_c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) + GRAVITY*_massLinks(LINK_PEDAL)*_c_theta*(LINKS_COM[LINK_PEDAL][2]*_s_phi + _s_phi*d6 + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi) + GRAVITY*_massLinks(LINK_ROLL)*_c_theta*(LINKS_COM[LINK_ROLL][1]*_c_phi + LINKS_COM[LINK_ROLL][0]*_s_phi);
+   _compensationEffort(YAW,COMP_GRAVITY) = GRAVITY*_massLinks(LINK_YAW)*(_s_phi*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi))) + GRAVITY*_massLinks(LINK_PEDAL)*(_s_phi*(LINKS_COM[LINK_PEDAL][0]*(_c_psi*_c_theta - _s_phi*_s_psi*_s_theta) - LINKS_COM[LINK_PEDAL][1]*(_c_theta*_s_psi + _c_psi*_s_phi*_s_theta) + LINKS_COM[LINK_PEDAL][2]*_c_phi*_s_theta + _c_phi*_s_theta*d6) - _c_phi*_s_theta*(LINKS_COM[LINK_PEDAL][2]*_s_phi + _s_phi*d6 + LINKS_COM[LINK_PEDAL][1]*_c_phi*_c_psi + LINKS_COM[LINK_PEDAL][0]*_c_phi*_s_psi));
 }
 #endif
 
@@ -74,91 +183,6 @@ void Platform::viscFrictionCompensation()
     _compensationEffort.col(COMP_VISC_FRICTION) = _jointsViscosityGains.cwiseProduct(_speed);
   }
 
-  void Platform::inertiaCompensation()
-  {
-
-    Eigen::Matrix<float, NB_AXIS, NB_AXIS> inertiaJointGainMatrix; //! M(q)
-    inertiaJointGainMatrix.setZero();
-    for (int link_ = LINK_BASE; link_ < NB_LINKS; link_++) {
-      _linkCOMGeomJacobian[link_] = comGeometricJacobian( (link_chain) link_);
-      _rotationMatrixCOM[link_] = comRotationMatrix((link_chain) link_);
-
-      inertiaJointGainMatrix+= 
-       (
-        _massLinks(link_)*
-        _linkCOMGeomJacobian[link_].block(0,0,NB_CART_AXIS,NB_AXIS).transpose()*
-        _linkCOMGeomJacobian[link_].block(0,0,NB_CART_AXIS,NB_AXIS)
-        +
-        _linkCOMGeomJacobian[link_].block(NB_CART_AXIS,0,NB_CART_AXIS,NB_AXIS).transpose()*
-                    (_rotationMatrixCOM[link_]*
-                    _momentInertiaLinks[link_]*
-                    _rotationMatrixCOM[link_].transpose())*
-        _linkCOMGeomJacobian[link_].block(NB_CART_AXIS,0,NB_CART_AXIS,NB_AXIS)
-        );
-    }
-
-    _compensationEffort.col(COMP_INERTIA) = inertiaJointGainMatrix*_acceleration;
-
-   }
-
-   void Platform::coriolisCompensation() {
-   
-   if (_flagSpeedSampledForCoriolis)
-    { // Calculate the derivative of the Jacobian and Rotation Matrices
-    
-     // From bjerkeng2012
-      Eigen::Matrix<float, NB_AXIS, NB_AXIS> coriolisJointGainMatrix; //! V(q,q)     
-      coriolisJointGainMatrix.setConstant(0.0f);
-
-    #if (CORIOLIS_DEV_STRATEGY==CORIOLIS_KRONECKER)
-        Eigen::Matrix<float,NB_AXIS*NB_AXIS,NB_AXIS> kronProductSpeed;
-        kronProductSpeed = kroneckerProductEye(_speed);
-    #endif
-
-     for (int link_ = LINK_BASE; link_ < NB_LINKS; link_++) 
-     {
-
-        #if (CORIOLIS_DEV_STRATEGY == CORIOLIS_TEMPORAL)
-        //  _devLinkCOMGeomJacobian[link_] = filter_devLinkCOMGeometricJ[link_].update((_linkCOMGeomJacobian[link_] - _linkCOMGeometricJ_prev[link_])*invSpeedSampT ) ;
-        //  _devRotationMatrixCOM[link_] = filter_devRotationMatrixCOM[link_].update((_rotationMatrixCOM[link_] - _rotationMatrixCOM_prev[link_])* invSpeedSampT)  ;
-         _devLinkCOMGeomJacobian[link_] = (_linkCOMGeomJacobian[link_] - _linkCOMGeometricJ_prev[link_]) * invSpeedSampT  ;
-         _devRotationMatrixCOM[link_] = (_rotationMatrixCOM[link_] - _rotationMatrixCOM_prev[link_])* invSpeedSampT  ;
-         _rotationMatrixCOM_prev[link_] = _rotationMatrixCOM[link_];
-         _linkCOMGeometricJ_prev[link_] = _linkCOMGeomJacobian[link_];
-
-         #else
-          Eigen::Matrix<float,6,NB_AXIS*NB_AXIS> temp;
-          temp = devQComGeomJacobian((link_chain)link_);
-          _devLinkCOMGeomJacobian[link_] =  temp* kronProductSpeed.block(0,0,NB_AXIS*NB_AXIS,NB_AXIS);
-          Eigen::Matrix<float,NB_CART_AXIS,NB_CART_AXIS*NB_AXIS> temp2;
-          temp2 = devQComRotationMatrix((link_chain) link_);
-          _devRotationMatrixCOM[link_] =    temp2 * kronProductSpeed.block(0,0,NB_AXIS*3,3);
-        #endif
-
-       coriolisJointGainMatrix +=
-           -(_massLinks(link_)*
-             _linkCOMGeomJacobian[link_].block(0,0,NB_CART_AXIS,NB_AXIS).transpose()*
-             _devLinkCOMGeomJacobian[link_].block(0,0,NB_CART_AXIS,NB_AXIS)
-            +
-            _linkCOMGeomJacobian[link_].block(NB_CART_AXIS,0,NB_CART_AXIS,NB_AXIS).transpose()*
-                        (_rotationMatrixCOM[link_]*
-                        _momentInertiaLinks[link_]*
-                        _rotationMatrixCOM[link_].transpose())*
-            _devLinkCOMGeomJacobian[link_].block(NB_CART_AXIS,0,NB_CART_AXIS,NB_AXIS)
-            +
-             _linkCOMGeomJacobian[link_].block(NB_CART_AXIS,0,NB_CART_AXIS,NB_AXIS).transpose()*
-                 (_devRotationMatrixCOM[link_]*
-                  _momentInertiaLinks[link_]*
-                  _rotationMatrixCOM[link_].transpose()) *
-             _linkCOMGeomJacobian[link_].block(NB_CART_AXIS,0,NB_CART_AXIS,NB_AXIS)
-           );
-       }
-
-      _compensationEffort.col(COMP_CORIOLIS) =
-           coriolisJointGainMatrix * _speed;
-       _flagSpeedSampledForCoriolis = false;
-    }
-   }
 
    /**************************************FRICTION COMPENSATION*************************/
 
