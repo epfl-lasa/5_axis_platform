@@ -242,6 +242,7 @@ class Platform
       void posInterpolator(int axis);
       void loadDefaultPIDGains();
       void loadROSPIDGains();
+      void setPIDGains();
       //! Platform_compensation.cpp
 
           private : void dynamicCompensation(const int *components_);

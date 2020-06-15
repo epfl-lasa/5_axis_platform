@@ -25,7 +25,7 @@ void Platform::positionAxisControl(EffortComp Component, int axis) {
         _positionD_filtered(axis) = _positionD(axis);
     }
       _pidPosition[axis]->compute();
-      _effortD_ADD(axis, Component) = _positionCtrlOut[axis];
+      _effortD_ADD(axis, Component) = _positionCtrlOut(axis);
   }
 }
 
@@ -114,12 +114,12 @@ void Platform::posInterpolator(int axis){
    
     if (fabs(_positionD(axis)-_position(axis))>0.005) //! Only interpolate if greater than 5 millimiters / millidegrees
     {
-      _positionD_filtered[axis] = _posDesiredFilters[axis].update(_positionD(axis));
-      _positionD_filtered[axis] = clip(_positionD_filtered[axis], -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
+      _positionD_filtered(axis) = _posDesiredFilters[axis].update(_positionD(axis));
+      _positionD_filtered(axis) = clip(_positionD_filtered(axis), -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
     }
     else
     {
-      _positionD_filtered[axis] = _positionD(axis);
+      _positionD_filtered(axis) = _positionD(axis);
     }
 }
 
@@ -135,6 +135,7 @@ void Platform::loadDefaultPIDGains()
   }
 
   speedPIDGainsDefault();
+  setPIDGains();
 }
 
 void Platform::loadROSPIDGains()
@@ -147,5 +148,20 @@ void Platform::loadROSPIDGains()
     _platform_kpSpeed(k) = _ros_kpSpeed[k];
     _platform_kiSpeed(k) = _ros_kiSpeed[k];
     _platform_kdSpeed(k) = _ros_kdSpeed[k];
+  }
+  setPIDGains();
+}
+
+void Platform::setPIDGains()
+{
+  for (int axis=0; axis<NB_AXIS; axis++)
+  {
+    _pidPosition[axis]->setTunings(_platform_kpPosition(axis),
+                                  _platform_kiPosition(axis),
+                                  _platform_kdPosition(axis));
+
+    _pidSpeed[axis]->setTunings(_platform_kpSpeed(axis),
+                               _platform_kiSpeed(axis),
+                               _platform_kdSpeed(axis));
   }
 }

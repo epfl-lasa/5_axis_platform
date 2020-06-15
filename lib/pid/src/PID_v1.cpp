@@ -100,6 +100,11 @@ bool PID::compute()
          {
             outputSum -= output - outMax;
          }
+         else
+         {
+            outputSum = 0.0f;
+         }
+         
          output = outMax;
       }
       else if (output <= outMin)
@@ -107,6 +112,10 @@ bool PID::compute()
          if (ki != 0.0)
          {
             outputSum -= output - outMin;
+         }
+         else
+         {
+            outputSum = 0.0f;
          }
          output = outMin;
       }

@@ -129,11 +129,8 @@ void Platform::positionCtrlClear(int axis_) {
   }
   else
   {
-    _positionD[axis_]=_position[axis_];
-    _platform_kpPosition[axis_]=0.0f;
-    _platform_kiPosition[axis_]=0.0f;
-    _platform_kdPosition[axis_]=0.0f;
-    _positionCtrlOut[axis_]=0.0f;
+    _positionD(axis_)=_position(axis_);  
+    _positionCtrlOut(axis_)=0.0f;
   }
   
 }
@@ -149,11 +146,8 @@ void Platform::speedCtrlClear(int axis_)
   }
   else
   {
-    _speedD[axis_]=_speed[axis_];
-    _platform_kpSpeed[axis_]=0.0f;
-    _platform_kiSpeed[axis_]=0.0f;
-    _platform_kdSpeed[axis_]=0.0f;
-    _speedCtrlOut[axis_]=0.0f;
+    _speedD(axis_)=_speed(axis_);
+    _speedCtrlOut(axis_)=0.0f;
     
   }
   

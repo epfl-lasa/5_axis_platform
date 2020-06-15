@@ -41,7 +41,15 @@ Platform::Platform()
   for(int k = 0; k < NB_AXIS; k++)
   {
     positionCtrlClear(k);
+    _platform_kpPosition(k) = 0.0f;
+    _platform_kiPosition(k) = 0.0f;
+    _platform_kdPosition(k) = 0.0f;
+    
+    
     speedCtrlClear(k);
+    _platform_kpSpeed(k) = 0.0f;
+    _platform_kiSpeed(k) = 0.0f;
+    _platform_kdSpeed(k) = 0.0f;
     totalEffortDClear(k);
 
     _posDesiredFilters[k].setAlpha(0.5f);
@@ -54,9 +62,9 @@ Platform::Platform()
     _ros_speed[k]=0.0f;
     _ros_effort[k] = 0.0f;
 
-    _pidPosition[k] = new PID(&_innerTimer, &_position(k), &_positionCtrlOut(k), &_positionD_filtered(k), _platform_kpPosition[k], _platform_kiPosition[k], _platform_kdPosition[k], DIRECT, POS_PID_FILTER_GAINS[k]);
+    _pidPosition[k] = new PID(&_innerTimer, &_position(k), &_positionCtrlOut(k), &_positionD_filtered(k), _platform_kpPosition(k), _platform_kiPosition(k), _platform_kdPosition(k), DIRECT, POS_PID_FILTER_GAINS[k]);
     _pidPosition[k]->setMode(AUTOMATIC);
-    _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _platform_kpSpeed[k], _platform_kiSpeed[k], _platform_kdSpeed[k],DIRECT, VEL_PID_FILTER_GAINS[k]);
+    _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _platform_kpSpeed(k), _platform_kiSpeed(k), _platform_kdSpeed(k),DIRECT, VEL_PID_FILTER_GAINS[k]);
     _pidSpeed[k]->setMode(AUTOMATIC);
 
     _flagInWsConstrains[k] = false;
