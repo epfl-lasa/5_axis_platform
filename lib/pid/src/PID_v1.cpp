@@ -70,7 +70,7 @@ PID::~PID()
  **********************************************************************************/
 bool PID::compute()
 {
-   if(inAuto) return false;
+   if(!inAuto) return false;
    unsigned long now = myTimer->read_us();
    unsigned long timeChange = (now - lastTime);
    if(timeChange>=SampleTime)

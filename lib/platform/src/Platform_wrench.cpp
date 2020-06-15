@@ -9,7 +9,7 @@ void Platform::setEfforts()
   tempEffortD.setConstant(0.0f);
   for(int j = 0; j < NB_EFFORT_COMPONENTS; j++)
   {
-    if (_ros_effortComp[j]==1) {
+    if (_platform_effortComp[j]==1) {
       tempEffortD += _effortD_ADD.col(j);
     }
   }  

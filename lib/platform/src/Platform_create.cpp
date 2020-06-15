@@ -44,8 +44,8 @@ Platform::Platform()
     speedCtrlClear(k);
     totalEffortDClear(k);
 
-    _posDesiredFilters[k].setAlpha(0.0);
-    _effortMFilters[k].setAlpha(0.8);
+    _posDesiredFilters[k].setAlpha(0.5f);
+    _effortMFilters[k].setAlpha(0.8f);
     _adc_sum[k]=0.0f;
 
     limitSwitchesClear();
@@ -55,9 +55,9 @@ Platform::Platform()
     _ros_effort[k] = 0.0f;
 
     _pidPosition[k] = new PID(&_innerTimer, &_position(k), &_positionCtrlOut(k), &_positionD_filtered(k), _platform_kpPosition[k], _platform_kiPosition[k], _platform_kdPosition[k], DIRECT, POS_PID_FILTER_GAINS[k]);
-    _pidPosition[k]->setMode(MANUAL);
+    _pidPosition[k]->setMode(AUTOMATIC);
     _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _platform_kpSpeed[k], _platform_kiSpeed[k], _platform_kdSpeed[k],DIRECT, VEL_PID_FILTER_GAINS[k]);
-    _pidSpeed[k]->setMode(MANUAL);
+    _pidSpeed[k]->setMode(AUTOMATIC);
 
     _flagInWsConstrains[k] = false;
 

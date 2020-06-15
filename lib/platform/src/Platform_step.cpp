@@ -181,8 +181,6 @@ void Platform::step()
         }
 
         //! Clear the vector of efforts
-        //  totalEffortDClear(-1);
-
         compEffortClear(-1, CONSTRAINS);
         compEffortClear(-1, COMPENSATION);
         compEffortClear(-1, FEEDFORWARD);
@@ -206,7 +204,7 @@ void Platform::step()
 
         if (_platform_effortComp[COMPENSATION] == 1) {
             _flagCalculateSinCos = true;
-            int comp_[] = {1, 0, 0, 0,1}; // gravity, viscous, inertia, coriolis, dry
+            int comp_[] = {1, 1, 1, 1,1}; // gravity, viscous, inertia, coriolis, dry
             dynamicCompensation(comp_);
           } else {
             _flagCalculateSinCos = false;
@@ -221,7 +219,7 @@ void Platform::step()
           break;
         }
         
-        case ROBOT_STATE_CONTROL:
+        case ROBOT_STATE_CONTROL: //There is a bug here, please fix
         {
           // Init State
         
@@ -337,7 +335,7 @@ void Platform::step()
       }
   
 
-  workspaceCheck(_ros_controlledAxis);
+  workspaceCheck(_platform_controlledAxis);
   
   if (_allEsconOk) {setEfforts();}// Aply the forces and torques}
   //readActualEffort();             //! Using the ESCON 50/5 Analog Output

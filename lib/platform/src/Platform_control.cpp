@@ -49,7 +49,7 @@ void Platform::speedAllControl(EffortComp Component)
 //! 5
 void Platform::gotoPointAxis(int axis_, float point)
 {
-  _positionD[axis_]=point;
+  _positionD(axis_)=point;
   positionAxisControl(NORMAL,axis_);
 }
 
@@ -101,18 +101,18 @@ void Platform::speedCtrlLimitsSet() {
   {
     if (_platform_state==HOMING)
     {
-      _pidPosition[k]->setOutputLimits(-SAFETY_MAX_INIT[k],SAFETY_MAX_INIT[k]);
+      _pidSpeed[k]->setOutputLimits(-SAFETY_MAX_INIT[k],SAFETY_MAX_INIT[k]);
     }
     else
     {
-      _pidPosition[k]->setOutputLimits(-SAFETY_MAX_EFFORTS[k],SAFETY_MAX_EFFORTS[k]);
+      _pidSpeed[k]->setOutputLimits(-SAFETY_MAX_EFFORTS[k],SAFETY_MAX_EFFORTS[k]);
     }
   }
 }
 
 void Platform::posInterpolator(int axis){
    
-    if (abs(_positionD(axis)-_position(axis))>0.005) //! Only interpolate if greater than 5 millimiters / millidegrees
+    if (fabs(_positionD(axis)-_position(axis))>0.005) //! Only interpolate if greater than 5 millimiters / millidegrees
     {
       _positionD_filtered[axis] = _posDesiredFilters[axis].update(_positionD(axis));
       _positionD_filtered[axis] = clip(_positionD_filtered[axis], -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);

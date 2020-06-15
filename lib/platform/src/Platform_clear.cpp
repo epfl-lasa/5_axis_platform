@@ -178,7 +178,7 @@ void Platform::totalEffortDClear(int axis_)
 {
   if (axis_==-1)
     {
-      _effortD.setConstant(0.0f);
+     // _effortD.setConstant(0.0f);
       _effortD_ADD.setConstant(0.0f);
     }
   else

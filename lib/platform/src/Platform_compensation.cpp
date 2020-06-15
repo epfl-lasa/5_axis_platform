@@ -161,10 +161,19 @@ void Platform::coriolisCompensation() {
 
 void Platform::inertiaCompensation() {
 
+  _compensationEffort(Y, COMP_INERTIA) = COMP_INERTIA_EQ_Y;
+  _compensationEffort(X, COMP_INERTIA) = COMP_INERTIA_EQ_X;
+  _compensationEffort(PITCH, COMP_INERTIA) = COMP_INERTIA_EQ_PITCH;
+  _compensationEffort(ROLL, COMP_INERTIA) = COMP_INERTIA_EQ_ROLL;
+  _compensationEffort(YAW, COMP_INERTIA) = COMP_INERTIA_EQ_YAW;
 }
 
 void Platform::coriolisCompensation() {
-  
+  _compensationEffort(Y, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_Y;
+  _compensationEffort(X, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_X;
+  _compensationEffort(PITCH, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_PITCH;
+  _compensationEffort(ROLL, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_ROLL;
+  _compensationEffort(YAW, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_YAW;
 }
 
 void Platform::gravityCompensation() {

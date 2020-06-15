@@ -5,7 +5,8 @@
 #include "definitions_control.h"
 #include "LP_Filter.h"
 #include "MatLP_Filter.h"
-
+#include "macros_compensation_inertia.h"
+#include "macros_compensation_coriolis.h"
 
 //! Type of compensation. Matricial: computes matrices of the dynamic model, Equations: Hard-Coded equations pre-computed from Matlab
 #define COMP_MATRICIAL 0
@@ -117,7 +118,6 @@ const float BIAS_QR_X[NB_SIGN_COMP] = {-4.63060f,3.17075f};
 
 #else 
 #endif
-
 
 
 #endif // DEFINITIONS_COMPENSATION_H
