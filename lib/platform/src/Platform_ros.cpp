@@ -46,7 +46,7 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
       me->_ros_effortComp[j]=req.ros_effortComp[j];
   }  
   
-  if (!(newState==me->_ros_state)) // If I want to go to a new state
+  if (!(newState==me->_platform_state)) // If I want to go to a new state
   { 
     resp.platform_newState=true;
     me->_flagClearLastState=true;
@@ -127,10 +127,10 @@ void Platform::pubFootOutput()
   }
 
   _msgFootOutput.platform_effortM[0] = _timestep;
-  _msgFootOutput.platform_effortM[1] =  _positionCtrlOut(1);
-  _msgFootOutput.platform_effortM[2] = _positionCtrlOut(2);
-  _msgFootOutput.platform_effortM[3] = _positionCtrlOut(3);
-  _msgFootOutput.platform_controllerType = (uint8_t)_ros_controllerType;
-  _msgFootOutput.platform_machineState = (uint8_t)_ros_state;
+  _msgFootOutput.platform_effortM[1] =  _virtualWall(1);
+  _msgFootOutput.platform_effortM[2] = _virtualWall(2)*RAD_TO_DEG;
+  _msgFootOutput.platform_effortM[3] = _virtualWall(3)*RAD_TO_DEG;
+  _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
+  _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);
 }
