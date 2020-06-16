@@ -14,11 +14,11 @@ const float WS_LIMITS[NB_AXIS] = {Y_RANGE / 2.0, X_RANGE / 2.0,
 const float WS_RANGE[NB_AXIS] = {Y_RANGE, X_RANGE, PITCH_RANGE, ROLL_RANGE,
                                  YAW_RANGE};
 
-const float C_WS_LIMIT_Y = (Y_RANGE / 2) * 0.8;
-const float C_WS_LIMIT_X = (X_RANGE / 2) * 0.8;
-const float C_WS_LIMIT_PITCH = (PITCH_RANGE / 2) * 0.8;
-const float C_WS_LIMIT_ROLL = (ROLL_RANGE / 2) * 1.0;
-const float C_WS_LIMIT_YAW = (YAW_RANGE / 2) * 0.8;
+const float C_WS_LIMIT_Y = (Y_RANGE / 2.0f) * 0.8f;
+const float C_WS_LIMIT_X = (X_RANGE / 2.0f) * 0.8f;
+const float C_WS_LIMIT_PITCH = (PITCH_RANGE / 2.0f) * 0.8f;
+const float C_WS_LIMIT_ROLL = (ROLL_RANGE / 2.0f) * 1.0f;
+const float C_WS_LIMIT_YAW = (YAW_RANGE / 2.0f) * 0.8f;
 
 const float C_WS_LIMITS[NB_AXIS] = {C_WS_LIMIT_Y, C_WS_LIMIT_X,
                                     C_WS_LIMIT_PITCH, C_WS_LIMIT_ROLL,

@@ -65,18 +65,11 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
     if (me->_platform_controllerType != newController)
     {
       me->_flagControllerTypeChanged = true;
+    }
       me->_ros_controllerType = newController;
-    }
-    bool newDefaultCtrl = req.ros_defaultControl;
-    if (newDefaultCtrl && !me->_platform_flagDefaultControl)
-    {
-      me->_flagDefaultCtrlNew = true;
-      me->_ros_flagDefaultControl = newDefaultCtrl;
-    }
+   me->_ros_flagDefaultControl = req.ros_defaultControl;
    me->_ros_controlledAxis=req.ros_controlledAxis ==-1 ? -1:rosAxis[req.ros_controlledAxis]; 
-   if (!newDefaultCtrl)
-   {
-    me->_flagCtrlGainsNew=true; 
+   if (!me->_ros_flagDefaultControl){
     float scale=0.0f; 
     for (uint k=0; k<NB_AXIS; k++)
     { 
@@ -94,6 +87,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
        me->_ros_kiSpeed[k]=req.ros_speedI[rosAxis[k]] * scale;
        me->_ros_kdSpeed[k]=req.ros_speedD[rosAxis[k]] * scale; 
     }
+    me->_flagCtrlGainsNew=true;
    }
     resp.platform_controlOk=true;
   }
@@ -130,6 +124,7 @@ void Platform::pubFootOutput()
   _msgFootOutput.platform_effortM[1] =  _virtualWall(1);
   _msgFootOutput.platform_effortM[2] = _virtualWall(2)*RAD_TO_DEG;
   _msgFootOutput.platform_effortM[3] = _virtualWall(3)*RAD_TO_DEG;
+  _msgFootOutput.platform_effortM[4] = _virtualWall(4)*RAD_TO_DEG;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);

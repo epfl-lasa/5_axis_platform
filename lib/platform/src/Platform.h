@@ -83,7 +83,7 @@ class Platform
 
     volatile bool _flagClearLastState;
     volatile bool _flagControllerTypeChanged;
-    volatile bool _flagDefaultCtrlNew;
+     bool _flagDefaultCtrlNew;
     volatile bool _flagCtrlGainsNew;
     volatile bool _flagInputReceived[NB_FI_CATEGORY];
     volatile bool _flagEmergencyCalled;

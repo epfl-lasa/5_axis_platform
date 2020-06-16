@@ -28,10 +28,10 @@ void Platform::step()
     _recoveringFromError=true;
   }
 
-        switch (_platform_state)
-      {
+  switch (_platform_state)
+  {
 
-      case STANDBY:{ 
+  case STANDBY:{ 
         if (!_enterStateOnceFlag[STANDBY]){
           // TODO
           sprintf(_logMsg, "%s : MOVING TO STATE STANDBY", Platform_Names[PLATFORM_ID]);
@@ -45,7 +45,7 @@ void Platform::step()
         break;
         }    //Do nothing
 
-      case HOMING:
+    case HOMING:
         {
           // Init
           if(!_enterStateOnceFlag[HOMING])
@@ -95,7 +95,7 @@ void Platform::step()
           }
         
 
-        case CENTERING:
+    case CENTERING:
         {
           // Init State
           if (!_enterStateOnceFlag[CENTERING])
@@ -133,67 +133,69 @@ void Platform::step()
           }
           break;
         }
-        case TELEOPERATION:
-              //NB In this state, the controller type (set from ROS) POSITION_CTRL AND SPEED WILL REFER TO WANTING TO HAVE CONSTRAINS 
+      case TELEOPERATION:
+            //NB In this state, the controller type (set from ROS) POSITION_CTRL AND SPEED WILL REFER TO WANTING TO HAVE CONSTRAINS 
+      {
+          // Init State
+        if (!_enterStateOnceFlag[TELEOPERATION])
         {
-            // Init State
-          if (!_enterStateOnceFlag[TELEOPERATION])
-          {
-            //
-            _platform_controllerType = TORQUE_CTRL;
+          //
+          _platform_controllerType = TORQUE_CTRL;
+          for (uint k = 0; k < NB_AXIS; k++) {
+            _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
+            _pidSpeed[k]->reset();
+          }
+          loadDefaultPIDGains();
+          posCtrlLimitsSet(); // for constrains
+          sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
+          _nh.loginfo(_logMsg);
+          _enterStateOnceFlag[TELEOPERATION]=true;
+          _enableMotors->write(1);
+        }
+
+        //! Clear the vector of efforts
+        compEffortClear(-1, CONSTRAINS);
+        compEffortClear(-1, COMPENSATION);
+        compEffortClear(-1, FEEDFORWARD);
+        // Main State
+        if (_flagInputReceived[MSG_TORQUE]) {
+            for (uint k=0; k<NB_AXIS; k++) {
+              _effortD_ADD(k,NORMAL) = _ros_effort[k];
+            }
+            _flagInputReceived[MSG_TORQUE] = false;
+        }
+
+        if (flagPositionInControl()) { //! Constrains / Virtual Walls
+          if (_flagInputReceived[MSG_POSITION]) {
             for (uint k = 0; k < NB_AXIS; k++) {
-              _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
-              _pidSpeed[k]->reset();
+              _positionD(k) = _ros_position[k];
             }
-            loadDefaultPIDGains();
-            posCtrlLimitsSet(); // for constrains
-            sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
-            _nh.loginfo(_logMsg);
-            _enterStateOnceFlag[TELEOPERATION]=true;
-            _enableMotors->write(1);
+            _flagInputReceived[MSG_POSITION] = false;
           }
-
-          //! Clear the vector of efforts
-          compEffortClear(-1, CONSTRAINS);
-          compEffortClear(-1, COMPENSATION);
-          compEffortClear(-1, FEEDFORWARD);
-          // Main State
-          if (_flagInputReceived[MSG_TORQUE]) {
-              for (uint k=0; k<NB_AXIS; k++) {
-                _effortD_ADD(k,NORMAL) = _ros_effort[k];
-              }
-              _flagInputReceived[MSG_TORQUE] = false;
-          }
-
-          if (flagPositionInControl()) { //! Constrains / Virtual Walls
-            if (_flagInputReceived[MSG_POSITION]) {
-              for (uint k = 0; k < NB_AXIS; k++) {
-                _positionD(k) = _ros_position[k];
-              }
-              _flagInputReceived[MSG_POSITION] = false;
+        }
+      
+          if (_platform_effortComp[CONSTRAINS] == 1) {
+            if (flagPositionInControl()) {
+              wsConstrains(_platform_controlledAxis); //! workspace constraints : soft
+                                        //! limits, or joystick effect, etc
             }
-          }
-        
-            if (_platform_effortComp[CONSTRAINS] == 1) {
-              if (flagPositionInControl()) {
-                wsConstrains(_platform_controlledAxis); //! workspace constraints : soft
-                                          //! limits, or joystick effect, etc
-              }
-            }
-            break;
           }
 
           if (_platform_effortComp[COMPENSATION] == 1) {
             _flagCalculateSinCos = true;
             int comp_[] = {1, 1, 1, 1,
-                          1}; // gravity, viscous, inertia, coriolis, dry
+                           1}; // gravity, viscous, inertia, coriolis, dry
             dynamicCompensation(comp_);
           } else {
             _flagCalculateSinCos = false;
           }
 
-        case ROBOT_STATE_CONTROL: //There is a bug here, please fix
-        {
+          break;
+      }
+
+
+    case ROBOT_STATE_CONTROL: //There is a bug here, please fix
+    {
           // Init State
         
         if (!_enterStateOnceFlag[ROBOT_STATE_CONTROL])
@@ -282,10 +284,10 @@ void Platform::step()
             //! Add speed controller here!  
           }
           break;
-        }
+    }
         
-        case EMERGENCY:
-        {
+    case EMERGENCY:
+    {
           _enableMotors->write(0);
           if(!_enterStateOnceFlag[EMERGENCY]){
             for (uint k = 0; k < NB_AXIS; k++) {
@@ -305,7 +307,7 @@ void Platform::step()
           //defined upstairs
           break;
         }
-      }
+  }
   
 
   workspaceCheck(_platform_controlledAxis);
@@ -331,21 +333,28 @@ void Platform::step()
   //Control variables
   if (_flagControllerTypeChanged) {
     resetControllers();
-    _platform_flagDefaultControl = _ros_flagDefaultControl;
-    _platform_controllerType = _ros_controllerType;
     _flagControllerTypeChanged = false;
+  }  
+    _platform_controllerType = _ros_controllerType;
+  if (_ros_flagDefaultControl && !_platform_flagDefaultControl) 
+  {
+      _flagDefaultCtrlNew = true;
   }
+    _platform_flagDefaultControl = _ros_flagDefaultControl;
+
     _platform_controlledAxis = _ros_controlledAxis;
   
     if (_flagDefaultCtrlNew)
   {
-     loadDefaultPIDGains();
-     if (_platform_state==TELEOPERATION)
-      {_virtualWall = (Eigen::Map<const Eigen::MatrixXf>(C_WS_LIMITS, NB_AXIS, 1)).cwiseAbs();}
-    _flagDefaultCtrlNew = false;
+        loadDefaultPIDGains();
+        if (_platform_state == TELEOPERATION) {
+          _virtualWall =
+              (Eigen::Map<const Eigen::MatrixXf>(C_WS_LIMITS, NB_AXIS, 1));
+        }
+        _flagDefaultCtrlNew = false;
   }
 
-  if (_flagCtrlGainsNew)
+  else if (_flagCtrlGainsNew)
   {
     loadROSPIDGains();
     _flagCtrlGainsNew=false;
@@ -360,9 +369,9 @@ bool Platform::flagTorqueInControl(){
  }
 
 bool Platform::flagPositionInControl() {
-  return (_platform_controllerType != SPEED_CTRL) && !flagTorqueInControl();
+  return (_platform_controllerType == POSITION_CTRL);
 }
 
 bool Platform::flagSpeedInControl() {
-  return (_platform_controllerType != POSITION_CTRL) && !flagTorqueInControl();
+  return (_platform_controllerType == SPEED_CTRL);
 }

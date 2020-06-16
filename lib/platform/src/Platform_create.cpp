@@ -24,7 +24,7 @@ Platform::Platform()
   _position.setConstant(0.0f);
   _positionPrev.setConstant(0.0f);
   _positionOffsets.setConstant(0.0f);
-  _virtualWall.setConstant(0.0f);
+  _virtualWall = Eigen::Map<const Eigen::MatrixXf>(C_WS_LIMITS, NB_AXIS, 1);
   _speed.setConstant(0.0f);
   _speedD.setConstant(0.0f);
   _speedPrev.setConstant(0.0f);

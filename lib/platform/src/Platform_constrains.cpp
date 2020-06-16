@@ -15,7 +15,7 @@ void Platform::wsConstrains(int axis_)
     _platform_kiPosition[axis_]=0.0f; // It is just a spring damper  
     
     if (!_platform_flagDefaultControl) {
-        _virtualWall(axis_)=fabs(_positionD(axis_)); //! A symmetric wall will be built on the set position
+        _virtualWall(axis_)=fabs(_ros_position[axis_]); //! A symmetric wall will be built on the set position
     }
     
     if (( _position(axis_) >= _virtualWall(axis_) || _position(axis_) <= -_virtualWall(axis_) ))
