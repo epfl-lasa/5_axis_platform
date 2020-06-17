@@ -3,8 +3,10 @@
 
 #include "definitions_main.h"
 
-
-
+const int rosAxis[] = {X, Y, PITCH, ROLL, YAW}; //! This is because the first
+                                                //! joint is Y and then X in the
+                                                //! real platform and in the
+                                                //! model... but in ros is X
 
 enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
 

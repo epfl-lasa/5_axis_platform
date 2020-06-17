@@ -1,10 +1,9 @@
 #include "Platform.h"
-#include "definitions.h"
 
 const char *Platform_Names[]{"UNKNOWN", "RIGHT PLATFORM", "LEFT PLATFORM"};
 
 #define ListofAxes(enumeration, names) names,
-char const *Axis_names[]{
+extern char const *Axis_names[]{
     AXES};
 #undef ListofAxes
 

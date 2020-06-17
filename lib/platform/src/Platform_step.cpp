@@ -1,5 +1,4 @@
 #include "Platform.h"
-#include "definitions.h"
 #include <string>
 
 
@@ -54,6 +53,7 @@ void Platform::step()
             for (uint k = 0; k < NB_AXIS; k++) {
               _pidSpeed[k]->reset();
             }
+            _platform_effortComp[NORMAL]=1;
             loadDefaultPIDGains();
             speedCtrlLimitsSet();
             sprintf(_logMsg, "%s : MOVING TO STATE HOMING", Platform_Names[PLATFORM_ID]);
@@ -84,10 +84,10 @@ void Platform::step()
             if ((_innerTimer.read_us() - _toc) > 1500000)
             {
                 
-                positionAllReset();
-                _platform_state = CENTERING;    
-                _tic=false;
                 clearLastState(); 
+                positionAllReset();
+                _tic=false;
+                _platform_state = CENTERING;    
             }
           }
 
@@ -104,6 +104,7 @@ void Platform::step()
             for (uint k = 0; k < NB_AXIS; k++) {
               _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
             }
+            _platform_effortComp[NORMAL] = 1;
             loadDefaultPIDGains();
             posCtrlLimitsSet();
             sprintf(_logMsg, "%s : MOVING TO STATE CENTERING", Platform_Names[PLATFORM_ID]);
@@ -126,9 +127,9 @@ void Platform::step()
             // After a second and a half move to next state
             if ((_innerTimer.read_us() - _toc) > 1500000)
             {
+              clearLastState();
               _platform_state = TELEOPERATION;
               _tic=false;
-              clearLastState();
             }
           }
           break;
@@ -315,50 +316,8 @@ void Platform::step()
   if (_allEsconOk) {setEfforts();}// Aply the forces and torques}
   //readActualEffort();             //! Using the ESCON 50/5 Analog Output
   
-  //! Keep track of variables
-
-  //Platform State
-  if (_flagClearLastState) {
-    clearLastState();
-    _platform_state = _ros_state;
-    _flagClearLastState = false;
-  }
-
-  for (uint j = 0; j < NB_EFFORT_COMPONENTS;
-       j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
-  {
-    _platform_effortComp[j] = _ros_effortComp[j];
-    }
-  
-  //Control variables
-  if (_flagControllerTypeChanged) {
-    resetControllers();
-    _flagControllerTypeChanged = false;
-  }  
-    _platform_controllerType = _ros_controllerType;
-  if (_ros_flagDefaultControl && !_platform_flagDefaultControl) 
-  {
-      _flagDefaultCtrlNew = true;
-  }
-    _platform_flagDefaultControl = _ros_flagDefaultControl;
-
-    _platform_controlledAxis = _ros_controlledAxis;
-  
-    if (_flagDefaultCtrlNew)
-  {
-        loadDefaultPIDGains();
-        if (_platform_state == TELEOPERATION) {
-          _virtualWall =
-              (Eigen::Map<const Eigen::MatrixXf>(C_WS_LIMITS, NB_AXIS, 1));
-        }
-        _flagDefaultCtrlNew = false;
-  }
-
-  else if (_flagCtrlGainsNew)
-  {
-    loadROSPIDGains();
-    _flagCtrlGainsNew=false;
-  }
+  //! Update the platform with ROS variables
+  updatePlatformFromRos();
 
   _timestep = float(_innerTimer.read_us() - _timestamp);
   _timestamp=_innerTimer.read_us();

@@ -1,6 +1,4 @@
 #include "Platform.h"
-#include "LP_Filter.h"
-#include "definitions.h"
 
 using namespace std;
 using namespace Eigen;

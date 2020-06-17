@@ -1,7 +1,5 @@
 #include "Platform.h"
-#include "definitions.h"
 
-const int rosAxis[] = {X,Y,PITCH,ROLL,YAW};//! This is because the first joint is Y and then X in the real platform and in the model... but in ros is X
 
 void Platform::communicateToRos()
 {
@@ -121,11 +119,65 @@ void Platform::pubFootOutput()
   }
 
   _msgFootOutput.platform_effortM[0] = _timestep;
-  _msgFootOutput.platform_effortM[1] =  _virtualWall(1);
-  _msgFootOutput.platform_effortM[2] = _virtualWall(2)*RAD_TO_DEG;
-  _msgFootOutput.platform_effortM[3] = _virtualWall(3)*RAD_TO_DEG;
+  _msgFootOutput.platform_effortM[1] =  (int)_limitSwitches[0];
+  _msgFootOutput.platform_effortM[2] = (int)_limitSwitches[1];
+  _msgFootOutput.platform_effortM[3] = (int)_limitSwitches[2];
   _msgFootOutput.platform_effortM[4] = _virtualWall(4)*RAD_TO_DEG;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);
+}
+
+void Platform::updatePlatformFromRos() {
+  
+  if (_flagClearLastState) {
+    clearLastState();
+    _platform_state = _ros_state;
+    _flagClearLastState = false;
+  }
+
+  switch (_platform_state)
+
+  {
+    case TELEOPERATION: case ROBOT_STATE_CONTROL:
+    {
+        for (uint j = NORMAL; j < NB_EFFORT_COMPONENTS;j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
+        {
+          _platform_effortComp[j] = _ros_effortComp[j];
+        }
+
+        if (_flagControllerTypeChanged) {
+          resetControllers();
+          _flagControllerTypeChanged = false;
+        }
+        _platform_controllerType = _ros_controllerType;
+
+        if (_ros_flagDefaultControl && !_platform_flagDefaultControl) {
+          _flagDefaultCtrlNew = true;
+        }
+        _platform_flagDefaultControl = _ros_flagDefaultControl;
+
+        _platform_controlledAxis = _ros_controlledAxis;
+
+        if (_flagDefaultCtrlNew) {
+          loadDefaultPIDGains();
+          if (_platform_state == TELEOPERATION) {
+            _virtualWall =
+                (Eigen::Map<const Eigen::MatrixXf>(C_WS_LIMITS, NB_AXIS, 1));
+          }
+          _flagDefaultCtrlNew = false;
+        }
+
+        else if (_flagCtrlGainsNew) {
+          loadROSPIDGains();
+          _flagCtrlGainsNew = false;
+        }
+    
+    }
+  }
+
+  
+
+
+    
 }

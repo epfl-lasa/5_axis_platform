@@ -14,6 +14,7 @@
 #include "FootOutputMsg_v2.h"
 #include "setControllerSrv.h"
 #include "setStateSrv.h"
+#include "definitions.h"
 
 #include "PID_v1.h"
 #include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
@@ -186,6 +187,7 @@ class Platform
     static void updateController(const custom_msgs::setControllerSrv::Request 
     &req,custom_msgs::setControllerSrv::Response &resp );                 //! 4
     void pubFootOutput();                                                 //! 5
+    void updatePlatformFromRos();
 
   //!Platform_effort.cpp
   public:  

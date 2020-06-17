@@ -31,15 +31,15 @@ const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
 
     #else 
 
-        #define SPEED_D_HOMING_Y 1.0                                                 //[m/s]
-        #define SPEED_D_HOMING_X 1.0                                                 //[m/s]                    
-        const float SPEED_D_HOMING_PITCH  = -300 * DEG_TO_RAD;                              //[deg/s]
+        const float SPEED_D_HOMING_Y = 1.0f * 0.5f;                                                 //[m/s]
+        const float SPEED_D_HOMING_X = 1.0f * 0.5f;                                                 //[m/s]                    
+        const float SPEED_D_HOMING_PITCH  = -300 * DEG_TO_RAD * 0.5f;                              //[deg/s]
 
-        const float HOMING_KP_SPEED_Y = 1500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m]   
+        const float HOMING_KP_SPEED_Y = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m]   
         const float HOMING_KP_SPEED_X = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                 //[N.s/m]
         const float HOMING_KP_SPEED_PITCH = 1700.0f * SCALE_GAINS_ANGULAR_SPEED;           //[Nm.s/deg]
 
-        const float HOMING_KI_SPEED_Y = 1000.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m.s]     
+        const float HOMING_KI_SPEED_Y = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m.s]     
         const float HOMING_KI_SPEED_X = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m.s]
         const float HOMING_KI_SPEED_PITCH = 850.0f * SCALE_GAINS_ANGULAR_SPEED;            //[N.s/deg.s]    
     #endif

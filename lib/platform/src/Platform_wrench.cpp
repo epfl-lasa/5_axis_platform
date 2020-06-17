@@ -1,5 +1,4 @@
 #include "Platform.h"
-#include "definitions.h"
 
 
 //! 1
