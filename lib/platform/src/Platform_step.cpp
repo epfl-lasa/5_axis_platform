@@ -4,12 +4,12 @@
 
 void Platform::step()
 {
-  memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
+ // memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
 
   if ((_ros_state == RESET_UC) || ((_platform_state == RESET_UC)) || (_allEsconOk && _recoveringFromError))
   {
-    sprintf(_logMsg, "%s : ABOUT TO RESTART THE PLATFORM CONTROLLER", Platform_Names[PLATFORM_ID]);
-    _nh.loginfo(_logMsg);
+    //sprintf(_logMsg, "%s : ABOUT TO RESTART THE PLATFORM CONTROLLER", Platform_Names[PLATFORM_ID]);
+    //_nh.loginfo(_logMsg);
     NVIC_SystemReset();
     _stop = true;
     wait_us(5000000);
@@ -33,12 +33,12 @@ void Platform::step()
   case STANDBY:{ 
         if (!_enterStateOnceFlag[STANDBY]){
           // TODO
-          sprintf(_logMsg, "%s : MOVING TO STATE STANDBY", Platform_Names[PLATFORM_ID]);
-          _nh.loginfo(_logMsg);
+          //sprintf(_logMsg, "%s : MOVING TO STATE STANDBY", Platform_Names[PLATFORM_ID]);
+          //_nh.loginfo(_logMsg);
           _enableMotors->write(0);
           _enterStateOnceFlag[STANDBY]=true;
-          sprintf(_logMsg, "Timestep: %f milliseconds", ((float)_timestep * 1e-3));
-          _nh.loginfo(_logMsg);
+          //sprintf(_logMsg, "Timestep: %f milliseconds", ((float)_timestep * 1e-3));
+          //_nh.loginfo(_logMsg);
         }
         totalEffortDClear(-1);
         break;
@@ -56,8 +56,8 @@ void Platform::step()
             _platform_effortComp[NORMAL]=1;
             loadDefaultPIDGains();
             speedCtrlLimitsSet();
-            sprintf(_logMsg, "%s : MOVING TO STATE HOMING", Platform_Names[PLATFORM_ID]);
-            _nh.loginfo(_logMsg);
+            //sprintf(_logMsg, "%s : MOVING TO STATE HOMING", Platform_Names[PLATFORM_ID]);
+            //_nh.loginfo(_logMsg);
             _enableMotors->write(1);
             limitSwitchesClear();
             // Set commanded forces and torques for homing
@@ -107,8 +107,8 @@ void Platform::step()
             _platform_effortComp[NORMAL] = 1;
             loadDefaultPIDGains();
             posCtrlLimitsSet();
-            sprintf(_logMsg, "%s : MOVING TO STATE CENTERING", Platform_Names[PLATFORM_ID]);
-            _nh.loginfo(_logMsg);
+            //sprintf(_logMsg, "%s : MOVING TO STATE CENTERING", Platform_Names[PLATFORM_ID]);
+            //_nh.loginfo(_logMsg);
             _enableMotors->write(1);
             _enterStateOnceFlag[CENTERING]=true;
           }
@@ -148,8 +148,8 @@ void Platform::step()
           }
           loadDefaultPIDGains();
           posCtrlLimitsSet(); // for constrains
-          sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
-          _nh.loginfo(_logMsg);
+          //sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
+          //_nh.loginfo(_logMsg);
           _enterStateOnceFlag[TELEOPERATION]=true;
           _enableMotors->write(1);
         }
@@ -210,9 +210,9 @@ void Platform::step()
           loadDefaultPIDGains();
           posCtrlLimitsSet(); // for constrains
           speedCtrlLimitsSet(); // for constrains
-          sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL",
-                  Platform_Names[PLATFORM_ID]);
-          _nh.loginfo(_logMsg);
+          //sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL",
+          //        Platform_Names[PLATFORM_ID]);
+          //_nh.loginfo(_logMsg);
           _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
           _enableMotors->write(1);
         }
@@ -295,9 +295,11 @@ void Platform::step()
               _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
               _pidSpeed[k]->reset();
             }
-            if(!_allEsconOk) {_nh.logerror("The servoamplifiers are not doing fine. Try restarting the microcontroller or rebooting the power supply");}
-            sprintf(_logMsg,"%s MOVING TO STATE EMERGENCY",Platform_Names[PLATFORM_ID]);
-            _nh.loginfo(_logMsg);
+            if(!_allEsconOk) {
+              //_nh.logerror("The servoamplifiers are not doing fine. Try restarting the microcontroller or rebooting the power supply");
+              }
+            //sprintf(_logMsg,"%s MOVING TO STATE EMERGENCY",Platform_Names[PLATFORM_ID]);
+            //_nh.loginfo(_logMsg);
             _enterStateOnceFlag[EMERGENCY]=true;
           }
             releasePlatform();

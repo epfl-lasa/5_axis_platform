@@ -26,7 +26,7 @@ class Platform
   public:    
     // ROS variables
     ros::NodeHandle _nh;
-    char _logMsg[512];
+    //char _logMsg[256];
     bool _stop;
 
     //Power Electronics Variables
@@ -175,7 +175,7 @@ class Platform
   private:
       void resetEscons(); //! 1
       void softReset();   //!2
-  
+
   //! Platform_ros.cpp
   public:
     void communicateToRos();                                              //! 1
@@ -187,6 +187,7 @@ class Platform
     static void updateController(const custom_msgs::setControllerSrv::Request 
     &req,custom_msgs::setControllerSrv::Response &resp );                 //! 4
     void pubFootOutput();                                                 //! 5
+  private:
     void updatePlatformFromRos();
 
   //!Platform_effort.cpp

@@ -7,14 +7,14 @@
 #endif
 
 Platform platform;
-//Ticker t_Control;
 Thread th_Control;
-// volatile bool flagControl = false;
+//Ticker t_Comm;
+//volatile bool flagComm = false;
 
 
-// void doControlCb()
+// void doCommCb()
 // {
-//   flagControl=true;
+//    flagComm=true;
 // }
 
 
@@ -35,9 +35,10 @@ int main()
 {
     platform.init();
     th_Control.start(doControlTH);
+    //t_Comm.attach_us(&doCommCb, 1000);
     while (1)
     {
-        platform.communicateToRos();
+      platform.communicateToRos();
     }
   return 0;
   }

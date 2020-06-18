@@ -5,7 +5,8 @@
     ],
     "files.associations": {
         "cmath": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "*.org": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3"
 }

@@ -119,9 +119,6 @@ void Platform::pubFootOutput()
   }
 
   _msgFootOutput.platform_effortM[0] = _timestep;
-  _msgFootOutput.platform_effortM[1] =  (int)_limitSwitches[0];
-  _msgFootOutput.platform_effortM[2] = (int)_limitSwitches[1];
-  _msgFootOutput.platform_effortM[3] = (int)_limitSwitches[2];
   _msgFootOutput.platform_effortM[4] = _virtualWall(4)*RAD_TO_DEG;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
