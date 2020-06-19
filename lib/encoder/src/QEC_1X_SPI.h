@@ -3,6 +3,7 @@
 
 #include <SPI.h>
 #include <mbed.h>
+#include <rtos.h>
 
 
 class QEC_1X

@@ -13,6 +13,7 @@ Platform::Platform()
 {
   me = this;
   _stop=false;
+  _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _flagEmergencyCalled = false;
   _effortD_ADD.setConstant(0.0f);
     
@@ -69,6 +70,11 @@ Platform::Platform()
     _flagInWsConstrains[k] = false;
 
   }
+
+  for (int c=0; c<NB_AXIS_WRENCH; c++)
+{
+    _ros_forceSensor[c]=0.0f;
+}
 
   _speedFilters[Y].setAlpha(0.96);
   _speedFilters[X].setAlpha(0.96);
@@ -159,7 +165,7 @@ Platform::Platform()
   // _spi->frequency(1000000); // Default
   /************************************************************* */
 
-  wait_us(10000); //! Wait a bit after the SPI starts
+  Thread::wait(10); //! Wait a bit after the SPI starts
 
   for(int k = 0; k < NB_AXIS; k++)
   {

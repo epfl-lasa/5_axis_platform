@@ -14,11 +14,13 @@ enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
 
 //******************************NAMES*****************************
     #define PLATFORM_SUBSCRIBER_NAME_LEFT "/FI_Input/Left"
+    #define FORCE_SUBSCRIBER_NAME_LEFT "/left/rokubimini0/force/"
     #define PLATFORM_PUBLISHER_NAME_LEFT "/FI_Output/Left"
     #define SERVICE_CHANGE_STATE_NAME_LEFT "update_left_state"
     #define SERVICE_CHANGE_CTRL_NAME_LEFT "update_left_controller"
     
     #define PLATFORM_SUBSCRIBER_NAME_RIGHT "/FI_Input/Right"
+    #define FORCE_SUBSCRIBER_NAME_RIGHT "/right/rokubimini0/force"
     #define PLATFORM_PUBLISHER_NAME_RIGHT "/FI_Output/Right"
     #define SERVICE_CHANGE_STATE_NAME_RIGHT "update_right_state"
     #define SERVICE_CHANGE_CTRL_NAME_RIGHT "update_right_controller"

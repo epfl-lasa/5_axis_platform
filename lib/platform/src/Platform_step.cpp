@@ -4,6 +4,7 @@
 
 void Platform::step()
 {
+  _platformMutex.lock();
  // memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
 
   if ((_ros_state == RESET_UC) || ((_platform_state == RESET_UC)) || (_allEsconOk && _recoveringFromError))
@@ -12,7 +13,7 @@ void Platform::step()
     //_nh.loginfo(_logMsg);
     NVIC_SystemReset();
     _stop = true;
-    wait_us(5000000);
+    Thread::wait(5000);
     return;
   }
 
@@ -87,6 +88,7 @@ void Platform::step()
                 clearLastState(); 
                 positionAllReset();
                 _tic=false;
+                _toc=false;
                 _platform_state = CENTERING;    
             }
           }
@@ -130,6 +132,7 @@ void Platform::step()
               clearLastState();
               _platform_state = TELEOPERATION;
               _tic=false;
+              _toc=false;
             }
           }
           break;
@@ -323,6 +326,7 @@ void Platform::step()
 
   _timestep = float(_innerTimer.read_us() - _timestamp);
   _timestamp=_innerTimer.read_us();
+  _platformMutex.unlock();
 }
 
 bool Platform::flagTorqueInControl(){

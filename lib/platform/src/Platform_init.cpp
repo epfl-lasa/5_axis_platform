@@ -26,7 +26,7 @@ void Platform::init()
   }
   _spi->unlock(); 
 
-  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg_v2>(PLATFORM_SUBSCRIBER_NAME, updateFootInput);
+  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg_v3>(PLATFORM_SUBSCRIBER_NAME, updateFootInput);
   _servChangeState = new ros::ServiceServer<custom_msgs::setStateSrv::Request,custom_msgs::setStateSrv::Response>(SERVICE_CHANGE_STATE_NAME, updateState);
   _servChangeCtrl = new ros::ServiceServer<custom_msgs::setControllerSrv::Request,custom_msgs::setControllerSrv::Response>(SERVICE_CHANGE_CTRL_NAME, updateController);
   
@@ -35,14 +35,14 @@ void Platform::init()
 
   _nh.getHardware()->setBaud(BAUDRATE);
   _nh.initNode();
-   wait_us(10000);
+   Thread::wait(10);
   _nh.advertise(*_pubFootOutput);
   _nh.advertiseService(*_servChangeState);
   _nh.advertiseService(*_servChangeCtrl);
   _nh.subscribe(*_subFootInput);
-  wait_us(10000);
-  _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
-  _timestamp = _innerTimer.read_us();
+   Thread::wait(10000);
+   _timestamp = _innerTimer.read_us();
+  //_timestamp = _innerTimer.read_us();
   _posSamplingStamp = _timestamp;
   _speedSamplingStamp=_timestamp;
   _accSamplingStamp=_timestamp;

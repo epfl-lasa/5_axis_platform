@@ -7,10 +7,9 @@
 #include "QEC_1X_SPI.h"
 #include "LP_Filter.h"
 #include "MA_Filter.h"
-//#include "pid_interpolator.h"
 #include "Platform.h"
 #include "definitions.h"
-#include "FootInputMsg_v2.h"
+#include "FootInputMsg_v3.h"
 #include "FootOutputMsg_v2.h"
 #include "setControllerSrv.h"
 #include "setStateSrv.h"
@@ -23,7 +22,8 @@
 
 class Platform
 {
-  public:    
+  public:
+    
     // ROS variables
     ros::NodeHandle _nh;
     //char _logMsg[256];
@@ -48,18 +48,18 @@ class Platform
     uint32_t _vibGenStamp;
     Timer _innerTimer; //! micros()
     uint64_t _innerCounterADC;
-  
-  private:
-    // Enum for axis ID
-    
 
-    
+  private:
+    Mutex _platformMutex;
+
+  public:
+    enum WrenchAxis { FX, FY, FZ, TX, TY, TZ, NB_AXIS_WRENCH };
+
     // ROS variables  
 
-      ros::Subscriber<custom_msgs::FootInputMsg_v2>*  _subFootInput;
+      ros::Subscriber<custom_msgs::FootInputMsg_v3>*  _subFootInput;
       ros::Publisher *_pubFootOutput;
       custom_msgs::FootOutputMsg_v2 _msgFootOutput;
-
       ros::ServiceServer<custom_msgs::setStateSrvRequest,custom_msgs::setStateSrvResponse> *_servChangeState;
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 
@@ -67,6 +67,7 @@ class Platform
         volatile float _ros_position[NB_AXIS];
         volatile float _ros_speed[NB_AXIS];
         volatile float _ros_effort[NB_AXIS];
+        volatile float _ros_forceSensor[NB_AXIS_WRENCH];
 
         volatile bool _ros_flagDefaultControl;
         volatile int8_t _ros_controlledAxis;
@@ -106,7 +107,7 @@ class Platform
     Eigen::Matrix<float, NB_AXIS, 1> _speedD;
     Eigen::Matrix<float, NB_AXIS, 1> _speedCtrlOut;
     Eigen::Matrix<float, NB_AXIS, 1> _effortD;
-    Eigen::Matrix<float, NB_AXIS+2, 1> _effortM; // The last two elements are temporary variables
+    Eigen::Matrix<float, NB_AXIS, 1> _effortM; // The last two elements are temporary variables
     Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
     LP_Filter _posDesiredFilters[NB_AXIS];
     LP_Filter _speedFilters[NB_AXIS];
@@ -151,6 +152,7 @@ class Platform
     // Other variables
     
     static Platform *me;
+    
 
     uint32_t _toc;
     bool _tic; //flag for timer
@@ -181,7 +183,7 @@ class Platform
     void communicateToRos();                                              //! 1
   private:
   //ROS
-    static void updateFootInput(const custom_msgs::FootInputMsg_v2 &msg); //! 2
+    static void updateFootInput(const custom_msgs::FootInputMsg_v3 &msg); //! 2
     static void updateState(const custom_msgs::setStateSrv::Request 
     &req,custom_msgs::setStateSrv::Response &resp );                      //! 3
     static void updateController(const custom_msgs::setControllerSrv::Request 
@@ -189,6 +191,8 @@ class Platform
     void pubFootOutput();                                                 //! 5
   private:
     void updatePlatformFromRos();
+    void calculateMeasTorques();
+  
 
   //!Platform_effort.cpp
   public:  

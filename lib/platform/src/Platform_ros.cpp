@@ -4,16 +4,19 @@
 void Platform::communicateToRos()
 {
   // Publish foot output
+  _platformMutex.lock();
    pubFootOutput();
    _nh.spinOnce(); //Publishes and Retrieves Messages
-   // For Retrieving and Publishing to ROS. We can put it separate in the main in  case we want to put it in an interruption     
+   // For Retrieving and Publishing to ROS. We can put it separate in the main in  case we want to put it in an interruption
+   _platformMutex.unlock();
 }
 
 
 //*****************ROS-MESSAGE-SUBSCRIBER- CALLBACK**********
 //! 1
-void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
+void Platform::updateFootInput(const custom_msgs::FootInputMsg_v3 &msg)
 {
+  me->_platformMutex.lock();
   for (uint c = 0 ; c < NB_FI_CATEGORY; c++) {
     me->_flagInputReceived[c] = true; //! To be used specially for the telemanipulation state
   }
@@ -30,14 +33,20 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v2 &msg)
     me->_ros_speed[k] = msg.ros_speed[rosAxis[k]] * DEG_TO_RAD;
     me->_ros_effort[k] = msg.ros_effort[rosAxis[k]];
   }
+  
+  for (uint c=0; c<NB_AXIS_WRENCH; c++)
+  {
+    me->_ros_forceSensor[c] = msg.ros_forceSensor[c]; //! In this one the rosAxis doesn't apply
+  }
+  me->_platformMutex.unlock();
 }
-
 
 //*****************ROS-SERVICES-CALLBACKS*************************/
 
 //! 2
 void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_msgs::setStateSrvResponse &resp )
 {
+  me->_platformMutex.lock();
   State newState = (State) req.ros_machineState;
   //! Update the dimensions of the motor commands -> reflected force (normal) + compensation , etc
   for (uint j=0; j<NB_EFFORT_COMPONENTS; j++){
@@ -50,13 +59,14 @@ void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_
     me->_flagClearLastState=true;
     me->_ros_state = newState;
   } 
-  else{ resp.platform_newState=false; } //! You are already in the desired state 
+  else{ resp.platform_newState=false; } //! You are already in the desired state
+  me->_platformMutex.unlock();
 }
 
 //! 3
 void Platform::updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp )
 {
-
+  me->_platformMutex.lock();
   if ((me->_platform_state==TELEOPERATION) || (me->_platform_state==ROBOT_STATE_CONTROL))
   {
     Controller newController = (Controller) req.ros_controllerType;
@@ -93,7 +103,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
   {
     resp.platform_controlOk=false; 
   }
-  
+  me->_platformMutex.unlock();
 }
 
 
@@ -119,14 +129,14 @@ void Platform::pubFootOutput()
   }
 
   _msgFootOutput.platform_effortM[0] = _timestep;
-  _msgFootOutput.platform_effortM[4] = _virtualWall(4)*RAD_TO_DEG;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);
 }
 
 void Platform::updatePlatformFromRos() {
-  
+
+  calculateMeasTorques();
   if (_flagClearLastState) {
     clearLastState();
     _platform_state = _ros_state;
@@ -177,4 +187,98 @@ void Platform::updatePlatformFromRos() {
 
 
     
+}
+
+void Platform::calculateMeasTorques(){
+
+  //Eigen::MatrixXf forceSensorWRTBASE(NB_AXIS_WRENCH,1), forceSensorRAW(NB_AXIS_WRENCH,1);
+  //Eigen::MatrixXf rotationFS(NB_CART_AXIS,NB_CART_AXIS) = rotationMatrix(FRAME_FS);
+  // for (int c=0; c<NB_AXIS_WRENCH; c++)
+  //  { 
+  //    forceSensorRAW(c)= _ros_forceSensor[c];
+  //  }
+  // forceSensorWRTBASE.head(3) = rotationFS*forceSensorRAW.head(3);
+  // forceSensorWRTBASE.tail(3) = rotationFS*forceSensorRAW.tail(3);
+  //_effortM=geometricJacobian(FRAME_FS).transpose()*forceSensorWRTBASE;
+
+  _effortM(Y) =
+     _ros_forceSensor[FY]* (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) -
+     _ros_forceSensor[FX] * (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) -
+     _ros_forceSensor[FZ] * _c_phi * _s_theta;
+
+  _effortM(X) =
+     _ros_forceSensor[FZ] * _s_phi +_ros_forceSensor[FY]* _c_phi * _c_psi +
+     _ros_forceSensor[FX] * _c_phi * _s_psi;
+
+  _effortM(PITCH) =
+     _ros_forceSensor[FX] * (_c_phi * _c_theta * d6 *
+                (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) +
+            _c_phi * _s_theta * d6 *
+                (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi)) -
+     _ros_forceSensor[FY]* (_c_phi * _c_theta * d6 *
+                (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) +
+            _c_phi * _s_theta * d6 *
+                (_s_psi * _s_theta - _c_psi * _c_theta * _s_phi)) +
+     _ros_forceSensor[TZ] * _s_phi +
+     _ros_forceSensor[FZ] * (_c_phi * _c_theta * d6 * _c_phi *
+                _s_theta -
+            _c_phi * _s_theta * d6 * _c_phi *
+                _c_theta) +
+     _ros_forceSensor[TY] * _c_phi * _c_psi +
+     _ros_forceSensor[TX] * _c_phi * _s_psi;
+
+        _effortM(ROLL) =
+         _ros_forceSensor[TY] * (_c_theta *
+                    (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta) +
+                _s_theta * (_s_psi * _s_theta -
+                                    _c_psi * _c_theta * _s_phi)) -
+         _ros_forceSensor[TX] * (_c_theta *
+                    (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta) +
+                _s_theta * (_c_psi * _s_theta +
+                                    _c_theta * _s_phi * _s_psi)) -
+         _ros_forceSensor[FZ] * (_c_theta * _s_phi * d6 * _c_phi *
+                    _c_theta -
+                _s_phi * (_c_phi * _s_theta *_s_theta
+                            * d6 + _c_phi * _c_theta *_c_theta
+                            * d6) +
+                _s_phi * _s_theta * d6 * _c_phi *
+                    _s_theta) -
+         _ros_forceSensor[TZ] * (_c_theta * _c_phi * _s_theta -
+                _s_theta * _c_phi * _c_theta) +
+         _ros_forceSensor[FY]*
+              (_c_phi * _c_psi *
+                   (_c_phi * _s_theta *_s_theta
+                    * d6 + _c_phi * _c_theta *_c_theta
+                    * d6) -
+               _c_theta * _s_phi * d6 *
+                   (_s_psi * _s_theta - _c_psi * _c_theta * _s_phi) +
+               _s_phi * _s_theta * d6 *
+                   (_c_theta * _s_psi + _c_psi * _s_phi * _s_theta)) +
+         _ros_forceSensor[FX] * (_c_phi * _s_psi *
+                    (_c_phi * _s_theta *_s_theta
+                     * d6 + _c_phi * _c_theta *_c_theta
+                     * d6) +
+                _c_theta * _s_phi * d6 *
+                    (_c_psi * _s_theta + _c_theta * _s_phi * _s_psi) -
+                _s_phi * _s_theta * d6 *
+                    (_c_psi * _c_theta - _s_phi * _s_psi * _s_theta));
+
+        _effortM(YAW) =
+           _ros_forceSensor[TY] * (_c_phi * _c_theta *
+                      (_s_psi * _s_theta -
+                       _c_psi * _c_theta * _s_phi) +
+                  _s_phi * _c_phi * _c_psi -
+                  _c_phi * _s_theta *
+                      (_c_theta * _s_psi +
+                       _c_psi * _s_phi * _s_theta)) +
+           _ros_forceSensor[TX] * (_c_phi * _s_theta *
+                      (_c_psi * _c_theta -
+                       _s_phi * _s_psi * _s_theta) -
+                  _c_phi * _c_theta *
+                      (_c_psi * _s_theta +
+                       _c_theta * _s_phi * _s_psi) +
+                  _s_phi * _c_phi * _s_psi) +
+           _ros_forceSensor[TZ] * (_s_phi * _s_phi +
+                  _c_phi * _c_theta * _c_phi * _c_theta +
+                  _c_phi * _s_theta * _c_phi * _s_theta);
 }
