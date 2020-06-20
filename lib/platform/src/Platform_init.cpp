@@ -40,7 +40,7 @@ void Platform::init()
   _nh.advertiseService(*_servChangeState);
   _nh.advertiseService(*_servChangeCtrl);
   _nh.subscribe(*_subFootInput);
-   Thread::wait(10000);
+   Thread::wait(10);
    _timestamp = _innerTimer.read_us();
   //_timestamp = _innerTimer.read_us();
   _posSamplingStamp = _timestamp;

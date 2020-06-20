@@ -4,7 +4,7 @@
 
 void Platform::step()
 {
-  _platformMutex.lock();
+  //_platformMutex.lock();
  // memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
 
   if ((_ros_state == RESET_UC) || ((_platform_state == RESET_UC)) || (_allEsconOk && _recoveringFromError))
@@ -326,7 +326,7 @@ void Platform::step()
 
   _timestep = float(_innerTimer.read_us() - _timestamp);
   _timestamp=_innerTimer.read_us();
-  _platformMutex.unlock();
+  //_platformMutex.unlock();
 }
 
 bool Platform::flagTorqueInControl(){
