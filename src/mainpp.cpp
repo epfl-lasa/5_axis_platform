@@ -36,7 +36,7 @@ void setup(void)
   platform.init();
   flag_doComm=false;
 
-  doCommFlipper.attach_us(&doCommCb,COMM_LOOP);
+  doCommFlipper.attach_us(&doCommCb,1500);
   th_Control.start(doControlTH);
 }
 

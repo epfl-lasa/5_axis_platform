@@ -13,7 +13,7 @@
 #define L_MAX 1
 
 //! Communication
-#define BAUDRATE 230400 //! For the serial communication
+//! For the serial communication look the main.cpp
 
 //! Physics and Math Constants
 #define GRAVITY -9.80665F
