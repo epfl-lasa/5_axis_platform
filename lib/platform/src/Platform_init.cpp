@@ -33,7 +33,7 @@ void Platform::init()
   _pubFootOutput = new ros::Publisher(PLATFORM_PUBLISHER_NAME, &_msgFootOutput);
 
 
-  _nh.getHardware()->setBaud(BAUDRATE);
+  //_nh.getHardware()->setBaud(BAUDRATE);
   _nh.initNode();
    Thread::wait(10);
   _nh.advertise(*_pubFootOutput);

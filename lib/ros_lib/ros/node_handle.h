@@ -35,7 +35,10 @@
 #ifndef ROS_NODE_HANDLE_H_
 #define ROS_NODE_HANDLE_H_
 
+#include "ros/time.h"
+
 #include <stdint.h>
+
 
 #include "std_msgs/Time.h"
 #include "rosserial_msgs/TopicInfo.h"
@@ -43,6 +46,7 @@
 #include "rosserial_msgs/RequestParam.h"
 
 #include "ros/msg.h"
+
 
 namespace ros
 {
@@ -60,6 +64,7 @@ public:
 #include "ros/subscriber.h"
 #include "ros/service_server.h"
 #include "ros/service_client.h"
+
 
 namespace ros
 {

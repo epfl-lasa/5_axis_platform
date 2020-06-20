@@ -1,7 +1,7 @@
-/* 
+/*
  * Software License Agreement (BSD License)
  *
- * Copyright (c) 2011, Willow Garage, Inc.
+ * Copyright (c) 2018, Kenta Yonekura (a.k.a. yoneken)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,13 @@
 #ifndef _ROS_H_
 #define _ROS_H_
 
+#include "ros/time.h"
 #include "ros/node_handle.h"
-#include "MbedHardware.h"
+#include "STM32Hardware.h"
 
 namespace ros
 {
-  typedef NodeHandle_<MbedHardware> NodeHandle;
+  typedef NodeHandle_<STM32Hardware> NodeHandle; // default 25, 25, 512, 512
 }
 
 #endif

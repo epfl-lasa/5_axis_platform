@@ -31,25 +31,23 @@ namespace any_msgs
     {
       int offset = 0;
       offset += this->header.serialize(outbuffer + offset);
-      union {
-        uint64_t real;
-        uint32_t base;
-      } u_counter;
-      u_counter.real = this->counter;
-      *(outbuffer + offset + 0) = (u_counter.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_counter.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_counter.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_counter.base >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 0) = (this->counter >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (this->counter >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (this->counter >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (this->counter >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 4) = (this->counter >> (8 * 4)) & 0xFF;
+      *(outbuffer + offset + 5) = (this->counter >> (8 * 5)) & 0xFF;
+      *(outbuffer + offset + 6) = (this->counter >> (8 * 6)) & 0xFF;
+      *(outbuffer + offset + 7) = (this->counter >> (8 * 7)) & 0xFF;
       offset += sizeof(this->counter);
-      union {
-        uint64_t real;
-        uint32_t base;
-      } u_duration;
-      u_duration.real = this->duration;
-      *(outbuffer + offset + 0) = (u_duration.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_duration.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_duration.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_duration.base >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 0) = (this->duration >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (this->duration >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (this->duration >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (this->duration >> (8 * 3)) & 0xFF;
+      *(outbuffer + offset + 4) = (this->duration >> (8 * 4)) & 0xFF;
+      *(outbuffer + offset + 5) = (this->duration >> (8 * 5)) & 0xFF;
+      *(outbuffer + offset + 6) = (this->duration >> (8 * 6)) & 0xFF;
+      *(outbuffer + offset + 7) = (this->duration >> (8 * 7)) & 0xFF;
       offset += sizeof(this->duration);
       return offset;
     }
@@ -58,27 +56,23 @@ namespace any_msgs
     {
       int offset = 0;
       offset += this->header.deserialize(inbuffer + offset);
-      union {
-        uint64_t real;
-        uint32_t base;
-      } u_counter;
-      u_counter.base = 0;
-      u_counter.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_counter.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_counter.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_counter.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->counter = u_counter.real;
+      this->counter =  ((uint64_t) (*(inbuffer + offset)));
+      this->counter |= ((uint64_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      this->counter |= ((uint64_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      this->counter |= ((uint64_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->counter |= ((uint64_t) (*(inbuffer + offset + 4))) << (8 * 4);
+      this->counter |= ((uint64_t) (*(inbuffer + offset + 5))) << (8 * 5);
+      this->counter |= ((uint64_t) (*(inbuffer + offset + 6))) << (8 * 6);
+      this->counter |= ((uint64_t) (*(inbuffer + offset + 7))) << (8 * 7);
       offset += sizeof(this->counter);
-      union {
-        uint64_t real;
-        uint32_t base;
-      } u_duration;
-      u_duration.base = 0;
-      u_duration.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_duration.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_duration.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_duration.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->duration = u_duration.real;
+      this->duration =  ((uint64_t) (*(inbuffer + offset)));
+      this->duration |= ((uint64_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      this->duration |= ((uint64_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      this->duration |= ((uint64_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->duration |= ((uint64_t) (*(inbuffer + offset + 4))) << (8 * 4);
+      this->duration |= ((uint64_t) (*(inbuffer + offset + 5))) << (8 * 5);
+      this->duration |= ((uint64_t) (*(inbuffer + offset + 6))) << (8 * 6);
+      this->duration |= ((uint64_t) (*(inbuffer + offset + 7))) << (8 * 7);
       offset += sizeof(this->duration);
      return offset;
     }
