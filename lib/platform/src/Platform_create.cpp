@@ -208,7 +208,8 @@ Platform::Platform()
     _compTorqueLims[lim_].col(COMP_GRAVITY) = Eigen::Map<const Eigen::MatrixXf>(GRAVITY_EFFORT_LIMS[lim_],NB_AXIS,1);
     _compTorqueLims[lim_].col(COMP_VISC_FRICTION) = Eigen::Map<const Eigen::MatrixXf>(VISC_EFFORT_LIMS[lim_],NB_AXIS,1);
     _compTorqueLims[lim_].col(COMP_INERTIA) = Eigen::Map<const Eigen::MatrixXf>(INERTIA_EFFORT_LIMS[lim_],NB_AXIS,1);
-    _compTorqueLims[lim_].col(COMP_CORIOLIS) = Eigen::Map<const Eigen::MatrixXf>(CORIOLIS_EFFORT_LIMS[lim_],NB_AXIS,1);;
+    _compTorqueLims[lim_].col(COMP_CORIOLIS) = Eigen::Map<const Eigen::MatrixXf>(CORIOLIS_EFFORT_LIMS[lim_],NB_AXIS,1);
+    _compTorqueLims[lim_].col(COMP_FORCE_SENSOR) = Eigen::Map<const Eigen::MatrixXf>(FS_EFFORT_LIMS[lim_],NB_AXIS,1);;
 
   }
 

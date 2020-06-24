@@ -94,14 +94,16 @@ const float ADC_EFFORT_SCALE[NB_AXIS] = {1.04135423273f,2.03291821668, 1.0f, 1.8
 
 #define X_RANGE 0.195F                 //! [m]
 #define Y_RANGE 0.180F                 //! [m] -> TO UPDATE FOR SECOND VERSION
-#define PITCH_RANGE 40.0F * DEG_TO_RAD //! [deg]
-#define ROLL_RANGE 40.0F * DEG_TO_RAD  //! [deg]
-#define YAW_RANGE 50.0F * DEG_TO_RAD   //! [deg]
+const float PITCH_RANGE  = 50.0F * DEG_TO_RAD; //! [deg]
+const float ROLL_RANGE = 75.0F * DEG_TO_RAD;  //! [deg]
+const float YAW_RANGE = 100.0F * DEG_TO_RAD;   //! [deg]
 
 
-const float HOMING_OFFSET_Y  = Y_RANGE / 2; 
-const float HOMING_OFFSET_X = X_RANGE / 2; 
-const float HOMING_OFFSET_PITCH =  (-27.5)*DEG_TO_RAD; //! [deg]
+const float HOMING_OFFSET_Y  = Y_RANGE / 2.0f; 
+const float HOMING_OFFSET_X = X_RANGE / 2.0f; 
+const float HOMING_OFFSET_PITCH =  (-27.5 + 1.23260092735f)*DEG_TO_RAD; //! [deg]
+const float HOMING_OFFSET_ROLL = -9.0f;
+const float HOMING_OFFSET_YAW = 0.0f;
 
 #define ENCODERSIGN_Y -1 //! RIGHT
 #define ENCODERSIGN_X -1 //! RIGHT

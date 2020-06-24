@@ -110,16 +110,36 @@ void Platform::speedCtrlLimitsSet() {
 }
 
 void Platform::posInterpolator(int axis){
-   
-    if (fabs(_positionD(axis)-_position(axis))>0.005) //! Only interpolate if greater than 5 millimiters / millidegrees
+   if (axis>PITCH)
+   {
+    if (fabs(_positionD(axis)-_position(axis))>0.005*DEG_TO_RAD) //! Only interpolate if greater than 5 millimiters / millidegrees
     {
       _positionD_filtered(axis) = _posDesiredFilters[axis].update(_positionD(axis));
-      _positionD_filtered(axis) = clip(_positionD_filtered(axis), -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
+      _positionD_filtered(axis) = clip(_positionD_filtered(axis), -WS_LIMITS[axis], WS_LIMITS[axis]);
     }
     else
     {
       _positionD_filtered(axis) = _positionD(axis);
     }
+   }
+   else
+   {
+     if (fabs(_positionD(axis) - _position(axis)) > 0.005) //! Only interpolate
+                                                           //! if greater than 5
+                                                           //! millimiters /
+                                                           //! millidegrees
+     {
+       _positionD_filtered(axis) =
+           _posDesiredFilters[axis].update(_positionD(axis));
+       _positionD_filtered(axis) = clip(_positionD_filtered(axis),
+                                        -C_WS_LIMITS[axis], C_WS_LIMITS[axis]);
+     } 
+     else 
+     {
+       _positionD_filtered(axis) = _positionD(axis);
+     }
+   }
+   
 }
 
 void Platform::loadDefaultPIDGains()

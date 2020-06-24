@@ -258,6 +258,7 @@ class Platform
       void viscFrictionCompensation();
       void inertiaCompensation();
       void coriolisCompensation();
+      void forceSensorCompensation();
       void quadraticRegression();
 
       Eigen::Matrix<float, NB_STICTION_AXIS, 1>

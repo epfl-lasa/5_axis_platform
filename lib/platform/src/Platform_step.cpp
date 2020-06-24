@@ -20,7 +20,7 @@ void Platform::step()
   getMotion(); //! SPI
   
   _allEsconOk=1;
-  //for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
 
   if (!_allEsconOk || _flagEmergencyCalled)
   {
@@ -187,8 +187,7 @@ void Platform::step()
 
           if (_platform_effortComp[COMPENSATION] == 1) {
             _flagCalculateSinCos = true;
-            int comp_[] = {1, 1, 1, 1,
-                           1}; // gravity, viscous, inertia, coriolis, dry
+            int comp_[] = {1, 1, 1, 1,1,1}; // gravity, viscous, inertia, coriolis, dry, force sensor
             dynamicCompensation(comp_);
           } else {
             _flagCalculateSinCos = false;
@@ -225,7 +224,7 @@ void Platform::step()
 
           if (_platform_effortComp[COMPENSATION] == 1) {
             _flagCalculateSinCos = true;
-            int comp_[] = {1,1,1,1,0}; //gravity, viscous, inertia, coriolis, dry
+            int comp_[] = {1,1,1,1,0,0}; //gravity, viscous, inertia, coriolis, dry
             dynamicCompensation(comp_);
           } 
           else 

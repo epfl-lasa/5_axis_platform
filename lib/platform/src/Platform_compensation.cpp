@@ -24,12 +24,13 @@ void Platform::dynamicCompensation(const int* components_)
    { inertiaCompensation();}
   if (*(components_+COMP_CORIOLIS)==1){
     coriolisCompensation(); //! coriolis has to be compensated after the inertia;
-                             //! coriolis is too computationally expensive       
   }
-  //! Saturation of the compensation effort except the dry friction
   if (*(components_+COMP_DRY_FRICTION)==1)
     {dryFrictionCompensation();}
-   
+  if (*(components_+COMP_FORCE_SENSOR) == 1) {
+    forceSensorCompensation();
+  }
+
   _compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1) =
         boundMat(_compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1), _compTorqueLims[L_MIN], _compTorqueLims[L_MAX]);
   _effortD_ADD.col(COMPENSATION) = _compensationEffort.rowwise().sum();
@@ -165,6 +166,11 @@ void Platform::inertiaCompensation() {
   _compensationEffort(PITCH, COMP_INERTIA) = COMP_INERTIA_EQ_PITCH;
   _compensationEffort(ROLL, COMP_INERTIA) = COMP_INERTIA_EQ_ROLL;
   _compensationEffort(YAW, COMP_INERTIA) = COMP_INERTIA_EQ_YAW;
+}
+
+void Platform::forceSensorCompensation()
+{
+  _compensationEffort.col(COMP_FORCE_SENSOR)=_effortM - (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CONSTRAINS));
 }
 
 void Platform::coriolisCompensation() {

@@ -20,6 +20,7 @@ enum compensationComp {
   COMP_INERTIA,
   COMP_CORIOLIS,
   COMP_DRY_FRICTION,
+  COMP_FORCE_SENSOR,
   NB_COMPENSATION_COMP
 };
 
@@ -49,6 +50,7 @@ float const INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.5f,-0.5f,-0
 float const CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.5f,-0.5f,-0.5f}, {3.0f, 3.0f, 0.5f, 0.5f, 0.5f}};
 float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_LIMS][NB_AXIS] = {{{-16.0498f,-8.55883f,0.0f,0.0f,0.0f}, { -3.10896f, -1.47001f, 0.0f, 0.0f, 0.0f}},
                                                               {{1.90903f,0.875992f,0.0f,0.0f,0.0f},{15.5236f, 6.60670f, 0.0f, 0.0f, 0.0f}}};
+float const FS_EFFORT_LIMS[NB_LIMS][NB_AXIS] =  {{-10.0f, -10.0f , -2.0f, -2.0f, -2.0f}, {10.0f, 10.0f, 2.0f, 2.0f,2.0f}};                                                             
 
 
 //! Coriolis

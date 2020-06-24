@@ -81,7 +81,7 @@ void Platform::getPosition()
       _position(X) = encoders_out[X] + _positionOffsets(X);
       _position(PITCH) = encoders_out[PITCH] + _positionOffsets(PITCH);
       _position(ROLL) = (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f + _positionOffsets (ROLL);
-      _position(YAW) = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f + + _positionOffsets (YAW);
+      _position(YAW) = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f + _positionOffsets (YAW);
     _posSamplingStamp = _timestamp;
   }
   //

@@ -9,6 +9,8 @@ void Platform::positionAllReset()
     _positionOffsets(X) = HOMING_OFFSET_X;
     _positionOffsets(Y) = HOMING_OFFSET_Y;
     _positionOffsets(PITCH) = HOMING_OFFSET_PITCH;
+    _positionOffsets(ROLL) = HOMING_OFFSET_ROLL;
+    _positionOffsets(YAW) = HOMING_OFFSET_YAW;
     _spi->lock();
       for(int k = 0; k <NB_AXIS; k++)
       {

@@ -42,6 +42,7 @@ void Platform::init()
   _nh.subscribe(*_subFootInput);
    Thread::wait(10);
    _timestamp = _innerTimer.read_us();
+   _timestep = CTRL_LOOP;
   //_timestamp = _innerTimer.read_us();
   _posSamplingStamp = _timestamp;
   _speedSamplingStamp=_timestamp;

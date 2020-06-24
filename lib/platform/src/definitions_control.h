@@ -14,7 +14,7 @@ enum Controller {
 
 //! Sampling times and loops
 #define COMM_LOOP 1500 //! [us] -> 600Hz..
-#define CTRL_LOOP 500 //! [us] -> 1000us = 1KHz  /50
+#define CTRL_LOOP 500 //! [us] -> 500us = 2KHz  /50
 const float VELOCITY_PID_SAMPLE_P = 4 * CTRL_LOOP; //!  [us]
 const float ACC_SAMPLE_P = 5 * CTRL_LOOP;
 const float ANALOG_SAMPLING_TIME = 8 * CTRL_LOOP;
