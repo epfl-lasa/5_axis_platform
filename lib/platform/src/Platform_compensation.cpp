@@ -170,7 +170,12 @@ void Platform::inertiaCompensation() {
 
 void Platform::forceSensorCompensation()
 {
-  _compensationEffort.col(COMP_FORCE_SENSOR)=_effortM - (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CONSTRAINS));
+  _forceSensorD = (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CONSTRAINS));
+  for (int k=0; k<NB_AXIS; k++)
+  {
+    _pidForceSensor[k]->compute();
+  }
+  _compensationEffort.col(COMP_FORCE_SENSOR)= _forceSensorCtrlOut + (_effortM - _forceSensorD) ;
 }
 
 void Platform::coriolisCompensation() {

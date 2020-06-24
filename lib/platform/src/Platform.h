@@ -106,6 +106,8 @@ class Platform
     Eigen::Matrix<float, NB_AXIS, 1> _acceleration;
     Eigen::Matrix<float, NB_AXIS, 1> _speedD;
     Eigen::Matrix<float, NB_AXIS, 1> _speedCtrlOut;
+    Eigen::Matrix<float, NB_AXIS, 1> _forceSensorCtrlOut;
+    Eigen::Matrix<float, NB_AXIS, 1> _forceSensorD;
     Eigen::Matrix<float, NB_AXIS, 1> _effortD;
     Eigen::Matrix<float, NB_AXIS, 1> _effortM; // The last two elements are temporary variables
     Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
@@ -136,6 +138,9 @@ class Platform
     Matrix<float,NB_AXIS,1> _platform_kpSpeed;
     Matrix<float,NB_AXIS,1> _platform_kiSpeed;
     Matrix<float,NB_AXIS,1> _platform_kdSpeed;
+    Matrix<float, NB_AXIS, 1> _platform_kpFS;
+    Matrix<float, NB_AXIS, 1> _platform_kiFS;
+    Matrix<float, NB_AXIS, 1> _platform_kdFS;
 
     volatile float _ros_kpPosition[NB_AXIS];
     volatile float _ros_kiPosition[NB_AXIS];
@@ -148,6 +153,7 @@ class Platform
 
     PID* _pidPosition[NB_AXIS];
     PID* _pidSpeed[NB_AXIS];
+    PID* _pidForceSensor[NB_AXIS];
 
     // Other variables
     
@@ -244,8 +250,10 @@ class Platform
       float pointROLL, float pointYAW);                                   //! 6
       void gotoPointGainsDefault();                              //! 7
       void speedPIDGainsDefault();                                 //!
+      void forceSensorPIDGainsDefault();                                 //!
       void posCtrlLimitsSet();                                    //!
       void speedCtrlLimitsSet();                                 //!
+      void forceSensorCtrlLimitsSet();                                 //!
       void posInterpolator(int axis);
       void loadDefaultPIDGains();
       void loadROSPIDGains();

@@ -11,6 +11,7 @@
 //! Filters
 const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
 const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
+const float FS_PID_FILTER_GAINS[NB_AXIS] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 //! List of Gains
 //******************************HOMING********************************
@@ -31,8 +32,8 @@ const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
 
     #else 
 
-        const float SPEED_D_HOMING_Y = 1.0f * 0.5f;                                                 //[m/s]
-        const float SPEED_D_HOMING_X = 1.0f * 0.5f;                                                 //[m/s]                    
+        const float SPEED_D_HOMING_Y = 1.0f * 0.6f;                                                 //[m/s]
+        const float SPEED_D_HOMING_X = 1.0f * 0.6f;                                                 //[m/s]                    
         const float SPEED_D_HOMING_PITCH  = -300 * DEG_TO_RAD * 0.5f;                              //[deg/s]
 
         const float HOMING_KP_SPEED_Y = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m]   
@@ -51,6 +52,11 @@ const float SPEED_PID_GAINS_DEFAULT[3][NB_AXIS] = {
              0.0f, 0.0f},
             {0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 
+
+const float FS_PID_GAINS_DEFAULT[3][NB_AXIS] = {
+            {2.0f, 2.0f, 2.0f,2.0f, 3.0f},
+            {2.0f, 1.0f, 2.0f,2.0f, 3.0f},
+            {0.0f, 0.0f, 0.0f,0.0f, 0.0f}}; // Y, X, PITCH, ROLL, YAW
 //*************************GOTO******************************************************
 
 

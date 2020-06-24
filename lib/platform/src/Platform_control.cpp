@@ -80,6 +80,15 @@ void Platform::speedPIDGainsDefault()
 
 }
 
+void Platform::forceSensorPIDGainsDefault()
+{
+
+  _platform_kpFS = Eigen::Map<const Eigen::MatrixXf>(FS_PID_GAINS_DEFAULT[KP], NB_AXIS, 1);
+  _platform_kiFS = Eigen::Map<const Eigen::MatrixXf>(FS_PID_GAINS_DEFAULT[KI], NB_AXIS, 1);
+  _platform_kdFS = Eigen::Map<const Eigen::MatrixXf>(FS_PID_GAINS_DEFAULT[KD], NB_AXIS, 1);
+
+}
+
 void Platform::posCtrlLimitsSet() {
       
   for (int k=0; k<NB_AXIS; k++)
@@ -92,6 +101,14 @@ void Platform::posCtrlLimitsSet() {
     {
       _pidPosition[k]->setOutputLimits(-SAFETY_MAX_INIT[k],SAFETY_MAX_INIT[k]);
     }
+  }
+}
+
+void Platform::forceSensorCtrlLimitsSet() {
+
+  for (int k = 0; k < NB_AXIS; k++) {
+    _pidForceSensor[k]->setOutputLimits(FS_EFFORT_LIMS[L_MIN][k],
+                                        FS_EFFORT_LIMS[L_MAX][k]);
   }
 }
 
@@ -152,7 +169,7 @@ void Platform::loadDefaultPIDGains()
   {
     gotoPointGainsDefault();
   }
-
+  forceSensorPIDGainsDefault();
   speedPIDGainsDefault();
   setPIDGains();
 }
@@ -182,5 +199,8 @@ void Platform::setPIDGains()
     _pidSpeed[axis]->setTunings(_platform_kpSpeed(axis),
                                _platform_kiSpeed(axis),
                                _platform_kdSpeed(axis));
+    _pidForceSensor[axis]->setTunings(_platform_kpFS(axis),
+                                    _platform_kiFS(axis),
+                                    _platform_kdFS(axis));
   }
 }

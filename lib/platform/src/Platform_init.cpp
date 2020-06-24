@@ -13,6 +13,7 @@ void Platform::init()
     //}
     _pidPosition[k]->setSampleTime(POSITION_PID_SAMPLE_P); //! [us]
     _pidSpeed[k]->setSampleTime(VELOCITY_PID_SAMPLE_P);
+    _pidForceSensor[k]->setSampleTime(ACC_SAMPLE_P);
     }
     loadDefaultPIDGains();
     //! Attach interruptions to callbacks on falling edge

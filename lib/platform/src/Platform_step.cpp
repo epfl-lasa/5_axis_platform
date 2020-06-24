@@ -151,6 +151,7 @@ void Platform::step()
           }
           loadDefaultPIDGains();
           posCtrlLimitsSet(); // for constrains
+          forceSensorCtrlLimitsSet();
           //sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
           //_nh.loginfo(_logMsg);
           _enterStateOnceFlag[TELEOPERATION]=true;

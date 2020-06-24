@@ -101,7 +101,7 @@ const float YAW_RANGE = 100.0F * DEG_TO_RAD;   //! [deg]
 
 const float HOMING_OFFSET_Y  = Y_RANGE / 2.0f; 
 const float HOMING_OFFSET_X = X_RANGE / 2.0f; 
-const float HOMING_OFFSET_PITCH =  (-27.5 + 1.23260092735f)*DEG_TO_RAD; //! [deg]
+const float HOMING_OFFSET_PITCH =  (-27.5 + 13.0641028881f)*DEG_TO_RAD; //! [deg]
 const float HOMING_OFFSET_ROLL = -9.0f;
 const float HOMING_OFFSET_YAW = 0.0f;
 
