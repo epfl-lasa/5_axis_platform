@@ -25,11 +25,11 @@ void Platform::dynamicCompensation(const int* components_)
   if (*(components_+COMP_CORIOLIS)==1){
     coriolisCompensation(); //! coriolis has to be compensated after the inertia;
   }
-  if (*(components_+COMP_DRY_FRICTION)==1)
-    {dryFrictionCompensation();}
-  if (*(components_+COMP_FORCE_SENSOR) == 1) {
+  if (*(components_ + COMP_FORCE_SENSOR) == 1) {
     forceSensorCompensation();
   }
+  if (*(components_ + COMP_DRY_FRICTION)==1)
+    {dryFrictionCompensation();}
 
   _compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1) =
         boundMat(_compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1), _compTorqueLims[L_MIN], _compTorqueLims[L_MAX]);

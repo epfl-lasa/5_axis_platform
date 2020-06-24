@@ -267,8 +267,7 @@ class Platform
       Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS>
           _predictors[NB_SIGN_COMP];
 
-      Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP - 1>
-          _compTorqueLims[NB_LIMS];
+      Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP - 1> _compTorqueLims[NB_LIMS];
       Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeomJacobian[NB_LINKS];
       Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
       Eigen::Matrix<float, 3, 3> _rotationMatrixCOM[NB_LINKS];

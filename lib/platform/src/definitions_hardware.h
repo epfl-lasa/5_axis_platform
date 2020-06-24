@@ -92,8 +92,8 @@ const float ENCODERSCALE_YAW = (90.0f / 53000.0f) * DEG_TO_RAD;
 #else
 const float ADC_EFFORT_SCALE[NB_AXIS] = {1.04135423273f,2.03291821668, 1.0f, 1.85313799022, 2.4117866005f};
 
-#define X_RANGE 0.195F                 //! [m]
-#define Y_RANGE 0.180F                 //! [m] -> TO UPDATE FOR SECOND VERSION
+const float X_RANGE = 0.195F;                 //! [m]
+const float Y_RANGE = 0.180F;                 //! [m] -> TO UPDATE FOR SECOND VERSION
 const float PITCH_RANGE  = 50.0F * DEG_TO_RAD; //! [deg]
 const float ROLL_RANGE = 75.0F * DEG_TO_RAD;  //! [deg]
 const float YAW_RANGE = 100.0F * DEG_TO_RAD;   //! [deg]

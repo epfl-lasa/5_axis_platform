@@ -187,7 +187,7 @@ void Platform::step()
 
           if (_platform_effortComp[COMPENSATION] == 1) {
             _flagCalculateSinCos = true;
-            int comp_[] = {1, 1, 1, 1,1,1}; // gravity, viscous, inertia, coriolis, dry, force sensor
+            int comp_[] = {1, 1, 1, 1, 1, 1}; // gravity, viscous, inertia, coriolis, dry, force sensor
             dynamicCompensation(comp_);
           } else {
             _flagCalculateSinCos = false;
@@ -221,16 +221,6 @@ void Platform::step()
 
         // Main state
           totalEffortDClear(-1);
-
-          if (_platform_effortComp[COMPENSATION] == 1) {
-            _flagCalculateSinCos = true;
-            int comp_[] = {1,1,1,1,0,0}; //gravity, viscous, inertia, coriolis, dry
-            dynamicCompensation(comp_);
-          } 
-          else 
-          {
-            _flagCalculateSinCos = false;
-          }
 
           if (flagPositionInControl()) {
             if (_flagInputReceived[MSG_POSITION]) {
@@ -285,6 +275,16 @@ void Platform::step()
                   _flagInputReceived[MSG_SPEED] = false;
             } 
             //! Add speed controller here!  
+          }
+
+           if (_platform_effortComp[COMPENSATION] == 1) {
+            _flagCalculateSinCos = true;
+            int comp_[] = {1,1,1,1,0,0}; //gravity, viscous, inertia, coriolis, force sensor, dry
+            dynamicCompensation(comp_);
+          } 
+          else 
+          {
+            _flagCalculateSinCos = false;
           }
           break;
     }
