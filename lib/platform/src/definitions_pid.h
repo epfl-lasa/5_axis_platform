@@ -54,7 +54,7 @@ const float SPEED_PID_GAINS_DEFAULT[3][NB_AXIS] = {
 
 
 const float FS_PID_GAINS_DEFAULT[3][NB_AXIS] = {
-            {2.0f, 2.0f, 2.0f,2.0f, 3.0f},
+            {2.0f, 1.0f, 2.0f,2.0f, 3.0f},
             {2.0f, 1.0f, 2.0f,2.0f, 3.0f},
             {0.0f, 0.0f, 0.0f,0.0f, 0.0f}}; // Y, X, PITCH, ROLL, YAW
 //*************************GOTO******************************************************

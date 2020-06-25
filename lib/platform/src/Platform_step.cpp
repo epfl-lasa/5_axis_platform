@@ -85,8 +85,8 @@ void Platform::step()
             if ((_innerTimer.read_us() - _toc) > 1500000)
             {
                 
+                positionAllReset(); // has to be before ClearlastState
                 clearLastState(); 
-                positionAllReset();
                 _tic=false;
                 _toc=false;
                 _platform_state = CENTERING;    

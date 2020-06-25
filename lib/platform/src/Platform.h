@@ -348,6 +348,6 @@ class Platform
 /* TODO
 
  * 3. Include the PID gains in the parameter server
- * 5. Make multi-axis PID
+ * 5. Include model of the leg
 
 */
