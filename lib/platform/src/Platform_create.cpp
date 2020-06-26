@@ -107,6 +107,8 @@ Platform::Platform()
   _flagDefaultCtrlNew = false;
   _flagCtrlGainsNew = false;
 
+  _flagLoadParams=false;
+
   _ros_flagDefaultControl=true;
   _platform_flagDefaultControl = true;
 

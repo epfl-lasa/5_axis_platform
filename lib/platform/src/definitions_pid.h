@@ -133,8 +133,8 @@ const float POS_PID_GAINS_DEFAULT[3][NB_AXIS] = {
 
     #else
 
-        const float C_WS_KP_POSITION_Y = 0.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m]
-        const float C_WS_KP_POSITION_X = 0.0f * SCALE_GAINS_LINEAR_POSITION;            //[N/m]                              
+        const float C_WS_KP_POSITION_Y = 1000.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m]
+        const float C_WS_KP_POSITION_X = 1000.0f * SCALE_GAINS_LINEAR_POSITION;            //[N/m]                              
         const float C_WS_KP_POSITION_PITCH = 1000.0f * SCALE_GAINS_ANGULAR_POSITION;        //[Nm/deg]
         const float C_WS_KP_POSITION_ROLL = 5000.0f * SCALE_GAINS_ANGULAR_POSITION;         //[Nm/deg]
         const float C_WS_KP_POSITION_YAW =1000.0f * SCALE_GAINS_ANGULAR_POSITION;           //[Nm/deg]

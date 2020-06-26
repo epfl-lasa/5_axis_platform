@@ -20,7 +20,7 @@ void Platform::step()
   getMotion(); //! SPI
   
   _allEsconOk=1;
-  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  //!!!! for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
 
   if (!_allEsconOk || _flagEmergencyCalled)
   {
@@ -149,7 +149,7 @@ void Platform::step()
             _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
             _pidSpeed[k]->reset();
           }
-          loadDefaultPIDGains();
+          loadParamPIDGains();
           posCtrlLimitsSet(); // for constrains
           forceSensorCtrlLimitsSet();
           //sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
@@ -210,7 +210,7 @@ void Platform::step()
               _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
               _pidSpeed[k]->reset();
           }
-          loadDefaultPIDGains();
+          loadParamPIDGains();
           posCtrlLimitsSet(); // for constrains
           speedCtrlLimitsSet(); // for constrains
           //sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL",

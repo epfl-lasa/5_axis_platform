@@ -174,6 +174,37 @@ void Platform::loadDefaultPIDGains()
   setPIDGains();
 }
 
+void Platform::loadParamPIDGains() {
+  _flagLoadParams=false;
+  retrieveParams();
+  float scale = 0.0f;
+  for (int k = 0; k < NB_AXIS; k++) {
+    if (k < PITCH) {
+      scale = SCALE_GAINS_LINEAR_POSITION;
+    } else {
+      scale = SCALE_GAINS_ANGULAR_POSITION;
+    }
+    _platform_kpPosition(k) = _rosParam_kpPosition[k] * scale;
+    _platform_kiPosition(k) = _rosParam_kiPosition[k] * scale;
+    _platform_kdPosition(k) = _rosParam_kdPosition[k] * scale;
+
+    if (k < PITCH) {
+      scale = SCALE_GAINS_LINEAR_SPEED;
+    } else {
+      scale = SCALE_GAINS_ANGULAR_SPEED;
+    }
+
+    _platform_kpSpeed(k) = _rosParam_kpSpeed[k] * scale;
+    _platform_kiSpeed(k) = _rosParam_kiSpeed[k] * scale;
+    _platform_kdSpeed(k) = _rosParam_kdSpeed[k] * scale;
+
+    _platform_kpFS(k) = _rosParam_kpFS[k];
+    _platform_kiFS(k) = _rosParam_kiFS[k];
+    _platform_kdFS(k) = _rosParam_kdFS[k];
+  }
+  setPIDGains();
+}
+
 void Platform::loadROSPIDGains()
 {
   for (int k=0; k<NB_AXIS; k++)

@@ -49,7 +49,7 @@ class Platform
     Timer _innerTimer; //! micros()
     uint64_t _innerCounterADC;
 
-  private:
+  public:
     Mutex _platformMutex;
 
   public:
@@ -74,6 +74,8 @@ class Platform
         volatile Controller _ros_controllerType;
         volatile uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
         volatile State _ros_state;
+        
+        volatile bool _flagLoadParams;
         
 
 
@@ -149,6 +151,16 @@ class Platform
     volatile float _ros_kiSpeed[NB_AXIS];
     volatile float _ros_kdSpeed[NB_AXIS];
 
+    float _rosParam_kpPosition[NB_AXIS];
+    float _rosParam_kiPosition[NB_AXIS];
+    float _rosParam_kdPosition[NB_AXIS];
+    float _rosParam_kpSpeed[NB_AXIS];
+    float _rosParam_kiSpeed[NB_AXIS];
+    float _rosParam_kdSpeed[NB_AXIS];
+    float _rosParam_kpFS[NB_AXIS];
+    float _rosParam_kiFS[NB_AXIS];
+    float _rosParam_kdFS[NB_AXIS];
+
     // PID 
 
     PID* _pidPosition[NB_AXIS];
@@ -187,6 +199,9 @@ class Platform
   //! Platform_ros.cpp
   public:
     void communicateToRos();                                              //! 1
+    void retrieveParams();
+    bool waitUntilRosConnect();
+
   private:
   //ROS
     static void updateFootInput(const custom_msgs::FootInputMsg_v3 &msg); //! 2
@@ -256,6 +271,7 @@ class Platform
       void forceSensorCtrlLimitsSet();                                 //!
       void posInterpolator(int axis);
       void loadDefaultPIDGains();
+      void loadParamPIDGains();
       void loadROSPIDGains();
       void setPIDGains();
       //! Platform_compensation.cpp

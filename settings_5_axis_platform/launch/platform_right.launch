@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="baud_"              default="460800" />
+    <arg name="port_"             default="/dev/ttyACM0" />
+    
+    <node pkg="rosserial_python" type="serial_node.py" name="right" respawn="false" output="screen">
+        <param name="baud" value="$(arg baud_)"/>
+        <param name="port" value="$(arg port_)"/>
+        
+	<rosparam command="load" ns="v_wall" file="$(find settings_5_axis_platform)/config/right_pid_virtual_wall.yaml"/>
+    <rosparam command="load" file="$(find settings_5_axis_platform)/config/right_pid_pos.yaml"/>
+    <rosparam command="load" file="$(find settings_5_axis_platform)/config/right_pid_speed.yaml"/>
+    <rosparam command="load" file="$(find settings_5_axis_platform)/config/right_pid_forceSensor.yaml"/>
+    </node>
+</launch>
+

@@ -35,18 +35,27 @@ void setup(void)
 {
   platform.init();
   flag_doComm=false;
-
   doCommFlipper.attach_us(&doCommCb,1500);
   th_Control.start(doControlTH);
 }
 
 void loop(void)
 {
-  if (flag_doComm)
-  {
-    platform.communicateToRos();
+  if (flag_doComm) {
+    if (platform.waitUntilRosConnect())
+    { 
+      platform.retrieveParams();
+      if (platform._flagLoadParams)
+      {
+        platform.communicateToRos();
+      }
+    }
+    else
+    {
+      platform._flagLoadParams = false;
+    }
+    
     flag_doComm=false;
   }
-
 }
 
