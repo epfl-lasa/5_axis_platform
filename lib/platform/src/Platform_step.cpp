@@ -20,7 +20,7 @@ void Platform::step()
   getMotion(); //! SPI
   
   _allEsconOk=1;
-  //!!!! for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
 
   if (!_allEsconOk || _flagEmergencyCalled)
   {
@@ -156,6 +156,8 @@ void Platform::step()
           //_nh.loginfo(_logMsg);
           _enterStateOnceFlag[TELEOPERATION]=true;
           _enableMotors->write(1);
+          _flagOutofCompensation=true;
+
         }
 
         //! Clear the vector of efforts
@@ -187,11 +189,17 @@ void Platform::step()
           }
 
           if (_platform_effortComp[COMPENSATION] == 1) {
-            _flagCalculateSinCos = true;
-            int comp_[] = {1, 1, 1, 1, 1, 1}; // gravity, viscous, inertia, coriolis, dry, force sensor
-            dynamicCompensation(comp_);
+            if (_flagOutofCompensation)
+              {
+              loadParamCompensation();
+              _flagOutofCompensation = false;
+            }
+            dynamicCompensation();
           } else {
-            _flagCalculateSinCos = false;
+            if (!_flagOutofCompensation) {
+             resetControllers(FS_CTRL);
+             _flagOutofCompensation=true;
+            }
           }
 
           break;
@@ -218,6 +226,7 @@ void Platform::step()
           //_nh.loginfo(_logMsg);
           _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
           _enableMotors->write(1);
+          _flagOutofCompensation=true;
         }
 
         // Main state
@@ -278,14 +287,17 @@ void Platform::step()
             //! Add speed controller here!  
           }
 
-           if (_platform_effortComp[COMPENSATION] == 1) {
-            _flagCalculateSinCos = true;
-            int comp_[] = {1,1,1,1,0,0}; //gravity, viscous, inertia, coriolis, force sensor, dry
-            dynamicCompensation(comp_);
-          } 
-          else 
-          {
-            _flagCalculateSinCos = false;
+          if (_platform_effortComp[COMPENSATION] == 1) {
+            if (_flagOutofCompensation) {
+              loadParamCompensation();
+              _flagOutofCompensation = false;
+            }
+            dynamicCompensation();
+          } else {
+            if (!_flagOutofCompensation) {
+              resetControllers(FS_CTRL);
+              _flagOutofCompensation = true;
+            }
           }
           break;
     }

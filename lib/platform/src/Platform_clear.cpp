@@ -95,14 +95,13 @@ void Platform::clearLastState()
 
 
 
-void Platform::resetControllers()
+void Platform::resetControllers(Controller controllerType)
 {
-  switch(_platform_controllerType)
-  {
-    case(TORQUE_CTRL):
-    {
-      compEffortClear(-1, NORMAL);
-      break;
+  switch (controllerType) {
+    
+  case (TORQUE_CTRL): {
+    compEffortClear(-1, NORMAL);
+    break;
     }
     case(POSITION_CTRL):
       {
@@ -118,6 +117,13 @@ void Platform::resetControllers()
         }
         break;
       }
+    case (FS_CTRL): 
+    {
+      for (int k = 0; k < NB_AXIS; k++) {
+        _pidForceSensor[k]->reset();
+      }
+      break;
+    }  
   }
 }
 

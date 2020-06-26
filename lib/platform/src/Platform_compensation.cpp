@@ -13,22 +13,21 @@ bool flagQuadraticRegressionInit=false;
 
 
 //! 1
-void Platform::dynamicCompensation(const int* components_)
+void Platform::dynamicCompensation()
 {
   
-  if (*(components_+COMP_GRAVITY)==1)
+  if (_platform_compensation[COMP_GRAVITY])
     {gravityCompensation();}
-  if (*(components_+COMP_VISC_FRICTION)==1)
+  if (_platform_compensation[COMP_VISC_FRICTION])
     {viscFrictionCompensation();}
-  if (*(components_+COMP_INERTIA)==1)
-   { inertiaCompensation();}
-  if (*(components_+COMP_CORIOLIS)==1){
-    coriolisCompensation(); //! coriolis has to be compensated after the inertia;
+  if (_platform_compensation[COMP_INERTIA])
+    {inertiaCompensation();}
+  if (_platform_compensation[COMP_CORIOLIS])
+    {coriolisCompensation(); //! coriolis has to be compensated after the inertia;
   }
-  if (*(components_ + COMP_FORCE_SENSOR) == 1) {
-    forceSensorCompensation();
-  }
-  if (*(components_ + COMP_DRY_FRICTION)==1)
+  if (_platform_compensation[COMP_FORCE_SENSOR])
+    {forceSensorCompensation(); }
+  if (_platform_compensation[COMP_DRY_FRICTION])
     {dryFrictionCompensation();}
 
   _compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1) =
@@ -175,7 +174,7 @@ void Platform::forceSensorCompensation()
   {
     _pidForceSensor[k]->compute();
   }
-  _compensationEffort.col(COMP_FORCE_SENSOR)= _forceSensorCtrlOut + (_effortM - _forceSensorD) ;
+  _compensationEffort.col(COMP_FORCE_SENSOR)= _forceSensorCtrlOut;
 }
 
 void Platform::coriolisCompensation() {

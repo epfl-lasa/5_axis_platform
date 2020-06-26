@@ -44,7 +44,7 @@ void loop(void)
   if (flag_doComm) {
     if (platform.waitUntilRosConnect())
     { 
-      platform.retrieveParams();
+      platform.retrieveParams(ALL);
       if (platform._flagLoadParams)
       {
         platform.communicateToRos();

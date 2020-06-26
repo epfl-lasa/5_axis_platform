@@ -34,7 +34,7 @@ Platform::Platform()
   _speedPrev.setConstant(0.0f);
   _acceleration.setConstant(0.0f);
 
-  _flagCalculateSinCos = false;
+  _flagCalculateSinCos = true;
   _c_theta = 0.0f;
   _c_phi = 0.0f;
   _c_psi = 0.0f;
@@ -73,8 +73,8 @@ Platform::Platform()
     _pidPosition[k]->setMode(AUTOMATIC);
     _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _platform_kpSpeed(k), _platform_kiSpeed(k), _platform_kdSpeed(k),DIRECT, VEL_PID_FILTER_GAINS[k]);
     _pidSpeed[k]->setMode(AUTOMATIC);
-    _pidForceSensor[k] = new PID(&_innerTimer, &_effortM(k), &_forceSensorCtrlOut(k), &_forceSensorD(k), _platform_kpFS(k), _platform_kiFS(k), _platform_kdFS(k), P_ON_M, DIRECT, FS_PID_FILTER_GAINS[k]);
-
+    _pidForceSensor[k] = new PID(&_innerTimer, &_effortM(k), &_forceSensorCtrlOut(k), &_forceSensorD(k), _platform_kpFS(k), _platform_kiFS(k), _platform_kdFS(k), REVERSE, FS_PID_FILTER_GAINS[k]);
+    _pidForceSensor[k]->setMode(AUTOMATIC);
     _flagInWsConstrains[k] = false;
 
   }
@@ -223,6 +223,8 @@ Platform::Platform()
 
   }
 
+  for (int c =0 ; c<NB_COMPENSATION_COMP; c++) 
+      { _platform_compensation[c] = COMPENSATION_COMP[c]; }
 
   //! Model
 
@@ -244,5 +246,5 @@ Platform::Platform()
     _flagContact=false;
     _flagVibration=false;
     _feedForwardTorque.setConstant(0.0f);
-
+    _flagOutofCompensation=false;
 }

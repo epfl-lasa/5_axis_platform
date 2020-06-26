@@ -11,6 +11,8 @@ const int rosAxis[] = {X, Y, PITCH, ROLL, YAW}; //! This is because the first
 
 enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
 
+enum Param_Category {PID_POS_C, PID_VEL_C, PID_FS_C, COMPENSATION_C, ALL};
+
 #define NB_FI_CATEGORY 3 //! Category of the information of the foot input message
 
 //******************************NAMES*****************************
@@ -32,6 +34,7 @@ enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
     #define PARAM_P_FS_LEFT "/left/p_fs"
     #define PARAM_I_FS_LEFT "/left/i_fs"
     #define PARAM_D_FS_LEFT "/left/d_fs"
+    #define PARAM_COMPENSATION_LEFT "/left/comp_"
     
     #define PLATFORM_SUBSCRIBER_NAME_RIGHT "/FI_Input/Right"
     #define FORCE_SUBSCRIBER_NAME_RIGHT "/right/rokubimini0/force"
@@ -50,6 +53,7 @@ enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
     #define PARAM_P_FS_RIGHT "/right/p_fs"
     #define PARAM_I_FS_RIGHT "/right/i_fs"
     #define PARAM_D_FS_RIGHT "/right/d_fs"
+    #define PARAM_COMPENSATION_RIGHT "/right/comp_"
 
 
     #if (PLATFORM_ID == LEFT_PLATFORM) 
@@ -70,6 +74,7 @@ enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
         #define PARAM_P_FS_NAME PARAM_P_FS_LEFT
         #define PARAM_I_FS_NAME PARAM_I_FS_LEFT
         #define PARAM_D_FS_NAME PARAM_D_FS_LEFT
+        #define PARAM_COMPENSATION_NAME  PARAM_COMPENSATION_LEFT
         
         
     #else
@@ -90,10 +95,9 @@ enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
         #define PARAM_P_FS_NAME PARAM_P_FS_RIGHT
         #define PARAM_I_FS_NAME PARAM_I_FS_RIGHT
         #define PARAM_D_FS_NAME PARAM_D_FS_RIGHT
-        
-        
-        
-    #endif
+        #define PARAM_COMPENSATION_NAME PARAM_COMPENSATION_RIGHT
+
+#endif
 
 
 #endif // DEFINITIONS_ROS_H

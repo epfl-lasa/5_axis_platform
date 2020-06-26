@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="baud_"              default="460800" />
+    <arg name="baud_"              default="921600" />
     <arg name="port_"             default="/dev/ttyACM0" />
     
     <node pkg="rosserial_python" type="serial_node.py" name="right" respawn="false" output="screen">
@@ -11,6 +11,7 @@
     <rosparam command="load" file="$(find settings_5_axis_platform)/config/right_pid_pos.yaml"/>
     <rosparam command="load" file="$(find settings_5_axis_platform)/config/right_pid_speed.yaml"/>
     <rosparam command="load" file="$(find settings_5_axis_platform)/config/right_pid_forceSensor.yaml"/>
+    <rosparam command="load" file="$(find settings_5_axis_platform)/config/right_compensation.yaml"/>
     </node>
 </launch>
 

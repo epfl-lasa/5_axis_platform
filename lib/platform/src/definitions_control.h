@@ -10,6 +10,7 @@ enum Controller {
   SPEED_CTRL,
   POS_SPEED_CTRL,
   SPEED_POS_CTRL,
+  FS_CTRL
 };
 
 //! Sampling times and loops

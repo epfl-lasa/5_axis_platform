@@ -14,7 +14,11 @@
         "istream": "cpp",
         "limits": "cpp",
         "sstream": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "mstd_memory": "cpp",
+        "memory": "cpp",
+        "future": "cpp",
+        "optional": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3"
 }

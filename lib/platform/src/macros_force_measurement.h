@@ -3,7 +3,7 @@
 
 #define WO_LAST_LINK_CORRECTION 0
 #define W_LAST_LINK_CORRECTION 1
-#define LAST_LINK_FS  W_LAST_LINK_CORRECTION
+#define LAST_LINK_FS W_LAST_LINK_CORRECTION
 
 #if (LAST_LINK_FS)
 #define effortM_Y                                                              \

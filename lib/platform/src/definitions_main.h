@@ -39,6 +39,8 @@ extern const char *Axis_names[];
 enum cartesianAxis { CART_X, CART_Y, CART_Z, NB_CART_AXIS };
 #define NB_AXIS 5 //! Y, X, PITCH, ROLL, YAW
 
+enum WrenchAxis { FX, FY, FZ, TX, TY, TZ, NB_AXIS_WRENCH };
+
 //! Components of the desired effort
 enum EffortComp {
   NORMAL,

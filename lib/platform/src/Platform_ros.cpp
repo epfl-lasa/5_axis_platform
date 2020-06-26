@@ -128,8 +128,7 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_effortM[rosAxis[k]] = _effortM(k);
   }
 
-  _msgFootOutput.platform_effortM[0] = _timestep;
-  _msgFootOutput.platform_effortM[1] = _rosParam_kpFS[0];
+ // _msgFootOutput.platform_effortM[0] = _timestep;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);
@@ -155,7 +154,7 @@ void Platform::updatePlatformFromRos() {
         }
 
         if (_flagControllerTypeChanged) {
-          resetControllers();
+          resetControllers(_platform_controllerType);
           _flagControllerTypeChanged = false;
         }
         _platform_controllerType = _ros_controllerType;
@@ -207,85 +206,120 @@ void Platform::calculateMeasTorques() {
   _effortM(YAW) = effortM_YAW;
 }
 
-void Platform::retrieveParams(){  ///! These parameters require further application of the scale. See LoadParamPIDGains
-  if (!_flagLoadParams)
+void Platform::retrieveParams(Param_Category category_)
+{  ///! These parameters require further application of the scale. See LoadParamPIDGains
+  if (category_==ALL)
+  {
+    if (!_flagLoadParams)
+    {
+      for (int c_ = 0; c_<ALL; c_++)
+      {
+        retrieveParams((Param_Category) c_);
+      }
+      _flagLoadParams = true;
+    }
+  }
+  
+  else
   {
     _platformMutex.lock();
-    if(_platform_state==TELEOPERATION)
-    { 
-      if (!_nh.getParam(PARAM_P_WALL_NAME, _rosParam_kpPosition, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kpPosition[k] = C_WS_PID_GAINS[KP][k];
-        }
-      }
-      if (!_nh.getParam(PARAM_I_WALL_NAME, _rosParam_kiPosition, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kiPosition[k] = C_WS_PID_GAINS[KI][k];
-        }
-      }
-      if (!_nh.getParam(PARAM_D_WALL_NAME, _rosParam_kdPosition, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kdPosition[k] = C_WS_PID_GAINS[KD][k];
-        }
-      }
-    }
-    else 
+    switch (category_)
     {
-      if (!_nh.getParam(PARAM_P_POS_NAME, _rosParam_kpPosition, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kpPosition[k] = POS_PID_GAINS_DEFAULT[KP][k];
+      case PID_POS_C:
+      {
+        if(_platform_state==TELEOPERATION)
+        { 
+          if (!_nh.getParam(PARAM_P_WALL_NAME, _rosParam_kpPosition, NB_AXIS)) {
+            for (int k = 0; k < NB_AXIS; k++) {
+              _rosParam_kpPosition[k] = C_WS_PID_GAINS[KP][k];
+            }
+          }
+          if (!_nh.getParam(PARAM_I_WALL_NAME, _rosParam_kiPosition, NB_AXIS)) {
+            for (int k = 0; k < NB_AXIS; k++) {
+              _rosParam_kiPosition[k] = C_WS_PID_GAINS[KI][k];
+            }
+          }
+          if (!_nh.getParam(PARAM_D_WALL_NAME, _rosParam_kdPosition, NB_AXIS)) {
+            for (int k = 0; k < NB_AXIS; k++) {
+              _rosParam_kdPosition[k] = C_WS_PID_GAINS[KD][k];
+            }
+          }
         }
+        else 
+        {
+          if (!_nh.getParam(PARAM_P_POS_NAME, _rosParam_kpPosition, NB_AXIS)) {
+            for (int k = 0; k < NB_AXIS; k++) {
+              _rosParam_kpPosition[k] = POS_PID_GAINS_DEFAULT[KP][k];
+            }
+          }
+          if (!_nh.getParam(PARAM_I_POS_NAME, _rosParam_kiPosition, NB_AXIS)) {
+            for (int k = 0; k < NB_AXIS; k++) {
+              _rosParam_kiPosition[k] = POS_PID_GAINS_DEFAULT[KI][k];
+            }
+          }
+          if (!_nh.getParam(PARAM_D_POS_NAME, _rosParam_kdPosition, NB_AXIS)) {
+            for (int k = 0; k < NB_AXIS; k++) {
+              _rosParam_kdPosition[k] = POS_PID_GAINS_DEFAULT[KD][k];
+            }
+          }
+        }
+        break;
       }
-      if (!_nh.getParam(PARAM_I_POS_NAME, _rosParam_kiPosition, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kiPosition[k] = POS_PID_GAINS_DEFAULT[KI][k];
+      case PID_VEL_C:
+      {
+        if (!_nh.getParam(PARAM_P_SPEED_NAME, _rosParam_kpSpeed, NB_AXIS)) {
+          for (int k = 0; k < NB_AXIS; k++) {
+            _rosParam_kpSpeed[k] = SPEED_PID_GAINS_DEFAULT[KP][k];
+          }
         }
+        if (!_nh.getParam(PARAM_I_SPEED_NAME, _rosParam_kiSpeed, NB_AXIS)) {
+          for (int k = 0; k < NB_AXIS; k++) {
+            _rosParam_kiSpeed[k] = SPEED_PID_GAINS_DEFAULT[KI][k];
+          }
+        }
+        if (!_nh.getParam(PARAM_D_SPEED_NAME, _rosParam_kdSpeed, NB_AXIS)) {
+          for (int k = 0; k < NB_AXIS; k++) {
+            _rosParam_kdSpeed[k] = SPEED_PID_GAINS_DEFAULT[KD][k];
+          }
+        }
+        break;
       }
-      if (!_nh.getParam(PARAM_D_POS_NAME, _rosParam_kdPosition, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kdPosition[k] = POS_PID_GAINS_DEFAULT[KD][k];
+      case PID_FS_C:
+      {
+        if (!_nh.getParam(PARAM_P_FS_NAME, _rosParam_kpFS, NB_AXIS)) {
+          for (int k = 0; k < NB_AXIS; k++) {
+            _rosParam_kpFS[k] = FS_PID_GAINS_DEFAULT[KP][k];
+          }
         }
+        if (!_nh.getParam(PARAM_I_FS_NAME, _rosParam_kiFS, NB_AXIS)) {
+          for (int k = 0; k < NB_AXIS; k++) {
+            _rosParam_kiFS[k] = FS_PID_GAINS_DEFAULT[KI][k];
+          }
+        }
+        if (!_nh.getParam(PARAM_D_FS_NAME, _rosParam_kdFS, NB_AXIS)) {
+          for (int k = 0; k < NB_AXIS; k++) {
+            _rosParam_kdFS[k] = FS_PID_GAINS_DEFAULT[KD][k];
+          }
+        }
+        break;  
+      }
+      case COMPENSATION_C:
+      {
+        if (_platform_state == TELEOPERATION)
+        {
+          _nh.getParam(PARAM_COMPENSATION_NAME, _rosParam_compensation,NB_COMPENSATION_COMP); 
+        }
+        else
+        {
+          for (int c = 0; c < NB_COMPENSATION_COMP; c++) {
+            _rosParam_compensation[c] = COMPENSATION_COMP[c];
+          }
+        }
+        break;
       }
     }
-    if(true)
-    {
-      if (!_nh.getParam(PARAM_P_SPEED_NAME, _rosParam_kpSpeed, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kpSpeed[k] = SPEED_PID_GAINS_DEFAULT[KP][k];
-        }
-      }
-      if (!_nh.getParam(PARAM_I_SPEED_NAME, _rosParam_kiSpeed, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kiSpeed[k] = SPEED_PID_GAINS_DEFAULT[KI][k];
-        }
-      }
-      if (!_nh.getParam(PARAM_D_SPEED_NAME, _rosParam_kdSpeed, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kdSpeed[k] = SPEED_PID_GAINS_DEFAULT[KD][k];
-        }
-      }
-    }
-    if (true) {
-      if (!_nh.getParam(PARAM_P_FS_NAME, _rosParam_kpFS, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kpFS[k] = FS_PID_GAINS_DEFAULT[KP][k];
-        }
-      }
-      if (!_nh.getParam(PARAM_I_FS_NAME, _rosParam_kiFS, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kiFS[k] = FS_PID_GAINS_DEFAULT[KI][k];
-        }
-      }
-      if (!_nh.getParam(PARAM_D_FS_NAME, _rosParam_kdFS, NB_AXIS)) {
-        for (int k = 0; k < NB_AXIS; k++) {
-          _rosParam_kdFS[k] = FS_PID_GAINS_DEFAULT[KD][k];
-        }
-      }
-    }
-
     _nh.spinOnce();
     _platformMutex.unlock();
-    _flagLoadParams = true;
   }
 }
 

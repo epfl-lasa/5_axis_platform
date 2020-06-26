@@ -175,8 +175,9 @@ void Platform::loadDefaultPIDGains()
 }
 
 void Platform::loadParamPIDGains() {
-  _flagLoadParams=false;
-  retrieveParams();
+  retrieveParams(PID_POS_C); // load pid gains for position;
+  retrieveParams(PID_VEL_C);
+  retrieveParams(PID_FS_C);
   float scale = 0.0f;
   for (int k = 0; k < NB_AXIS; k++) {
     if (k < PITCH) {
@@ -203,6 +204,13 @@ void Platform::loadParamPIDGains() {
     _platform_kdFS(k) = _rosParam_kdFS[k];
   }
   setPIDGains();
+}
+
+void Platform::loadParamCompensation() {
+  retrieveParams(COMPENSATION_C);
+  for (int c = 0; c < NB_COMPENSATION_COMP; c++) {
+    _platform_compensation[c] = _rosParam_compensation[c];
+  }
 }
 
 void Platform::loadROSPIDGains()
