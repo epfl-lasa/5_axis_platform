@@ -11,9 +11,9 @@ void Platform::setEfforts()
     if (_platform_effortComp[j]==1) {
       tempEffortD += _effortD_ADD.col(j);
     }
-  }  
+  }
 
-  _effortD=tempEffortD;
+  _effortD = tempEffortD.cwiseMin(_maxCtrlEfforts).cwiseMax(-_maxCtrlEfforts);
 
   setEffortAxis(_effortD(X),(int)X);
   setEffortAxis(_effortD(Y),(int)Y);

@@ -13,9 +13,11 @@
 const float X_TRANSMISSION = (1.0f / BELT_PULLEY_R);                //!
 const float Y_TRANSMISSION = 1.0f / BELT_PULLEY_R;                  //!
 
-const float PITCH_REDUCTION_R = 12.0F; //! Pulley Big [mm] / Pulley Belt [mm]
-const float ROLL_YAW_REDUCTION_R =
-    12.96f; //! Pulley Big [mm] / Pulley Belt [mm]
+const float PITCH_ROTOR_INERTIA = 4765.0f * (1.0f/1000.0f) * ((1.0f*1.0f) / (100.0f * 100.0f));
+const float ROLL_YAW_ROTOR_INERTIA = 4765.0f * (1.0f/1000.0f) * ((1.0f*1.0f) / (100.0f * 100.0f));
+
+const float PITCH_REDUCTION_R = 12.0f; //! Pulley Big [mm] / Pulley Belt [mm]
+const float ROLL_YAW_REDUCTION_R = 12.96f; //! Pulley Big [mm] / Pulley Belt [mm]
 
 const float TRANSMISSIONS[] = {Y_TRANSMISSION, X_TRANSMISSION, PITCH_REDUCTION_R,ROLL_YAW_REDUCTION_R ,ROLL_YAW_REDUCTION_R };
 
@@ -101,7 +103,7 @@ const float YAW_RANGE = 100.0F * DEG_TO_RAD;   //! [deg]
 
 const float HOMING_OFFSET_Y  = Y_RANGE / 2.0f; 
 const float HOMING_OFFSET_X = X_RANGE / 2.0f; 
-const float HOMING_OFFSET_PITCH =  (-27.5)*DEG_TO_RAD; //! [deg]
+const float HOMING_OFFSET_PITCH =  (-27.5f)*DEG_TO_RAD; //! [deg]
 const float HOMING_OFFSET_ROLL = (0.0f)*DEG_TO_RAD;
 const float HOMING_OFFSET_YAW = 0.0f;
 

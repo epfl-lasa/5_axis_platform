@@ -7,27 +7,31 @@ void Platform::wsConstrains(int axis_)
   {
     for (uint k = 0; k<NB_AXIS; k++){
       wsConstrains(k);
-    }
+    } 
   }
   else
   {
-    _platform_kiPosition[axis_]=0.0f; // It is just a spring damper  
-    
     if (!_platform_flagDefaultControl) {
         _virtualWall(axis_)=fabs(_ros_position[axis_]); //! A symmetric wall will be built on the set position
     }
     
-    if (( _position(axis_) >= _virtualWall(axis_) || _position(axis_) <= -_virtualWall(axis_) ))
-      {
+    if (( _position(axis_) >= _virtualWall(axis_) ))
+    {
           _flagInWsConstrains[axis_]=true;
            _positionD(axis_) = _virtualWall(axis_);
            positionAxisControl(CONSTRAINS, axis_);
-      }
-      else    
-      {
+    }
+    else if (( _position(axis_) <= -_virtualWall(axis_) ))
+    {
+          _flagInWsConstrains[axis_]=true;
+           _positionD(axis_) = -_virtualWall(axis_);
+           positionAxisControl(CONSTRAINS, axis_);
+    }
+    else    
+    {
           _pidPosition[axis_]->reset();
           _flagInWsConstrains[axis_]=false;
-      }
+    }
   }
 }
 

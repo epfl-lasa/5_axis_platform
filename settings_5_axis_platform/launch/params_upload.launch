@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-	<rosparam command="load" ns="right/v_wall" file="$(find settings_5_axis_platform)/config/right_pid_virtual_wall.yaml"/>
-    <rosparam command="load" ns="right" file="$(find settings_5_axis_platform)/config/right_pid_pos.yaml"/>
-    <rosparam command="load" ns="right" file="$(find settings_5_axis_platform)/config/right_pid_speed.yaml"/>
-    <rosparam command="load" ns="right" file="$(find settings_5_axis_platform)/config/right_pid_forceSensor.yaml"/>
-    <rosparam command="load" ns="right" file="$(find settings_5_axis_platform)/config/right_compensation.yaml"/>
-</launch>
-

@@ -52,7 +52,7 @@ float const INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.5f,-0.5f,-0
 float const CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-1.0f,-1.0f,-1.0f}, {3.0f, 3.0f, 1.0f, 1.0f, 1.0f}};
 float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_LIMS][NB_AXIS] = {{{-16.0498f,-8.55883f,0.0f,0.0f,0.0f}, { -3.10896f, -1.47001f, 0.0f, 0.0f, 0.0f}},
                                                               {{1.90903f,0.875992f,0.0f,0.0f,0.0f},{15.5236f, 6.60670f, 0.0f, 0.0f, 0.0f}}};
-float const FS_EFFORT_LIMS[NB_LIMS][NB_AXIS] =  {{-10.0f, -10.0f , -2.0f, -2.0f, -2.0f}, {10.0f, 10.0f, 2.0f, 2.0f,2.0f}};                                                             
+float const FS_EFFORT_LIMS[NB_LIMS][NB_AXIS] =  {{-17.0f, -15.0f , -2.0f, -2.0f, -2.0f}, {17.0f, 15.0f, 2.0f, 2.0f,2.0f}};                                                             
 
 
 //! Coriolis
@@ -112,9 +112,9 @@ const float MEAN_QR_X[NB_SIGN_COMP][NB_AXIS + NB_AXIS] =
 
 const float STDINV_QR_X[NB_SIGN_COMP][NB_AXIS + NB_AXIS] = 
 {
-    {28.5714f, 33.6700f, 6.1275f, 6.8306f, 5.9595f, //! MEANS NEG_FRIC X
+    {28.5714f, 33.6700f, 6.1275f, 6.8306f, 5.9595f, //! STD NEG_FRIC X
      666.6667f, 833.3333f, 38.1679f, 37.3134f, 28.0112f},
-    {28.5714f, 33.3333f, 6.1275f, 6.8306f, 5.9595f, //! MEANS POS_FRIC X
+    {28.5714f, 33.3333f, 6.1275f, 6.8306f, 5.9595f, //! STD POS_FRIC X
      666.6667f, 833.3333f, 38.1679f, 37.3134f, 28.0112f}
 };
 

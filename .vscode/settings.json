@@ -18,7 +18,8 @@
         "mstd_memory": "cpp",
         "memory": "cpp",
         "future": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "dense": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3"
 }

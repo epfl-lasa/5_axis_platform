@@ -152,18 +152,20 @@ void Platform::step()
           loadParamPIDGains();
           posCtrlLimitsSet(); // for constrains
           forceSensorCtrlLimitsSet();
+          rcmCtrlLimitsSet();
           //sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
           //_nh.loginfo(_logMsg);
           _enterStateOnceFlag[TELEOPERATION]=true;
           _enableMotors->write(1);
           _flagOutofCompensation=true;
-
+          _flagOutofRCMControl = true;
         }
 
         //! Clear the vector of efforts
         compEffortClear(-1, CONSTRAINS);
         compEffortClear(-1, COMPENSATION);
         compEffortClear(-1, FEEDFORWARD);
+        compEffortClear(-1, RCM_MOTION);
         // Main State
         if (_flagInputReceived[MSG_TORQUE]) {
             for (uint k=0; k<NB_AXIS; k++) {
@@ -199,6 +201,20 @@ void Platform::step()
             if (!_flagOutofCompensation) {
              resetControllers(FS_CTRL);
              _flagOutofCompensation=true;
+            }
+          }
+
+          if (_platform_effortComp[RCM_MOTION] == 1) {
+            if (_flagOutofRCMControl) {
+              loadParamCompensation();
+              _flagOutofRCMControl = false;
+            }
+            rcmControl();
+          } 
+          else {
+            if (!_flagOutofRCMControl) {
+              resetControllers(RCM_CTRL);
+              _flagOutofRCMControl = true;
             }
           }
 

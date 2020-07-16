@@ -1,6 +1,7 @@
 #ifndef DEFINITIONS_MAIN_H
 #define DEFINITIONS_MAIN_H
 
+#include "math.h"
 
 //! Platform type
 #define RIGHT_PLATFORM 1
@@ -25,11 +26,11 @@ extern const char *Platform_Names[];
 
 //! Joint Space
 #define AXES  \
-ListofAxes(Y,"Y_Joint") \
-ListofAxes(X,"X_Joint") \
-ListofAxes(PITCH,"PITCH_Joint") \
-ListofAxes(ROLL,"ROLL_Joint") \
-ListofAxes(YAW,"YAW_Joint")
+ListofAxes(Y,"y_joint") \
+ListofAxes(X,"x_joint") \
+ListofAxes(PITCH,"pitch_joint") \
+ListofAxes(ROLL,"roll_joint") \
+ListofAxes(YAW,"yaw_joint")
 #define ListofAxes(enumeration, names) enumeration,
 enum Axis : size_t { AXES };
 #undef ListofAxes
@@ -47,8 +48,9 @@ enum EffortComp {
   CONSTRAINS,
   COMPENSATION,
   FEEDFORWARD,
+  RCM_MOTION,
   NB_EFFORT_COMPONENTS
-}; //! Normal, Constrains, Compensation, Feedforward
+}; //! Normal, Constrains, Compensation, Feedforward, RCM Control
 
 //! State Machine
 enum State {

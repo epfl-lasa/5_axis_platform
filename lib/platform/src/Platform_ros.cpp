@@ -44,7 +44,7 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v3 &msg)
 //*****************ROS-SERVICES-CALLBACKS*************************/
 
 //! 2
-void Platform::updateState(const custom_msgs::setStateSrv::Request &req, custom_msgs::setStateSrvResponse &resp )
+void Platform::updateState(const custom_msgs::setStateSrv_v2::Request &req, custom_msgs::setStateSrv_v2Response &resp )
 {
   me->_platformMutex.lock();
   State newState = (State) req.ros_machineState;
@@ -128,7 +128,7 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_effortM[rosAxis[k]] = _effortM(k);
   }
 
- // _msgFootOutput.platform_effortM[0] = _timestep;
+  //_msgFootOutput.platform_effortM[0] = _timestep;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);
@@ -204,6 +204,7 @@ void Platform::calculateMeasTorques() {
   _effortM(PITCH) = effortM_PITCH;
   _effortM(ROLL) = effortM_ROLL;
   _effortM(YAW) = effortM_YAW;
+  _effortMNEG=-_effortM;
 }
 
 void Platform::retrieveParams(Param_Category category_)
@@ -302,6 +303,24 @@ void Platform::retrieveParams(Param_Category category_)
           }
         }
         break;  
+      }
+      case PID_RCM_C: {
+        if (!_nh.getParam(PARAM_P_RCM_NAME, &_rosParam_kpRCM)) {
+            _rosParam_kpRCM = RCM_PID_GAINS_DEFAULT[KP];
+        }
+        if (!_nh.getParam(PARAM_I_RCM_NAME, &_rosParam_kiRCM)) {
+            _rosParam_kiRCM = RCM_PID_GAINS_DEFAULT[KI];
+        }
+        if (!_nh.getParam(PARAM_D_RCM_NAME, &_rosParam_kdRCM)) {
+            _rosParam_kdRCM = RCM_PID_GAINS_DEFAULT[KD];
+        }
+        if (!_nh.getParam(PARAM_POS_RCM_NAME, _rosParam_posRCM,NB_CART_AXIS)) {
+          for (int a=0; a<NB_CART_AXIS; a++)
+          {
+            _rosParam_posRCM[a] = RCM_POS_DEFAULT[a]; // temporary
+          }
+        }
+        break;
       }
       case COMPENSATION_C:
       {

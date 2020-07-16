@@ -9,9 +9,10 @@
 #define KD 2
 
 //! Filters
-const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
-const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.5f, 0.5f, 0.8f, 0.8f, 0.8f};
-const float FS_PID_FILTER_GAINS[NB_AXIS] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.85f, 0.85f, 0.8f, 0.8f, 0.8f};
+const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.85f, 0.85f, 0.8f, 0.8f, 0.8f};
+const float FS_PID_FILTER_GAINS[NB_AXIS] = {0.85f, 0.85f, 0.8f, 0.8f, 0.8f};
+const float ALPHA_RCM_PID_FILTER = 0.8f;
 
 //! List of Gains
 //******************************HOMING********************************
@@ -57,28 +58,40 @@ const float FS_PID_GAINS_DEFAULT[3][NB_AXIS] = {
             {2.0f, 1.0f, 2.0f,2.0f, 3.0f},
             {2.0f, 1.0f, 2.0f,2.0f, 3.0f},
             {0.0f, 0.0f, 0.0f,0.0f, 0.0f}}; // Y, X, PITCH, ROLL, YAW
+
+const float RCM_PID_GAINS_DEFAULT[3] = {0.0f, 0.0f, 0.0f};
+
+const float RCM_POS_DEFAULT[NB_CART_AXIS] = {0.0f, 0.0f, 0.5446f};
 //*************************GOTO******************************************************
 
+#if (PLATFORM_ID == LEFT_PLATFORM)
 
-    #if (PLATFORM_ID==LEFT_PLATFORM)
+const float GT_KP_POSITION_Y = 5000.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m]
+const float GT_KP_POSITION_X = 5000.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m]
+const float GT_KP_POSITION_PITCH =
+    10000.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm/deg]
+const float GT_KP_POSITION_ROLL =
+    5000.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm/deg]
+const float GT_KP_POSITION_YAW =
+    5000.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm/deg]
 
-        const float GT_KP_POSITION_Y = 5000.0f * SCALE_GAINS_LINEAR_POSITION;       //[N/m]
-        const float GT_KP_POSITION_X = 5000.0f * SCALE_GAINS_LINEAR_POSITION;       //[N/m]
-        const float GT_KP_POSITION_PITCH = 10000.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm/deg]
-        const float GT_KP_POSITION_ROLL = 5000.0f * SCALE_GAINS_ANGULAR_POSITION;   //[Nm/deg]
-        const float GT_KP_POSITION_YAW = 5000.0f * SCALE_GAINS_ANGULAR_POSITION;    //[Nm/deg]
+const float GT_KI_POSITION_Y = 5000.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m.s]
+const float GT_KI_POSITION_X = 5000.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m.s]
+const float GT_KI_POSITION_PITCH =
+    5000.0f * SCALE_GAINS_ANGULAR_POSITION; //[N/deg.s]
+const float GT_KI_POSITION_ROLL =
+    5000.0f * SCALE_GAINS_ANGULAR_POSITION; //[N/deg.s]
+const float GT_KI_POSITION_YAW =
+    5000.0f * SCALE_GAINS_ANGULAR_POSITION; //[N/deg.s]
 
-        const float GT_KI_POSITION_Y = 5000.0f * SCALE_GAINS_LINEAR_POSITION;     //[N/m.s]
-        const float GT_KI_POSITION_X = 5000.0f * SCALE_GAINS_LINEAR_POSITION;     //[N/m.s]
-        const float GT_KI_POSITION_PITCH = 5000.0f * SCALE_GAINS_ANGULAR_POSITION; //[N/deg.s]
-        const float GT_KI_POSITION_ROLL = 5000.0f * SCALE_GAINS_ANGULAR_POSITION;  //[N/deg.s]
-        const float GT_KI_POSITION_YAW = 5000.0f * SCALE_GAINS_ANGULAR_POSITION;   //[N/deg.s]
-
-        const float GT_KD_POSITION_Y = 10.0f * SCALE_GAINS_LINEAR_POSITION;      //[N.s/m]
-        const float GT_KD_POSITION_X = 10.0f * SCALE_GAINS_LINEAR_POSITION;      //[N.s/m]
-        const float GT_KD_POSITION_PITCH = 45.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm.s/deg]
-        const float GT_KD_POSITION_ROLL = 35.0f * SCALE_GAINS_ANGULAR_POSITION;  //[Nm.s/deg]
-        const float GT_KD_POSITION_YAW = 35.0f * SCALE_GAINS_ANGULAR_POSITION;   //[Nm.s/deg]
+const float GT_KD_POSITION_Y = 10.0f * SCALE_GAINS_LINEAR_POSITION; //[N.s/m]
+const float GT_KD_POSITION_X = 10.0f * SCALE_GAINS_LINEAR_POSITION; //[N.s/m]
+const float GT_KD_POSITION_PITCH =
+    45.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm.s/deg]
+const float GT_KD_POSITION_ROLL =
+    35.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm.s/deg]
+const float GT_KD_POSITION_YAW =
+    35.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm.s/deg]
 
 #else //! TODO TUNE FOR RIGHT_PLATFORM     
 

@@ -19,6 +19,7 @@ Platform::Platform()
     
   _effortD.setConstant(0.0f);
   _effortM.setConstant(0.0f);
+  _effortMNEG.setConstant(0.0f);
   _positionD.setConstant(0.0f);
   _positionCtrlOut.setConstant(0.0f);
   _speedCtrlOut.setConstant(0.0f);
@@ -42,8 +43,18 @@ Platform::Platform()
   _s_phi = 0.0f;
   _s_psi = 0.0f;
 
-  for(int k = 0; k < NB_AXIS; k++)
-  {
+
+  _cosDiffRCMCtrl= 0.0f;
+  _rcmCtrlOut = 0.0f;
+  _rcmAngleD = 0.0f;
+  _platform_kpRCM = 0.0f;
+  _platform_kiRCM = 0.0f;
+  _platform_kdRCM = 0.0f;
+  _platform_posRCM = Eigen::Map<const Eigen::VectorXf>(RCM_POS_DEFAULT,NB_CART_AXIS,1);
+    _maxCtrlEfforts = Eigen::Map<const Eigen::MatrixXf>(SAFETY_MAX_EFFORTS,NB_AXIS,1);
+    _rcmMaxCtrlEfforts<< 0.0f, 0.0f, 2.0f, 2.0f, 2.0f;
+
+for (int k = 0; k < NB_AXIS; k++) {
     positionCtrlClear(k);
     _platform_kpPosition(k) = 0.0f;
     _platform_kiPosition(k) = 0.0f;
@@ -60,7 +71,7 @@ Platform::Platform()
     totalEffortDClear(k);
 
     _posDesiredFilters[k].setAlpha(0.5f);
-    _effortMFilters[k].setAlpha(0.8f);
+     _effortMFilters[k].setAlpha(0.8f);
     _adc_sum[k]=0.0f;
 
     limitSwitchesClear();
@@ -73,11 +84,12 @@ Platform::Platform()
     _pidPosition[k]->setMode(AUTOMATIC);
     _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _platform_kpSpeed(k), _platform_kiSpeed(k), _platform_kdSpeed(k),DIRECT, VEL_PID_FILTER_GAINS[k]);
     _pidSpeed[k]->setMode(AUTOMATIC);
-    _pidForceSensor[k] = new PID(&_innerTimer, &_effortM(k), &_forceSensorCtrlOut(k), &_forceSensorD(k), _platform_kpFS(k), _platform_kiFS(k), _platform_kdFS(k), REVERSE, FS_PID_FILTER_GAINS[k]);
+    _pidForceSensor[k] = new PID(&_innerTimer, &_effortMNEG(k), &_forceSensorCtrlOut(k), &_forceSensorD(k), _platform_kpFS(k), _platform_kiFS(k), _platform_kdFS(k), DIRECT, FS_PID_FILTER_GAINS[k]);
     _pidForceSensor[k]->setMode(AUTOMATIC);
     _flagInWsConstrains[k] = false;
-
   }
+  _pidRCM = new PID(&_innerTimer, &_cosDiffRCMCtrl, &_rcmCtrlOut, &_rcmAngleD, _platform_kpRCM, _platform_kiRCM, _platform_kdRCM, DIRECT, ALPHA_RCM_PID_FILTER);
+  _pidRCM->setMode(AUTOMATIC);
 
   for (int c=0; c<NB_AXIS_WRENCH; c++)
 {
@@ -247,4 +259,5 @@ Platform::Platform()
     _flagVibration=false;
     _feedForwardTorque.setConstant(0.0f);
     _flagOutofCompensation=false;
+    _flagOutofRCMControl=false;
 }

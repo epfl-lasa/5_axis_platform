@@ -123,7 +123,11 @@ void Platform::resetControllers(Controller controllerType)
         _pidForceSensor[k]->reset();
       }
       break;
-    }  
+    }
+    case (RCM_CTRL): {
+        _pidRCM->reset();
+      break;
+    }
   }
 }
 

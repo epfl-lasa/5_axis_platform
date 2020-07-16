@@ -112,6 +112,11 @@ void Platform::forceSensorCtrlLimitsSet() {
   }
 }
 
+void Platform::rcmCtrlLimitsSet() {
+
+  _pidRCM->setOutputLimits(-_rcmMaxCtrlEfforts.norm(), _rcmMaxCtrlEfforts.norm());
+}
+
 void Platform::speedCtrlLimitsSet() {
   for (int k=0; k<NB_AXIS; k++)
   {
@@ -178,6 +183,7 @@ void Platform::loadParamPIDGains() {
   retrieveParams(PID_POS_C); // load pid gains for position;
   retrieveParams(PID_VEL_C);
   retrieveParams(PID_FS_C);
+  retrieveParams(PID_RCM_C);
   float scale = 0.0f;
   for (int k = 0; k < NB_AXIS; k++) {
     if (k < PITCH) {
@@ -203,6 +209,13 @@ void Platform::loadParamPIDGains() {
     _platform_kiFS(k) = _rosParam_kiFS[k];
     _platform_kdFS(k) = _rosParam_kdFS[k];
   }
+    _platform_kpRCM = _rosParam_kpRCM;
+    _platform_kiRCM = _rosParam_kiRCM;
+    _platform_kdRCM = _rosParam_kdRCM;
+    for (int a=0;a<NB_CART_AXIS; a++ )
+    {
+      _platform_posRCM(a) = _rosParam_posRCM[a];
+    }
   setPIDGains();
 }
 
@@ -223,6 +236,8 @@ void Platform::loadROSPIDGains()
     _platform_kpSpeed(k) = _ros_kpSpeed[k];
     _platform_kiSpeed(k) = _ros_kiSpeed[k];
     _platform_kdSpeed(k) = _ros_kdSpeed[k];
+    if (_platform_state==TELEOPERATION)
+    { _platform_kiPosition[k]=0.0f;} // only SPRING-DAMPER: PD
   }
   setPIDGains();
 }
@@ -240,6 +255,8 @@ void Platform::setPIDGains()
                                _platform_kdSpeed(axis));
     _pidForceSensor[axis]->setTunings(_platform_kpFS(axis),
                                     _platform_kiFS(axis),
-                                    _platform_kdFS(axis));
+                                    _platform_kdFS(axis));                                    
   }
+  _pidRCM->setTunings(_platform_kpRCM, _platform_kiRCM,
+                                    _platform_kdRCM);
 }

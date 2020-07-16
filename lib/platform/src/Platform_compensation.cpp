@@ -32,7 +32,16 @@ void Platform::dynamicCompensation()
 
   _compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1) =
         boundMat(_compensationEffort.block(0,0,NB_AXIS,NB_COMPENSATION_COMP-1), _compTorqueLims[L_MIN], _compTorqueLims[L_MAX]);
-  _effortD_ADD.col(COMPENSATION) = _compensationEffort.rowwise().sum();
+  if (_platform_controlledAxis==-1)
+  {
+    _effortD_ADD.col(COMPENSATION) = _compensationEffort.rowwise().sum();
+  }
+  else
+  {
+    _effortD_ADD(_platform_controlledAxis, COMPENSATION) =
+        _compensationEffort.row(_platform_controlledAxis).sum();
+  }
+  
 }
 
 
@@ -169,7 +178,7 @@ void Platform::inertiaCompensation() {
 
 void Platform::forceSensorCompensation()
 {
-  _forceSensorD = (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CONSTRAINS));
+  _forceSensorD = (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CONSTRAINS) + _effortD_ADD.col(RCM_MOTION));
   for (int k=0; k<NB_AXIS; k++)
   {
     _pidForceSensor[k]->compute();

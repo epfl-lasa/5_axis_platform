@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="baud_"              default="921600" />
+    <arg name="port_"             default="/dev/ttyACM0" />
+
+    <arg name="id" default="right" />
+    <arg name="model" default="$(find foot_platform_ros)/urdf/foot_platform.create.xacro" />
+    <arg name="rvizconfig" default="$(find foot_platform_ros)/rviz/platform_alone.rviz" />
+    
+    <node pkg="rosserial_python" type="serial_node.py" name="right" respawn="false" output="screen">
+        <param name="baud" value="$(arg baud_)"/>
+        <param name="port" value="$(arg port_)"/> 
+        <rosparam command="load" ns="v_wall" file="$(find foot_platform_ros)/config/right_pid_virtual_wall.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_pos.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_speed.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_forceSensor.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_compensation.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_rcm_ctrl.yaml"/>
+    </node>
+
+
+  <group ns="$(arg id)">
+	  	
+	<param name="platform_description" command="$(find xacro)/xacro.py $(arg model)"/>  
+	
+    <node name="platform_joint_publisher" pkg="foot_platform_ros" type="footStatePublisher" output="screen">
+        <param name="platformID" value="$(arg id)"/>  
+        <remap from="joint_states" to="platform_joint_publisher/joint_states" />
+    </node>
+
+	<node name="platform_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+		<param name="tf_prefix" value="$(arg id)"/>
+		<remap from="robot_description" to="platform_description" />
+		<remap from="joint_states" to="platform_joint_publisher/joint_states" />
+	</node>
+
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+    
+    <node pkg="tf2" type="static_transform_publisher" name="world_to_platform" args="0 0 0 0 0 0 1 world $(arg id)/platform_base_link" />
+
+ </group>
+</launch>

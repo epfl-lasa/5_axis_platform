@@ -3,7 +3,8 @@
 #include "LP_Filter.h"
 #include "MatLP_Filter.h"
 #include <mbed.h>
-#include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
+#include <Dense>
+#include <Core>
 
 using namespace Eigen;
 

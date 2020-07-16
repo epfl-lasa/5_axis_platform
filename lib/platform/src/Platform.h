@@ -9,15 +9,15 @@
 #include "MA_Filter.h"
 #include "Platform.h"
 #include "definitions.h"
-#include "FootInputMsg_v3.h"
-#include "FootOutputMsg_v2.h"
-#include "setControllerSrv.h"
-#include "setStateSrv.h"
+#include "custom_msgs/FootInputMsg_v3.h"
+#include "custom_msgs/FootOutputMsg_v2.h"
+#include "custom_msgs/setControllerSrv.h"
+#include "custom_msgs/setStateSrv_v2.h"
 #include "definitions.h"
 
 #include "PID_v1.h"
-#include "/home/lsrob107772/.platformio/lib/Eigen_ID3522/Dense.h"
-//#include "/home/jacob/.platformio/lib/Eigen_ID3522/Dense.h"
+#include <Core>
+#include <Dense>
 
 
 class Platform
@@ -59,7 +59,7 @@ class Platform
       ros::Subscriber<custom_msgs::FootInputMsg_v3>*  _subFootInput;
       ros::Publisher *_pubFootOutput;
       custom_msgs::FootOutputMsg_v2 _msgFootOutput;
-      ros::ServiceServer<custom_msgs::setStateSrvRequest,custom_msgs::setStateSrvResponse> *_servChangeState;
+      ros::ServiceServer<custom_msgs::setStateSrv_v2Request,custom_msgs::setStateSrv_v2Response> *_servChangeState;
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 
       //CLIENT VARIABLES FROM (ROS)
@@ -108,15 +108,21 @@ class Platform
         Eigen::Matrix<float, NB_AXIS, 1> _forceSensorCtrlOut;
         Eigen::Matrix<float, NB_AXIS, 1> _forceSensorD;
         Eigen::Matrix<float, NB_AXIS, 1> _effortD;
-        Eigen::Matrix<float, NB_AXIS, 1>
-            _effortM; // The last two elements are temporary variables
+        Eigen::Matrix<float, NB_AXIS, 1> _effortM;
+        Eigen::Matrix<float, NB_AXIS, 1> _effortMNEG;
         Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
+        Eigen::Matrix<float, NB_AXIS, 1> _rcmCtrlEffort;
+        float _cosDiffRCMCtrl;
+        float _rcmCtrlOut;
+        float _rcmAngleD;
+        bool _flagOutofRCMControl;
         LP_Filter _posDesiredFilters[NB_AXIS];
         LP_Filter _speedFilters[NB_AXIS];
         LP_Filter _accFilters[NB_AXIS];
         LP_Filter _effortMFilters[NB_AXIS];
         volatile uint _switchesState[NB_AXIS];
         bool _flagInWsConstrains[NB_AXIS];
+
 
         // Hardware variables
         PinName _csPins[NB_AXIS];
@@ -141,6 +147,15 @@ class Platform
         Matrix<float, NB_AXIS, 1> _platform_kpFS;
         Matrix<float, NB_AXIS, 1> _platform_kiFS;
         Matrix<float, NB_AXIS, 1> _platform_kdFS;
+        float _platform_kpRCM;
+        float _platform_kiRCM;
+        float _platform_kdRCM;
+
+        Eigen::Matrix<float, NB_AXIS, 1> _maxCtrlEfforts;
+        Eigen::Matrix<float, NB_AXIS, 1> _rcmMaxCtrlEfforts;
+
+        Eigen::Vector3f _platform_posRCM;
+        
 
         volatile float _ros_kpPosition[NB_AXIS];
         volatile float _ros_kiPosition[NB_AXIS];
@@ -158,6 +173,10 @@ class Platform
         float _rosParam_kpFS[NB_AXIS];
         float _rosParam_kiFS[NB_AXIS];
         float _rosParam_kdFS[NB_AXIS];
+        float _rosParam_kpRCM;
+        float _rosParam_kiRCM;
+        float _rosParam_kdRCM;
+        float _rosParam_posRCM[NB_CART_AXIS];
         int _rosParam_compensation[NB_COMPENSATION_COMP];
 
         // PID
@@ -165,6 +184,7 @@ class Platform
         PID *_pidPosition[NB_AXIS];
         PID *_pidSpeed[NB_AXIS];
         PID *_pidForceSensor[NB_AXIS];
+        PID *_pidRCM;
 
         // Other variables
 
@@ -204,8 +224,8 @@ class Platform
         // ROS
         static void
         updateFootInput(const custom_msgs::FootInputMsg_v3 &msg); //! 2
-        static void updateState(const custom_msgs::setStateSrv::Request &req,
-                                custom_msgs::setStateSrv::Response &resp); //! 3
+        static void updateState(const custom_msgs::setStateSrv_v2::Request &req,
+                                custom_msgs::setStateSrv_v2::Response &resp); //! 3
         static void
         updateController(const custom_msgs::setControllerSrv::Request &req,
                          custom_msgs::setControllerSrv::Response &resp); //! 4
@@ -273,13 +293,22 @@ class Platform
       void posCtrlLimitsSet();                                    //!
       void speedCtrlLimitsSet();                                 //!
       void forceSensorCtrlLimitsSet();                                 //!
+      void rcmCtrlLimitsSet();                                 //!
       void posInterpolator(int axis);
       void loadDefaultPIDGains();
       void loadParamPIDGains();
       void loadParamCompensation();
       void loadROSPIDGains();
       void setPIDGains();
-      //! Platform_compensation.cpp
+      
+    //! Platform_rcm.cpp
+
+    private:
+
+      void rcmControl();  
+      
+      
+    //! Platform_compensation.cpp
 
     private :
 

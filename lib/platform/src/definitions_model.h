@@ -51,18 +51,18 @@ const float LINKS_MASS[NB_LINKS] = {6.20696344f, 1.86377694f, 3.45202011f,
                                     6.40922346f, 1.17868723f, 0.41590438f,
                                     0.37200000f};
 
-const float IZZ_pitch_raw_no_fs = 0.09345014f; //! Yes, its the same
+const float IZZ_pitch_raw_no_fs = 0.09345014f + PITCH_REDUCTION_R*PITCH_REDUCTION_R*PITCH_ROTOR_INERTIA; //! Yes, its the same
 
 const float IYY_roll_raw_no_fs = 0.00213092f;
 
-const float IZZ_roll_raw_no_fs = 0.00126543f;  //! Yes, its the same
+const float IZZ_roll_raw_no_fs = 0.00126543f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;  //! Yes, its the same
 
 const float IXX_yaw_raw_no_fs = 0.00004184f;
 
 const float IYY_yaw_raw_no_fs = 0.00003916f;
 const float IYY_yaw_raw_fs = 0.00028326f;
 const float IZZ_yaw_raw_no_fs = 0.00000699f;
-const float IZZ_yaw_raw_fs = 0.00018996f;
+const float IZZ_yaw_raw_fs = 0.00018996f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;
 
 const float IXX_pedal_raw_no_fs = 0.00049690f;
 const float IXX_pedal_raw_fs = 0.00044045f;
@@ -102,15 +102,15 @@ const float LINKS_MOMENT_OF_INERTIAS[NB_LINKS][NB_CART_AXIS * NB_CART_AXIS] = {
     ,
     {0.10886020f, 0.00001273f, 0.00088705f, 0.00001273f, 0.02644452f,
      0.00000809f, 0.00088705f, 0.00000809f,
-     mod_inertia_pitch} // LINK_PITCH W.R.T COM_PITCH
+     IZZ_pitch_raw_no_fs} // LINK_PITCH W.R.T COM_PITCH
     ,
     {0.00153790f, -0.00000106f, 0.00003310f, 
     -0.00000106f, 0.00213092f,  0.00000026f, 
-    0.00003310f, 0.00000026f,   mod_inertia_roll} // LINK_ROLL W.R.T COM_ROLL
+    0.00003310f, 0.00000026f,   IZZ_roll_raw_no_fs} // LINK_ROLL W.R.T COM_ROLL
     ,
     {0.00029175, 0.00000000, 0.00000015,
      0.00000000, 0.00028326, 0.00000000,
-     0.00000015, 0.00000000, mod_inertia_yaw,
+     0.00000015, 0.00000000, IZZ_yaw_raw_fs,
     } // LINK_YAW W.R.T COM_YAW
     ,
     { 0.00044045f , -0.00001582f , 0.00012683f, 
