@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
       
     } else {
       footForceMeasModifier.run();
-      cout<<"error<<endl;
     }
     return 0;
 }

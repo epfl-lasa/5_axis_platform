@@ -42,6 +42,7 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
 
   _myTree.getChain("platform_base_link", "foot_rest", _myFootRestChain);
 
+
   _myTree.getChain("platform_base_link", "virtual_ankle", _myVirtualAnkleChain);
 
   _myChainDyn = new KDL::ChainDynParam(_myFootRestChain, _grav_vector);
@@ -132,11 +133,10 @@ void footForceMeasModifier::run() {
         if (_flagLegGravityCompWrenchRead)
         {
           computeLegGravityCompTorque();
-          publishForceBias();
           publishLegCompFootInput();
         _flagLegGravityCompWrenchRead = false;
         }
-
+          publishForceBias();
       }
     }
     ros::spinOnce();
@@ -176,14 +176,14 @@ void footForceMeasModifier::updateTreeFKState() {
     _myFKSolver->JntToCart(_platformJoints, frame_, i + 1);
     _myFrames.push_back(frame_);
   }
-  _myJacobianSolver->JntToJac(_platformJoints,_myFootBaseJacobian);
+  _myJacobianSolver->JntToJac(_platformJoints,_myFootBaseJacobian,_myFootRestChain.getNrOfSegments() - 1);
 }
 
 void footForceMeasModifier::computeWrenchFromPedalMeasBias()
 {
   Eigen::Vector3d cogPedal_wrt_FS, weightPedal_wrt_FS;
   unsigned int segmentPedal = _myFootRestChain.getNrOfSegments() - 2; //"fSensor"
-  //cout<<_mySegments[segmentPedal].getName().c_str()<<endl;  
+  //cout<<_mySegments[segmentPedal+1].getName().c_str()<<endl;  
   
   tf::vectorKDLToEigen (_myFrames[segmentPedal+1].M.Inverse() * _grav_vector * _mySegments[segmentPedal].getInertia().getMass() ,weightPedal_wrt_FS);
   tf::vectorKDLToEigen (_mySegments[segmentPedal].getInertia().getCOG(),cogPedal_wrt_FS);
@@ -203,7 +203,8 @@ void footForceMeasModifier::readLegGravityComp(const geometry_msgs::WrenchStampe
 
 
 void footForceMeasModifier::computeLegGravityCompTorque() {
-  _legTorquesGravityComp = - _myFootBaseJacobian.data.transpose() * _legWrenchGravityComp;
+  //cout<<_myFootBaseJacobian.data<<endl;
+  _legTorquesGravityComp =  _myFootBaseJacobian.data.transpose() * _legWrenchGravityComp;
 }
 
 
@@ -219,7 +220,7 @@ void footForceMeasModifier::publishLegCompFootInput()
 {
   for (unsigned int i = 0 ; i<NB_AXIS; i++)
   {
-    _msgLegGravCompFI.ros_effort[i] = _legTorquesGravityComp(i);
+    _msgLegGravCompFI.ros_effort[rosAxis[i]] = _legTorquesGravityComp(i);
   }
   _pubLegCompFootInput.publish(_msgLegGravCompFI);
 }

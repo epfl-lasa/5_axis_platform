@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="baud_"              default="921600" />
+    <arg name="port_"             default="/dev/ttyACM0" />
+    <arg name="id" default="right" />
+    
+    <arg name="model" default="$(find foot_platform_ros)/urdf/foot_platform.create.xacro" />
+    <arg name="rviz" default="false"/>
+    <arg name="fsensor" default="false"/>
+    
+    
+    <include file="$(find foot_platform_ros)/launch/platform_hw.launch">
+        <arg name="baud_" value="$(arg baud_)"/>
+        <arg name="port_" value="$(arg port_)"/>
+    </include>
+
+    <include file="$(find foot_platform_ros)/launch/platform_statepub.launch">
+        <arg name="id" value="$(arg id)"/>
+        <arg name="rviz" value="$(arg rviz)"/>
+        <arg name="virtual_platform" value="false"/>
+        <arg name="model" value="$(arg model)"/>
+    </include>
+
+    <group if="$(arg fsensor)">
+        <include file="$(find rokubimini_ros)/launch/rokubimini_serial.launch">
+            <arg name="id" value="$(arg id)"/>
+        </include>
+    </group>
+
+  
+</launch>

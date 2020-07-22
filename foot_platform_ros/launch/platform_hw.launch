@@ -7,12 +7,12 @@
         <param name="baud" value="$(arg baud_)"/>
         <param name="port" value="$(arg port_)"/>
         
-	<rosparam command="load" ns="v_wall" file="$(find foot_platform_ros)/config/right_pid_virtual_wall.yaml"/>
-    <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_pos.yaml"/>
-    <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_speed.yaml"/>
-    <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_forceSensor.yaml"/>
-    <rosparam command="load" file="$(find foot_platform_ros)/config/right_compensation.yaml"/>
-    <rosparam command="load" file="$(find foot_platform_ros)/config/right_rcm_ctrl.yaml"/>
+        <rosparam command="load" ns="v_wall" file="$(find foot_platform_ros)/config/right_pid_virtual_wall.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_pos.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_speed.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_forceSensor.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_compensation.yaml"/>
+        <rosparam command="load" file="$(find foot_platform_ros)/config/right_rcm_ctrl.yaml"/>
     </node>
 </launch>
 

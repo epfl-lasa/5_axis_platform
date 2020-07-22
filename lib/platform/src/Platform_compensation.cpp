@@ -15,7 +15,7 @@ bool flagQuadraticRegressionInit=false;
 //! 1
 void Platform::dynamicCompensation()
 {
-  
+  _compensationEffort.setZero();
   if (_platform_compensation[COMP_GRAVITY])
     {gravityCompensation();}
   if (_platform_compensation[COMP_VISC_FRICTION])

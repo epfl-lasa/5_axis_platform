@@ -1,5 +1,6 @@
 <launch>
 	<arg name="id" default="right" />
+	<arg name="rviz" default="true"/>
 	<arg name="virtual_platform" default="true" />
 	<arg name="model" default="$(find foot_platform_ros)/urdf/foot_platform.create.xacro" />
 	<arg name="rvizconfig" default="$(find foot_platform_ros)/rviz/platform_alone.rviz" />
@@ -29,7 +30,9 @@
 	
 	</group>
 
-	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
-	
-	<node pkg="tf2" type="static_transform_publisher" name="world_to_platform" args="0 0 0 0 0 0 1 world $(arg id)/platform_base_link" />
+	<group if="$(arg rviz)">
+		<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+	</group>
+
+	<node pkg="tf2_ros" type="static_transform_publisher" name="world_to_platform" args="0 0 0 0 0 0 1 world $(arg id)/platform_base_link" />
 </launch>
