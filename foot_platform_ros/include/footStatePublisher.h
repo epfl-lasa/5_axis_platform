@@ -37,9 +37,9 @@ private:
   
   Platform_Name _platform_id;
 
-  Eigen::Matrix<double, NB_AXIS, 1> _ros_state_position;
-  Eigen::Matrix<double, NB_AXIS, 1> _ros_state_velocity;
-  Eigen::Matrix<double, NB_AXIS, 1> _ros_state_effort;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _ros_state_position;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _ros_state_velocity;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _ros_state_effort;
   
   //KDL variables
 

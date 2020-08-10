@@ -145,10 +145,9 @@ void Platform::step()
         {
           //
           _platform_controllerType = TORQUE_CTRL;
-          for (uint k = 0; k < NB_AXIS; k++) {
-            _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
-            _pidSpeed[k]->reset();
-          }
+          resetControllers(SPEED_CTRL);
+          resetControllers(POSITION_CTRL);
+          resetControllers(FS_CTRL);
           loadParamPIDGains();
           posCtrlLimitsSet(); // for constrains
           forceSensorCtrlLimitsSet();

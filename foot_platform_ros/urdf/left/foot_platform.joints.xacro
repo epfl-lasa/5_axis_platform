@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  
+  <xacro:property name="platform_geom_data_yaml" value="$(find foot_platform_ros)/config/platform_geom_data.yaml"/>
+  <xacro:property name="platform_geom_data" value="${load_yaml(platform_geom_data_yaml)}"/>
+
+  <xacro:property name="leg_geom_data_yaml" value="$(find leg_as_robot)/config/leg_geom_data.yaml"/>
+  <xacro:property name="leg_geom_data" value="${load_yaml(leg_geom_data_yaml)}"/>
+  <xacro:property name="d7_leg" value="${leg_geom_data['ankle_to_foot_base_z']}"/> <!-- d7_leg [m]-->
+  <xacro:property name="r7_leg" value="${leg_geom_data['ankle_to_foot_base_x']}"/> <!-- r7_leg [m]-->
+
+  <xacro:property name="r3_platform" value="${platform_geom_data['r3']}"/> <!-- [m]-->
+  <xacro:property name="d6_platform" value="${platform_geom_data['d6']}"/> <!-- [m]-->
+  <xacro:property name="d7_platform" value="${platform_geom_data['d7']}"/> <!-- [m]-->
+  <xacro:property name="r8_platform" value="${platform_geom_data['r8']}"/> <!-- [m]-->
+
+  <xacro:macro name="define_platform_joints">
+    <joint name="platform_y" type="prismatic">
+      <origin xyz="0 0 0" rpy="-${pi/2} 0 0"/>
+      <parent link="platform_base_link"/>
+      <child link="y"/>
+      <limit effort="23.5" velocity="10.0" lower="-0.090" upper="0.090"/>
+      <axis xyz="0 0 1"/> 
+    </joint>
+
+    <joint name="platform_x" type="prismatic">
+      <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
+      <parent link="y"/>
+      <child link="x"/>
+      <limit effort="30" velocity="10.0" lower="-0.0975" upper="0.0975"/>
+      <axis xyz="0 0 1"/> 
+    </joint>
+
+    <joint name="z_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 ${pi}"/>
+      <parent link="x"/>
+      <child link="z_link"/>
+    </joint>
+
+    <joint name="platform_pitch" type="revolute">
+      <origin xyz="${r3_platform} 0 0" rpy="0 0 0"/>
+      <parent link="z_link"/>
+      <child link="pitch"/>
+      <limit effort="7" velocity="10.0" lower="${radians(-27.5)}" upper="${radians(27.5)}"/>
+      <axis xyz="0 0 1"/> 
+    </joint>
+
+    <joint name="platform_roll" type="revolute">
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <parent link="pitch"/>
+      <child link="roll"/>
+      <limit effort="7" velocity="10.0" lower="${radians(-20.5)}" upper="${radians(80)}"/>
+      <axis xyz="0 0 1"/> 
+    </joint>
+
+    <joint name="platform_yaw" type="revolute">
+      <origin xyz="0 0 0" rpy="-${pi/2} 0 -${pi/2}"/>
+      <parent link="roll"/>
+      <child link="yaw"/>
+      <limit effort="7" velocity="10.0" lower="${radians(-120)}" upper="${radians(120)}"/>
+      <axis xyz="0 0 1"/> 
+    </joint>
+
+    <joint name="fSensor_joint" type="fixed">
+      <origin xyz="0 0 ${d6_platform}" rpy="0 0 ${pi/2}"/>
+      <parent link="yaw"/>
+      <child link="fSensor"/>
+    </joint>
+
+    <joint name="footRest_joint" type="fixed">
+      <origin xyz="0 0 ${d7_platform}" rpy="0 0 ${pi}"/>
+      <parent link="fSensor"/>
+      <child link="foot_rest"/>
+    </joint>
+
+    <joint name="virtualAnkle_joint" type="fixed">
+      <origin xyz="${-r7_leg} 0 ${d7_leg}" rpy="0 0 0"/>
+      <parent link="foot_rest"/>
+      <child link="virtual_ankle"/>
+    </joint>
+
+    <joint name="footTip_joint" type="fixed">
+      <origin xyz="${r8_platform} 0 0" rpy="0 0 0"/>
+      <parent link="foot_rest"/>
+      <child link="pedal_tip"/>
+    </joint>  
+</xacro:macro>
+</robot>
+

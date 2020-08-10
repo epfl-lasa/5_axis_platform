@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   dynamic_reconfigure
   custom_msgs
-  utils
+  utils_math
   urdf
   kdl_parser
 )
@@ -30,7 +30,7 @@ pkg_search_module(Eigen3 REQUIRED eigen3)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy std_msgs tf2 tf2_ros tf2_eigen tf2_kdl custom_msgs dynamic_reconfigure  utils custom_msgs urdf kdl_parser eigen_conversions
+    CATKIN_DEPENDS roscpp rospy std_msgs tf2 tf2_ros tf2_eigen tf2_kdl custom_msgs dynamic_reconfigure  utils_math custom_msgs urdf kdl_parser eigen_conversions
  )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS})

@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name= "platformID" default="right"/>
+    <arg name= "id"         default="right"/>
     
-    <group ns="$(arg platformID)">
+    <group ns="$(arg id)">
         <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
-            <param name="platformID" value="$(arg platformID)"/>
+            <param name="platformID" value="$(arg id)"/>
             <remap from="robot_description" to="platform_description" />
         </node>
     </group>

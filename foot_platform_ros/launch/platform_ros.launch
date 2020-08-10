@@ -1,31 +1,48 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="baud_"              default="921600" />
-    <arg name="port_"             default="/dev/ttyACM0" />
-    <arg name="id" default="right" />
+    <arg name="id"                default="right" />
+    <arg name="baud"              default="921600" />
+    <arg name="port_fsensor"       default="/dev/ttyUSB0" /> 
+    <arg name="model"             default="$(find foot_platform_ros)/urdf/$(arg id)/foot_platform.create.xacro" />
+    <arg name="rviz"              default="true"/>
+    <arg name="fsensor"           default="false"/>
+    <arg name="virtual_platform"  default="false" />
+    <arg name="offset_x"          default="0.0"/>
+    <arg name="offset_y"          default="0.0"/>
+    <arg name="offset_z"          default="0.0"/>
     
-    <arg name="model" default="$(find foot_platform_ros)/urdf/foot_platform.create.xacro" />
-    <arg name="rviz" default="false"/>
-    <arg name="fsensor" default="false"/>
+	<arg name="rvizconfig" default="$(find foot_platform_ros)/rviz/$(arg id)/platform_alone.rviz" /> 
+
+    <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/platform_geom_data.yaml"/>
     
-    
-    <include file="$(find foot_platform_ros)/launch/platform_hw.launch">
-        <arg name="baud_" value="$(arg baud_)"/>
-        <arg name="port_" value="$(arg port_)"/>
-    </include>
+    <group unless="$(arg virtual_platform)">
+        <include file="$(find foot_platform_ros)/launch/platform_hw.launch">
+            <arg name="baud" value="$(arg baud)"/>
+            <arg name="port" value="/dev/right_platform" if="$(eval arg('id')=='right')"/>
+            <arg name="port" value="/dev/left_platform" if="$(eval arg('id')=='left')"/>
+            <arg name="id" value="$(arg id)"/>
+        </include>
+    </group>
 
     <include file="$(find foot_platform_ros)/launch/platform_statepub.launch">
         <arg name="id" value="$(arg id)"/>
-        <arg name="rviz" value="$(arg rviz)"/>
-        <arg name="virtual_platform" value="false"/>
+        <arg name="virtual_platform" value="$(arg virtual_platform)"/>
         <arg name="model" value="$(arg model)"/>
+        <arg name="offset_x" value="$(arg offset_x)"/>
+        <arg name="offset_y" value="$(arg offset_y)"/>
+        <arg name="offset_z" value="$(arg offset_z)"/>
     </include>
 
     <group if="$(arg fsensor)">
         <include file="$(find rokubimini_ros)/launch/rokubimini_serial.launch">
             <arg name="id" value="$(arg id)"/>
+            <arg name="port" value="$(arg port_fsensor)"/>
+            
         </include>
     </group>
 
+    <group if="$(arg rviz)">
+		<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)"/>
+	</group>
   
 </launch>

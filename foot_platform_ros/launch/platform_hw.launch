@@ -1,18 +1,17 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="baud_"              default="921600" />
-    <arg name="port_"             default="/dev/ttyACM0" />
+    <arg name="id"                default="right"/>
+    <arg name="baud"             default="921600" />
+    <arg name="port"             default="/dev/right_platform" />
     
-    <node pkg="rosserial_python" type="serial_node.py" name="right" respawn="false" output="screen">
-        <param name="baud" value="$(arg baud_)"/>
-        <param name="port" value="$(arg port_)"/>
-        
-        <rosparam command="load" ns="v_wall" file="$(find foot_platform_ros)/config/right_pid_virtual_wall.yaml"/>
-        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_pos.yaml"/>
-        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_speed.yaml"/>
-        <rosparam command="load" file="$(find foot_platform_ros)/config/right_pid_forceSensor.yaml"/>
-        <rosparam command="load" file="$(find foot_platform_ros)/config/right_compensation.yaml"/>
-        <rosparam command="load" file="$(find foot_platform_ros)/config/right_rcm_ctrl.yaml"/>
+
+    <include file="$(find foot_platform_ros)/launch/hw_params_upload.launch">
+        <arg name="id"               value="$(arg id)"/>
+    </include>
+
+    <node pkg="rosserial_python" type="serial_node.py" name="$(arg id)" respawn="false" output="screen">
+        <param name="baud" value="$(arg baud)"/>
+        <param name="port" value="$(arg port)"/>
     </node>
 </launch>
 

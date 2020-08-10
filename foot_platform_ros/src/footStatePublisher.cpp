@@ -2,10 +2,10 @@
 
 const float conversion_factor[] = {1.0, 1.0, DEG_TO_RAD, DEG_TO_RAD, DEG_TO_RAD};
 
-#define ListofAxes(enumeration, names) names,
-char const *Axis_names[]{
-  AXES};
-#undef ListofAxes
+#define ListofPlatformAxes(enumeration, names) names,
+char const *Platform_Axis_Names[]{
+  PLATFORM_AXES};
+#undef ListofPlatformAxes
 
 char const *Platform_Names[]{"none", "right", "left"};
 
@@ -96,13 +96,13 @@ void footStatePublisher::publishFootJointStates() {
 
   _msgJointStates.header.stamp = ros::Time::now();
 
-  _msgJointStates.name.resize(NB_AXIS);
-  _msgJointStates.position.resize(NB_AXIS);
-  _msgJointStates.velocity.resize(NB_AXIS);
-  _msgJointStates.effort.resize(NB_AXIS);
+  _msgJointStates.name.resize(NB_PLATFORM_AXIS);
+  _msgJointStates.position.resize(NB_PLATFORM_AXIS);
+  _msgJointStates.velocity.resize(NB_PLATFORM_AXIS);
+  _msgJointStates.effort.resize(NB_PLATFORM_AXIS);
   
-  for (int k = 0; k < NB_AXIS; k++) {
-    _msgJointStates.name[k] = Axis_names[k];
+  for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
+    _msgJointStates.name[k] = Platform_Axis_Names[k];
     _msgJointStates.position[k] = _ros_state_position[k];
     _msgJointStates.velocity[k] = _ros_state_velocity[k];
     _msgJointStates.effort[k] = _ros_state_effort[k];
@@ -113,7 +113,7 @@ void footStatePublisher::publishFootJointStates() {
 
 void footStatePublisher::readPlatformOutput(const custom_msgs::FootOutputMsg_v2::ConstPtr &msg) {  
   _ros_platform_id = msg->platform_id;
-  for (int k = 0; k < NB_AXIS; k++) {
+  for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
     _ros_state_position(k) = msg->platform_position[rosAxis[k]] * conversion_factor[rosAxis[k]];
     _ros_state_velocity(k) = msg->platform_speed[rosAxis[k]] * conversion_factor[rosAxis[k]];
     _ros_state_effort(k) = msg->platform_effortD[rosAxis[k]];

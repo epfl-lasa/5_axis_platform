@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="pitch_rotor_inertia" value="${4765.0 * (1.0/1000.0) * ((1.0*1.0) / (100.0 * 100.0))}"/>
+  <xacro:property name="roll_yaw_rotor_inertia" value="${4765.0 * (1.0/1000.0) * ((1.0*1.0) / (100.0 * 100.0))}"/>
+  <xacro:property name="pitch_gear_r" value="${12.0}"/>
+  <xacro:property name="roll_yaw_gear_r" value="${12.96}"/>
+
+  <xacro:macro name="define_platform_links">
+    <link name="platform_base_link" >
+      <!--inertial>  KDL doesn't like the base with inertia
+        <mass value="6.20696344"/>
+        <origin xyz="0.06393533 0.23761375 0.06685000" rpy="0 0 0"/>
+        <inertia ixx="0.16517950"  ixy="0.01377594"  ixz="-0.00180234" iyy="0.15491411" iyz="0.01782405" izz="0.01782405" />
+      </inertial-->
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/dae/base_visual.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/stl/base_collision.stl"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="y">
+        <inertial>
+        <origin xyz="0.02817123 -0.07585496 -0.00969366" rpy="0 0 0"/>
+        <mass value="1.86377694"/><!-- kg -->
+        <inertia ixx="0.00343968"  ixy="0.00002371"  ixz="0.00000365" iyy="0.06755732" iyz="0.00085107" izz="0.06873399" />
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/dae/y_visual.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/stl/y_collision.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="x">
+      <inertial>
+        <origin xyz="-0.15354810 0.02479498 0.06831312" rpy="0 0 0"/>
+        <mass value="3.59020320"/><!-- kg -->
+        <inertia ixx="0.02391576"  ixy="-0.00245204"  ixz="-0.00647808" iyy="0.02208247" iyz="0.00612089" izz="0.02573858" />
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/dae/x_visual.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/stl/x_collision.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="z_link"/> <!--virtual link--> 
+    
+    <link name="pitch"> 
+      <inertial>
+        <origin xyz="-0.00593072	-0.00000124	 -0.00156324" rpy="0 0 0"/>
+        <mass value="6.40922346"/><!-- kg -->
+        <inertia ixx="0.10886020"  ixy="0.00001273"  ixz="0.00088705" iyy="0.02644452" iyz="0.00000809" izz="${0.09345014 + pitch_gear_r*pitch_gear_r*pitch_rotor_inertia}" />
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/dae/pitch_visual.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/stl/pitch_collision.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="roll">
+      <inertial>
+        <origin xyz="0.03719409 -0.00002562 -0.00002217" rpy="0 0 0"/>
+        <mass value="1.17868723"/><!-- kg -->
+        <inertia ixx="0.00153790"  ixy="-0.00000106"  ixz="0.00003310" iyy="0.00213092" iyz="0.00000026" izz="${0.00126543 + roll_yaw_gear_r*roll_yaw_gear_r*roll_yaw_rotor_inertia }" />
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/dae/roll_visual.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/stl/roll_collision.stl"/>
+        </geometry>
+      </collision>
+    </link> 
+    <link name="yaw">
+      <inertial>
+        <origin xyz="0.00002617   -0.00000265 0.10239610" rpy="0 0 0"/>
+        <mass value="0.39114648"/><!-- kg -->
+        <inertia ixx="0.00028064"  ixy="0.00000000"  ixz="0.00000015" iyy="0.00027286" iyz="0.00000000" izz="${0.00017310 + roll_yaw_gear_r*roll_yaw_gear_r*roll_yaw_rotor_inertia}" />
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/dae/yaw_visual.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/stl/yaw_collision.stl"/>
+        </geometry>
+      </collision> 
+    </link> 
+    <link name="fSensor"> 
+        <inertial>
+        <origin xyz="-0.03198766 0.00021421 0.02133190" rpy="0 0 0"/>
+        <mass value="0.35900000"/><!-- 0.372 kg -->
+        <inertia ixx="0.00044045"  ixy="-0.00001582"  ixz="0.00271438" iyy="-0.00000105" iyz="-0.00000105" izz="0.00282256" />
+      </inertial> 
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/dae/pedal_visual.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://foot_platform_ros/models/meshes/stl/pedal_collision.stl"/>
+        </geometry>
+      </collision>
+    </link> 
+    <link name="foot_rest" /> <!-- virtual link-->
+    <link name="virtual_ankle" /> <!-- virtual link-->
+    <link name="pedal_tip" /> <!-- virtual link-->
+  </xacro:macro>
+</robot>
+ 

@@ -56,11 +56,11 @@ private:
 
   Platform_Name _platform_id;
 
-  Eigen::Matrix<double, NB_AXIS, 1> _platform_position;
-  Eigen::Matrix<double, NB_AXIS, 1> _platform_velocity;
-  Eigen::Matrix<double, NB_AXIS, 1> _platform_effort;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_position;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_velocity;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_effort;
 
-  Eigen::Matrix<double, NB_AXIS, 1> _legTorquesGravityComp;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _legTorquesGravityComp;
   Eigen::Matrix<double, NB_CART_AXIS, 1> _legCogWrtPlatfomBase;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _forceBias;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _legWrenchGravityComp;

@@ -2,10 +2,10 @@
 
 const float conversion_factor[] = {1.0, 1.0, DEG_TO_RAD, DEG_TO_RAD, DEG_TO_RAD};
 
-#define ListofAxes(enumeration, names) names,
-char const *Axis_names[]{
-  AXES};
-#undef ListofAxes
+#define ListofPlatformAxes(enumeration, names) names,
+char const *Platform_Axis_Names[]{
+  PLATFORM_AXES};
+#undef ListofPlatformAxes
 
 char const *Platform_Names[]{"none", "right", "left"};
 
@@ -25,12 +25,12 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
   _legCogWrtPlatfomBase.setZero();
   _legWrenchGravityComp.setZero();
   _legTorquesGravityComp.setZero();
-  _platformJoints.resize(NB_AXIS);
-  _gravityTorques.resize(NB_AXIS);
-  _platformJointsInit.resize(NB_AXIS);
-  _platformJointLims[L_MIN].resize(NB_AXIS);
-  _platformJointLims[L_MAX].resize(NB_AXIS);
-  _myFootBaseJacobian.resize(NB_AXIS);
+  _platformJoints.resize(NB_PLATFORM_AXIS);
+  _gravityTorques.resize(NB_PLATFORM_AXIS);
+  _platformJointsInit.resize(NB_PLATFORM_AXIS);
+  _platformJointLims[L_MIN].resize(NB_PLATFORM_AXIS);
+  _platformJointLims[L_MAX].resize(NB_PLATFORM_AXIS);
+  _myFootBaseJacobian.resize(NB_PLATFORM_AXIS);
   _flagPlatformConnected=false;
   _flagLegGravityCompWrenchRead = false;
   _flagFootOutputRead = false;
@@ -54,10 +54,10 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
   _mySegments = _myFootRestChain.segments;
   
 
-  for (int joint_=0; joint_<NB_AXIS; joint_++ )
+  for (int joint_=0; joint_<NB_PLATFORM_AXIS; joint_++ )
    {
-     _platformJointLims[L_MIN].data(joint_) = _myModel.getJoint(Axis_names[joint_])->limits->lower;
-     _platformJointLims[L_MAX].data(joint_) = _myModel.getJoint(Axis_names[joint_])->limits->upper;
+     _platformJointLims[L_MIN].data(joint_) = _myModel.getJoint(Platform_Axis_Names[joint_])->limits->lower;
+     _platformJointLims[L_MAX].data(joint_) = _myModel.getJoint(Platform_Axis_Names[joint_])->limits->upper;
    }
 
 }
@@ -151,7 +151,7 @@ void footForceMeasModifier::run() {
 
 void footForceMeasModifier::readPlatformOutput(const custom_msgs::FootOutputMsg_v2::ConstPtr &msg) {  
   _ros_platform_id = msg->platform_id;
-  for (int k = 0; k < NB_AXIS; k++) {
+  for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
     _platform_position(k) = msg->platform_position[rosAxis[k]] * conversion_factor[rosAxis[k]];
     _platform_velocity(k) = msg->platform_speed[rosAxis[k]] * conversion_factor[rosAxis[k]];
     _platform_effort(k) = msg->platform_effortD[rosAxis[k]];
@@ -218,7 +218,7 @@ void footForceMeasModifier::publishForceBias() {
 
 void footForceMeasModifier::publishLegCompFootInput()
 {
-  for (unsigned int i = 0 ; i<NB_AXIS; i++)
+  for (unsigned int i = 0 ; i<NB_PLATFORM_AXIS; i++)
   {
     _msgLegGravCompFI.ros_effort[rosAxis[i]] = _legTorquesGravityComp(i);
   }

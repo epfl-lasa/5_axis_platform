@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="id"               default="right"/>
+
+	<rosparam command="load" ns="$(arg id)/v_wall" file="$(find foot_platform_ros)/config/$(arg id)/pid_virtual_wall.yaml"/>
+    <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/$(arg id)/pid_pos.yaml"/>
+    <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/$(arg id)/pid_speed.yaml"/>
+    <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/$(arg id)/pid_forceSensor.yaml"/>
+    <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/$(arg id)/compensation.yaml"/>
+    <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/$(arg id)/rcm_ctrl.yaml"/>
+</launch>
+
