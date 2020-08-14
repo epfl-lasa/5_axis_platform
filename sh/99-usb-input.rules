@@ -1,0 +1,5 @@
+KERNEL=="ttyACM*", ATTRS{serial}=="0671FF535155878281081742" , SYMLINK+="right_platform"
+KERNEL=="ttyACM*", ATTRS{serial}=="0669FF535155878281133010" , SYMLINK+="left_platform"
+KERNEL=="ttyUSB*", KERNELS=="1-6.2:1.0", SYMLINK+="right_force_sensor"
+KERNEL=="ttyUSB*", KERNELS=="1-6.1.3:1.0", SYMLINK+="left_force_sensor"
+

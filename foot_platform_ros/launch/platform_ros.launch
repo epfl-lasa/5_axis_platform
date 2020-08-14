@@ -2,7 +2,7 @@
 <launch>
     <arg name="id"                default="right" />
     <arg name="baud"              default="921600" />
-    <arg name="port_fsensor"       default="/dev/ttyUSB0" /> 
+    <!-- <arg name="port_fsensor"       default="/dev/ttyUSB0" />  -->
     <arg name="model"             default="$(find foot_platform_ros)/urdf/$(arg id)/foot_platform.create.xacro" />
     <arg name="rviz"              default="true"/>
     <arg name="fsensor"           default="false"/>
@@ -36,7 +36,7 @@
     <group if="$(arg fsensor)">
         <include file="$(find rokubimini_ros)/launch/rokubimini_serial.launch">
             <arg name="id" value="$(arg id)"/>
-            <arg name="port" value="$(arg port_fsensor)"/>
+            <!-- <arg name="port" value="$(arg port_fsensor)"/> -->
             
         </include>
     </group>

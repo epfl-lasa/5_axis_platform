@@ -1,13 +1,11 @@
 <?xml version="1.0"?>
 <launch>
     <arg name= "id"         default="right"/>
-	<arg name="forceAlpha" default="0.5"/>
     
     <group ns="$(arg id)">
         <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
             <param name="platformID" value="$(arg id)"/>
             <remap from="robot_description" to="platform_description" />
-			<param name="force_alpha" value="$(arg forceAlpha)"/>
         </node>
     </group>
 
