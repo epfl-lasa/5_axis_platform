@@ -35,11 +35,11 @@ const int COMPENSATION_COMP[] = {1, 0, 1, 1, 0, 1}; // gravity, viscous, inertia
 
 const float SPEED_THRESHOLD[NB_AXIS] = {0.010f, 0.010f, 0.09f * DEG_TO_RAD,
                                         0.12f * DEG_TO_RAD, 0.12f * DEG_TO_RAD};
-
+                                        
 //! Viscous Friction
 
-float const VISCOUS_K[NB_AXIS] = {0.0f, 0.0f, 46.0734f * DEG_TO_RAD,
-                                  62.3174f * DEG_TO_RAD, 10.0f * DEG_TO_RAD};
+float const VISCOUS_K[NB_AXIS] = {0.0f, 0.0f, 0.8f*46.0734f * DEG_TO_RAD,
+                                  0.0f * DEG_TO_RAD, 0.0f * DEG_TO_RAD}; //62.3174f
 
 // float const EMPIRICAL_INERTIA_K[NB_AXIS] = {13.6178f,13.7704f, 0.2521f,
 //                                   0.1831f, 0.1867f};
@@ -48,8 +48,8 @@ float const VISCOUS_K[NB_AXIS] = {0.0f, 0.0f, 46.0734f * DEG_TO_RAD,
 
 float const VISC_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{0.0f, 0.0f , -0.6f, -0.5f, -0.5f}, {0.0f, 0.0f, 0.5f, 0.5f, 0.5f}};
 float const GRAVITY_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{0.0f, 0.0f, -2.0f, -2.0f, -2.0f}, {0.0f, 0.0f, 2.0f, 2.0f, 2.0f}};
-float const INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-0.5f,-0.5f,-0.5f}, {3.0f, 3.0f, 0.5f, 0.5f, 0.5f}};
-float const CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-3.0f,-3.0f,-1.0f,-1.0f,-1.0f}, {3.0f, 3.0f, 1.0f, 1.0f, 1.0f}};
+float const INERTIA_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-10.0f,-10.0f,-0.5f,-0.5f,-0.5f}, {10.0f, 10.0f, 0.5f, 0.5f, 0.5f}};
+float const CORIOLIS_EFFORT_LIMS[NB_LIMS][NB_AXIS] = {{-10.0f,-10.0f,-1.0f,-1.0f,-1.0f}, {10.0f, 10.0f, 1.0f, 1.0f, 1.0f}};
 float const DRY_EFFORT_LIMS[NB_SIGN_COMP][NB_LIMS][NB_AXIS] = {{{-16.0498f,-8.55883f,0.0f,0.0f,0.0f}, { -3.10896f, -1.47001f, 0.0f, 0.0f, 0.0f}},
                                                               {{1.90903f,0.875992f,0.0f,0.0f,0.0f},{15.5236f, 6.60670f, 0.0f, 0.0f, 0.0f}}};
 float const FS_EFFORT_LIMS[NB_LIMS][NB_AXIS] =  {{-17.0f, -15.0f , -2.0f, -2.0f, -2.0f}, {17.0f, 15.0f, 2.0f, 2.0f,2.0f}};                                                             

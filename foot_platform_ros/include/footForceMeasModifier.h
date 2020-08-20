@@ -65,7 +65,10 @@ private:
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_velocity;
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_effort;
 
+
+  #define ALPHA_LEG_COMP 0.0
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _legTorquesGravityComp;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _legTorquesGravityComp_prev;
   Eigen::Matrix<double, NB_CART_AXIS, 1>   _legCogWrtPlatfomBase;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _forceMeasurements;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _undesiredForceBias;

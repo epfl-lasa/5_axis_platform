@@ -40,7 +40,7 @@ enum frame_chain {
 
     const float LINKS_MASS[NB_LINKS] = {6.20696344f, 1.86377694f, 3.59020320f,
                                         6.40922346f, 1.17868723f, 0.39114648f,
-                                        0.35900000f}; //0.37200000f
+                                        0.30000000f}; //0.37200000f
 
 #if (PLATFORM_ID == RIGHT_PLATFORM)
     //! Geometric Parameters

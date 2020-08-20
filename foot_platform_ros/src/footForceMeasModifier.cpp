@@ -27,6 +27,7 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
   _legCogWrtPlatfomBase.setZero();
   _legWrenchGravityComp.setZero();
   _legTorquesGravityComp.setZero();
+  _legTorquesGravityComp_prev.setZero();
   _platformJoints.resize(NB_PLATFORM_AXIS);
   _gravityTorques.resize(NB_PLATFORM_AXIS);
   _platformJointsInit.resize(NB_PLATFORM_AXIS);
@@ -273,7 +274,9 @@ void footForceMeasModifier::readLegGravityComp(const geometry_msgs::WrenchStampe
 
 void footForceMeasModifier::computeLegGravityCompTorque() {
   //cout<<_myFootBaseJacobian.data<<endl;
-  _legTorquesGravityComp =  _myFootBaseJacobian.data.transpose() * _legWrenchGravityComp;
+  _legTorquesGravityComp =  (1-ALPHA_LEG_COMP)*(_myFootBaseJacobian.data.transpose() * _legWrenchGravityComp) + ALPHA_LEG_COMP*_legTorquesGravityComp_prev;
+  _legTorquesGravityComp_prev = _legTorquesGravityComp;
+  
 }
 
 
@@ -289,7 +292,7 @@ void footForceMeasModifier::publishLegCompFootInput()
 {
   for (unsigned int i = 0 ; i<NB_PLATFORM_AXIS; i++)
   {
-    _msgLegGravCompFI.ros_effort[rosAxis[i]] = _legTorquesGravityComp(i);
+    _msgLegGravCompFI.ros_effort[rosAxis[i]] = _legTorquesGravityComp(i) ;
   }
   _pubLegCompFootInput.publish(_msgLegGravCompFI);
 }

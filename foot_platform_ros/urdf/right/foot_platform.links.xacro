@@ -126,7 +126,7 @@
     <link name="fSensor"> 
         <inertial>
         <origin xyz="-0.03198766 0.00021421 0.02133190" rpy="0 0 0"/>
-        <mass value="0.37200000"/><!-- 0.372 kg -->
+        <mass value="0.30000000"/><!-- 0.372 kg -->
         <inertia ixx="0.00044045"  ixy="-0.00001582"  ixz="0.00271438" iyy="-0.00000105" iyz="-0.00000105" izz="0.00282256" />
       </inertial> 
       <visual>
