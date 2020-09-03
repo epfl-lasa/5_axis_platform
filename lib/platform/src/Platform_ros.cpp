@@ -4,11 +4,11 @@
 void Platform::communicateToRos()
 {
   // Publish foot output
-  _platformMutex.lock();
-   pubFootOutput();
-   _nh.spinOnce(); //Publishes and Retrieves Messages
+  //_platformMutex.lock();
+    pubFootOutput();
+    _nh.spinOnce(); //Publishes and Retrieves Messages
+  //_platformMutex.unlock();
    // For Retrieving and Publishing to ROS. We can put it separate in the main in  case we want to put it in an interruption
-   _platformMutex.unlock();
 }
 
 
@@ -16,7 +16,7 @@ void Platform::communicateToRos()
 //! 1
 void Platform::updateFootInput(const custom_msgs::FootInputMsg_v3 &msg)
 {
-  me->_platformMutex.lock();
+  //me->_platformMutex.lock();
   for (uint c = 0 ; c < NB_FI_CATEGORY; c++) {
     me->_flagInputReceived[c] = true; //! To be used specially for the telemanipulation state
   }
@@ -38,7 +38,7 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v3 &msg)
   {
     me->_ros_forceSensor[c] = msg.ros_forceSensor[c]; //! In this one the rosAxis doesn't apply
   }
-  me->_platformMutex.unlock();
+  //me->_platformMutex.unlock();
 }
 
 //*****************ROS-SERVICES-CALLBACKS*************************/
@@ -46,7 +46,7 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v3 &msg)
 //! 2
 void Platform::updateState(const custom_msgs::setStateSrv_v2::Request &req, custom_msgs::setStateSrv_v2Response &resp )
 {
-  me->_platformMutex.lock();
+  //me->_platformMutex.lock();
   State newState = (State) req.ros_machineState;
   //! Update the dimensions of the motor commands -> reflected force (normal) + compensation , etc
   for (uint j=0; j<NB_EFFORT_COMPONENTS; j++){
@@ -60,13 +60,13 @@ void Platform::updateState(const custom_msgs::setStateSrv_v2::Request &req, cust
     me->_ros_state = newState;
   } 
   else{ resp.platform_newState=false; } //! You are already in the desired state
-  me->_platformMutex.unlock();
+  //me->_platformMutex.unlock();
 }
 
 //! 3
 void Platform::updateController(const custom_msgs::setControllerSrv::Request &req,custom_msgs::setControllerSrv::Response &resp )
 {
-  me->_platformMutex.lock();
+  //me->_platformMutex.lock();
   if ((me->_platform_state==TELEOPERATION) || (me->_platform_state==ROBOT_STATE_CONTROL))
   {
     Controller newController = (Controller) req.ros_controllerType;
@@ -103,7 +103,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
   {
     resp.platform_controlOk=false; 
   }
-  me->_platformMutex.unlock();
+  //me->_platformMutex.unlock();
 }
 
 
@@ -128,7 +128,7 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_effortM[rosAxis[k]] = _effortM(k);
   }
 
-  //_msgFootOutput.platform_effortM[0] = _timestep;
+  _msgFootOutput.platform_effortM[0] = _timestep;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);
@@ -223,7 +223,7 @@ void Platform::retrieveParams(Param_Category category_)
   
   else
   {
-    _platformMutex.lock();
+    //_platformMutex.lock();
     switch (category_)
     {
       case PID_POS_C:
@@ -338,16 +338,16 @@ void Platform::retrieveParams(Param_Category category_)
       }
     }
     _nh.spinOnce();
-    _platformMutex.unlock();
+    //_platformMutex.unlock();
   }
 }
 
 bool Platform::waitUntilRosConnect()
 {
   if (!_nh.connected()) {
-      _platformMutex.lock();
+      //_platformMutex.lock();
       _nh.spinOnce();
-      _platformMutex.unlock();
+      //_platformMutex.unlock();
       return false;
   }
   else

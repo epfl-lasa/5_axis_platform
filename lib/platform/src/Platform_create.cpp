@@ -96,15 +96,15 @@ for (int k = 0; k < NB_AXIS; k++) {
     _ros_forceSensor[c]=0.0f;
 }
 
-  _speedFilters[Y].setAlpha(0.96);
-  _speedFilters[X].setAlpha(0.96);
-  _speedFilters[PITCH].setAlpha(0.96);
-  _speedFilters[ROLL].setAlpha(0.97);
-  _speedFilters[YAW].setAlpha(0.97);
+  _speedFilters[Y].setAlpha(0.65);
+  _speedFilters[X].setAlpha(0.65);
+  _speedFilters[PITCH].setAlpha(0.65);
+  _speedFilters[ROLL].setAlpha(0.65);
+  _speedFilters[YAW].setAlpha(0.65);
 
   _accFilters[Y].setAlpha(0.96);
   _accFilters[X].setAlpha(0.96);
-  _accFilters[PITCH].setAlpha(0.96);
+  _accFilters[PITCH].setAlpha(0.97);
   _accFilters[ROLL].setAlpha(0.97);
   _accFilters[YAW].setAlpha(0.97);
 
@@ -187,7 +187,7 @@ for (int k = 0; k < NB_AXIS; k++) {
   // _spi->frequency(1000000); // Default
   /************************************************************* */
 
-  Thread::wait(10); //! Wait a bit after the SPI starts
+  rtos::ThisThread::sleep_for(10); //! Wait a bit after the SPI starts
 
   for(int k = 0; k < NB_AXIS; k++)
   {

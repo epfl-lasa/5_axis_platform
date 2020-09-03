@@ -71,8 +71,8 @@ PID::~PID()
 bool PID::compute()
 {
    if(!inAuto) return false;
-   unsigned long now = myTimer->read_us();
-   unsigned long timeChange = (now - lastTime);
+   int now = myTimer->read_us();
+   int timeChange = (now - lastTime);
    if(timeChange>=SampleTime)
    {
       /*Compute all the working error variables*/
@@ -182,7 +182,7 @@ void PID::setSampleTime(int NewSampleTime)
       float ratio  = NewSampleTime/SampleTime;
       ki *= ratio;
       kd /= ratio;
-      SampleTime = (unsigned long)NewSampleTime;
+      SampleTime = (int)NewSampleTime;
    }
 }
 
@@ -199,8 +199,8 @@ void PID::setOutputLimits(float Min, float Max)
    if(Min >= Max) return;
    outMin = Min;
    outMax = Max;
-   outSumMax = 0.9f*outMax;
-   outSumMin = 0.9f*outMin;
+   outSumMax = 1.0f*outMax;
+   outSumMin = 1.0f*outMin;
 
 
    if(inAuto)

@@ -9,8 +9,8 @@
 #define KD 2
 
 //! Filters
-const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.85f, 0.85f, 0.8f, 0.8f, 0.8f};
-const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.85f, 0.85f, 0.8f, 0.8f, 0.8f};
+const float POS_PID_FILTER_GAINS[NB_AXIS] = {0.6f, 0.6f, 0.6f, 0.6f, 0.6f};
+const float VEL_PID_FILTER_GAINS[NB_AXIS] = {0.6f, 0.6f, 0.6f, 0.6f, 0.6f};
 const float FS_PID_FILTER_GAINS[NB_AXIS] = {0.85f, 0.85f, 0.8f, 0.8f, 0.8f};
 const float ALPHA_RCM_PID_FILTER = 0.8f;
 

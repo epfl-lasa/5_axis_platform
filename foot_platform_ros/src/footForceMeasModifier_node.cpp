@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   }
   ROS_INFO("Successfully parsed urdf file");
 
-  float frequency = 400.0f;
+  float frequency = 470.0f;
 
   footForceMeasModifier footForceMeasModifier(nh_, frequency, platform_id_, modelLoad);
     

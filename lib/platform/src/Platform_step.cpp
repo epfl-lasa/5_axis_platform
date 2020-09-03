@@ -13,7 +13,7 @@ void Platform::step()
     //_nh.loginfo(_logMsg);
     NVIC_SystemReset();
     _stop = true;
-    Thread::wait(5000);
+    rtos::ThisThread::sleep_for(5000);
     return;
   }
 

@@ -94,10 +94,10 @@ class PID
                                   //   what these values are.  with pointers we'll just know.
 		Timer *myTimer;
 
-	unsigned long lastTime;
+	int lastTime;
 	float lastInput;
 
-	unsigned long SampleTime;
+	int SampleTime;
 	float outMin, outMax;
   float outSumMin, outSumMax;
 	bool inAuto, pOnE;

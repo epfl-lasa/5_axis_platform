@@ -8,7 +8,7 @@
 
 Platform platform;
 Ticker doCommFlipper;
-Thread th_Control;
+//Thread th_Control;
 
 volatile bool flag_doComm;
 
@@ -25,37 +25,40 @@ void doCommCb()
   flag_doComm=true;
 }
 
-void doControlTH() {
-  while (!platform._stop) {
-    platform.step();
-  }
-}
+// void doControlTH() {
+  
+// }
 
 void setup(void)
 {
   platform.init();
   flag_doComm=false;
-  doCommFlipper.attach_us(&doCommCb,1500);
-  th_Control.start(doControlTH);
+  doCommFlipper.attach_us(&doCommCb,COMM_LOOP);
+  //th_Control.start(doControlTH);
 }
 
 void loop(void)
 {
-  if (flag_doComm) {
-    if (platform.waitUntilRosConnect())
-    { 
-      platform.retrieveParams(ALL);
-      if (platform._flagLoadParams)
-      {
-        platform.communicateToRos();
+  while (!platform._stop) {
+    platform.step();
+  
+    if (flag_doComm) {
+      if (platform.waitUntilRosConnect())
+      { 
+        if (!platform._flagLoadParams)
+        {platform.retrieveParams(ALL);}
+        else 
+        {
+          platform.communicateToRos();
+        }
       }
+      else
+      {
+        platform._flagLoadParams = false;
+      }
+      
+      flag_doComm=false;
     }
-    else
-    {
-      platform._flagLoadParams = false;
-    }
-    
-    flag_doComm=false;
   }
 }
 

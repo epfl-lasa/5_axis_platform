@@ -5,9 +5,9 @@ void Platform::resetEscons(){
 
   totalEffortDClear(-1);
   setEfforts();
-  Thread::wait(250);
+  rtos::ThisThread::sleep_for(250);
   _enableMotors->write(1);
-  Thread::wait(750);
+  rtos::ThisThread::sleep_for(750);
   _enableMotors->write(0);
 }
 

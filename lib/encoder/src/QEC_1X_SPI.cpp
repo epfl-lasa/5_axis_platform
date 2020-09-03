@@ -45,12 +45,12 @@ float QEC_1X::QEC_getPosition(SPI *spi)
 void QEC_1X::QEC_config(SPI *spi)
 {
   //spi.begin();
-  Thread::wait(10);
+  rtos::ThisThread::sleep_for(10);
   *_cs=0;
   spi->write(0x88); //! WRITE_MDR0 
   spi->write(0x03); //! X4 quadrature mode
   *_cs=1;
-  Thread::wait(10);
+  rtos::ThisThread::sleep_for(10);
   *_cs=0;
   spi->write(0x20); //! CLR_COUNTER
   *_cs=1;
