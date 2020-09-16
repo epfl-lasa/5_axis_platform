@@ -46,7 +46,7 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
   _rotationfSensor.setIdentity();
   _force_filt_alpha=0.5;
   _flagForceConnected = false;
-
+  _force_filt_alphas.setConstant(_force_filt_alpha);
   
   _calibrationCount=0;
   _flagForceCalibrated=false;
@@ -147,6 +147,8 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 	if (!_n.getParam("force_alpha", _force_filt_alpha))
 		{ ROS_ERROR("No force filter gain found"); }
 	
+  _force_filt_alphas.setConstant(_force_filt_alpha);
+
   // Subscriber definitions
   signal(SIGINT, footForceMeasModifier::stopNode);
 
@@ -315,7 +317,7 @@ void footForceMeasModifier::readForceSensor(const geometry_msgs::WrenchStamped::
 
 void footForceMeasModifier::filterForce()
 {
-  _forceFiltered = _forceMeasurements * _force_filt_alpha + (1.0 - _force_filt_alpha)*_forceFiltered_prev;
+  _forceFiltered = _forceFiltered_prev.cwiseProduct(_force_filt_alphas) + (_forceMeasurements.array().cwiseProduct(1.0f - _force_filt_alphas.array())).matrix();
   _forceFiltered_prev = _forceFiltered;
 }
 

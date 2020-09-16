@@ -4,7 +4,6 @@
     <arg name="baud"              default="921600" />
     <arg name="model"             default="$(find foot_platform_ros)/urdf/$(arg id)/foot_platform.create.xacro" />
     <arg name="rviz"              default="false"/>
-    <arg name="fsensor"           default="false"/>
     <arg name="virtual_platform"  default="false" />
     <arg name="offset_x"           default="0.25" if="$(eval arg('id')=='right')"/>
     <arg name="offset_x"           default="-0.25" if="$(eval arg('id')=='left')"/>
@@ -32,12 +31,6 @@
         <arg name="offset_y" value="$(arg offset_y)"/>
         <arg name="offset_z" value="$(arg offset_z)"/>
     </include>
-
-    <group if="$(arg fsensor)">
-        <include file="$(find rokubimini_ros)/launch/rokubimini_serial.launch">
-            <arg name="id" value="$(arg id)"/>            
-        </include>
-    </group>
 
     <group if="$(arg rviz)">
 		<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)"/>

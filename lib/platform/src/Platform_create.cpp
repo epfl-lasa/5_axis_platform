@@ -96,11 +96,11 @@ for (int k = 0; k < NB_AXIS; k++) {
     _ros_forceSensor[c]=0.0f;
 }
 
-  _speedFilters[Y].setAlpha(0.65);
-  _speedFilters[X].setAlpha(0.65);
-  _speedFilters[PITCH].setAlpha(0.65);
-  _speedFilters[ROLL].setAlpha(0.65);
-  _speedFilters[YAW].setAlpha(0.65);
+  _speedFilters[Y].setAlpha(0.90); 
+  _speedFilters[X].setAlpha(0.90);
+  _speedFilters[PITCH].setAlpha(0.90);
+  _speedFilters[ROLL].setAlpha(0.90);
+  _speedFilters[YAW].setAlpha(0.90);
 
   _accFilters[Y].setAlpha(0.96);
   _accFilters[X].setAlpha(0.96);

@@ -40,7 +40,7 @@ void Platform::eventVibration(frame_chain frame_)
         jacobianPedalFrame = geometricJacobian(FRAME_PEDAL);
 
         float uniVib = vibMagnitude * exp(-vibDecayRate * (_timestamp - _vibGenStamp) * 1e-6 ) *
-                                 sin(2 * M_PI * vibFrequency);
+                                 sin(2 * M_PI * vibFrequency * (_timestamp - _vibGenStamp) );
 
         uniVib = vibFilter.update(uniVib);
         

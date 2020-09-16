@@ -2,8 +2,6 @@
 <launch>
     <arg name="id1"                 default="right" />
     <arg name="id2"                 default="left" />
-    <arg name="fsensor1"            default="false"/>
-    <arg name="fsensor2"            default="false"/>
     <arg name="virtual_platform"   default="true" />
     <arg name="rviz"                default="true"/>
     <arg name="offset_x1"            default="0.25"/>
@@ -18,7 +16,6 @@
 
     <include file="$(find foot_platform_ros)/launch/platform_ros.launch">
         <arg name="id"                 value="$(arg id1)" />
-        <arg name="fsensor"            value="$(arg fsensor1)"/>
         <arg name="virtual_platform"   value="$(arg virtual_platform)" />
         <arg name="rviz"               value="false"/>
         <arg name="offset_x"           value="$(arg offset_x1)"/>
@@ -28,7 +25,6 @@
 
     <include file="$(find foot_platform_ros)/launch/platform_ros.launch">
         <arg name="id"                 value="$(arg id2)" />
-        <arg name="fsensor"            value="$(arg fsensor2)"/>
         <arg name="virtual_platform"   value="$(arg virtual_platform)" />
         <arg name="rviz"               value="false"/>
         <arg name="offset_x"           value="$(arg offset_x2)"/>

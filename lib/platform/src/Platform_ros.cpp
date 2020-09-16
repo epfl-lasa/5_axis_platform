@@ -128,7 +128,7 @@ void Platform::pubFootOutput()
     _msgFootOutput.platform_effortM[rosAxis[k]] = _effortM(k);
   }
 
-  _msgFootOutput.platform_effortM[0] = _timestep;
+  //_msgFootOutput.platform_effortM[0] = _timestep;
   _msgFootOutput.platform_controllerType = (uint8_t)_platform_controllerType;
   _msgFootOutput.platform_machineState = (uint8_t)_platform_state;
   _pubFootOutput->publish(&_msgFootOutput);

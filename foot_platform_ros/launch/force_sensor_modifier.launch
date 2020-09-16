@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 <launch>
     <arg name= "id"         default="right"/>
-	<arg name="forceAlpha" default="0.95"/>
+	<arg name="forceAlpha" default="0.97"/>
     
+      <include file="$(find rokubimini_cosmo)/launch/rokubimini.launch">
+            <arg name="id" value="$(arg id)"/>            
+      </include>    
+
     <group ns="$(arg id)">
         <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
             <param name="platformID" value="$(arg id)"/>

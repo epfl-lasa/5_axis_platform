@@ -85,7 +85,9 @@ private:
 
   int _calibrationCount;
   #define NB_CALIBRATION_COUNT 500
-  double _force_filt_alpha;
+  float _force_filt_alpha;
+
+  Eigen::Matrix<double, NB_AXIS_WRENCH,1> _force_filt_alphas;
 
   // KDL variables
 
