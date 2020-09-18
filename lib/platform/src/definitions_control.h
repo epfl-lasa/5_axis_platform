@@ -38,8 +38,8 @@ const float invAccSampT = (1.0f / ((float)ACC_SAMPLE_P * 1e-6f));
 
 //! Scaling of PID Gains
 
-#define SCALE_GAINS_LINEAR_POSITION 1
-#define SCALE_GAINS_LINEAR_SPEED 1e-2f
+const float SCALE_GAINS_LINEAR_POSITION  = 1.0f;
+const float SCALE_GAINS_LINEAR_SPEED = 1e-2f;
 const float SCALE_GAINS_ANGULAR_POSITION = 1e-4f * RAD_TO_DEG;
 const float SCALE_GAINS_ANGULAR_SPEED = 1e-5f * RAD_TO_DEG;
 

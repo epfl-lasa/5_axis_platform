@@ -6,7 +6,7 @@
 //! Platform type
 #define RIGHT_PLATFORM 1
 #define LEFT_PLATFORM 2
-#define PLATFORM_ID LEFT_PLATFORM //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
 
 //! Indexing
 #define NB_LIMS 2
@@ -30,7 +30,9 @@ ListofAxes(Y,"y_joint") \
 ListofAxes(X,"x_joint") \
 ListofAxes(PITCH,"pitch_joint") \
 ListofAxes(ROLL,"roll_joint") \
-ListofAxes(YAW,"yaw_joint")
+ListofAxes(YAW,"yaw_joint") \
+ListofAxes(NB_AXIS,"total_joints")
+//#define NB_AXIS 5 //! Y, X, PITCH, ROLL, YAW
 #define ListofAxes(enumeration, names) enumeration,
 enum Axis : size_t { AXES };
 #undef ListofAxes
@@ -49,7 +51,7 @@ extern const char *Platform_Axis_Names[];
 
 //! Operational Space
 enum cartesianAxis { CART_X, CART_Y, CART_Z, NB_CART_AXIS };
-#define NB_AXIS 5 //! Y, X, PITCH, ROLL, YAW
+
 
 enum WrenchAxis { FX, FY, FZ, TX, TY, TZ, NB_AXIS_WRENCH };
 
