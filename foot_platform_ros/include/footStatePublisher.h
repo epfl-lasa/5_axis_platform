@@ -6,7 +6,7 @@
 #include "nav_msgs/Path.h"
 #include "ros/ros.h"
 #include <boost/shared_ptr.hpp>
-#include <custom_msgs/FootInputMsg_v3.h>
+#include <custom_msgs/FootInputMsg_v5.h>
 #include <custom_msgs/FootOutputMsg_v2.h>
 #include <custom_msgs/setControllerSrv.h>
 #include <custom_msgs/setStateSrv_v2.h>

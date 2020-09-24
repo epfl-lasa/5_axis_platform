@@ -174,6 +174,7 @@ void Platform::inertiaCompensation() {
   _compensationEffort(PITCH, COMP_INERTIA) = COMP_INERTIA_EQ_PITCH;
   _compensationEffort(ROLL, COMP_INERTIA) = COMP_INERTIA_EQ_ROLL;
   _compensationEffort(YAW, COMP_INERTIA) = COMP_INERTIA_EQ_YAW;
+  _compensationEffort.col(COMP_INERTIA) = _compensationEffort.col(COMP_INERTIA).cwiseProduct(_platform_filterAxisFS);
 }
 
 void Platform::forceSensorCompensation()
@@ -181,7 +182,14 @@ void Platform::forceSensorCompensation()
   _forceSensorD = (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CONSTRAINS) + _effortD_ADD.col(RCM_MOTION));
   for (int k=0; k<NB_AXIS; k++)
   {
-    _pidForceSensor[k]->compute();
+    if (abs(_platform_filterAxisFS(k)) != 0.0f)
+    {
+      _pidForceSensor[k]->compute();
+    }
+    else
+    {
+     _forceSensorCtrlOut(k) = 0.0f ;
+    }
   }
   _compensationEffort.col(COMP_FORCE_SENSOR)= _forceSensorCtrlOut;
 }
@@ -192,6 +200,7 @@ void Platform::coriolisCompensation() {
   _compensationEffort(PITCH, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_PITCH;
   _compensationEffort(ROLL, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_ROLL;
   _compensationEffort(YAW, COMP_CORIOLIS) = COMP_CORIOLIS_EQ_YAW;
+  _compensationEffort.col(COMP_CORIOLIS) = _compensationEffort.col(COMP_CORIOLIS).cwiseProduct(_platform_filterAxisFS);
 }
 
 void Platform::gravityCompensation() {
@@ -207,7 +216,7 @@ void Platform::gravityCompensation() {
 void Platform::viscFrictionCompensation()
   {
 
-    _compensationEffort.col(COMP_VISC_FRICTION) = _jointsViscosityGains.cwiseProduct(_speed);
+    _compensationEffort.col(COMP_VISC_FRICTION) = _jointsViscosityGains.cwiseProduct(_speed).cwiseProduct(_platform_filterAxisFS);
   }
 
 

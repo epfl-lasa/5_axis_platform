@@ -101,7 +101,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 {
   _pubForceBias = _n.advertise<geometry_msgs::WrenchStamped>("force_modified", 1);
   _pubForceSensorCoG = _n.advertise<geometry_msgs::PointStamped>("/" + std::string(Platform_Names[_platform_id]) +"/force_sensor_cog" , 1);
-  _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg_v3>("leg_comp_platform_effort", 1);
+  _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg_v5>("leg_comp_platform_effort", 1);
   _subForceSensor = _n.subscribe<geometry_msgs::WrenchStamped>(
 					    	"/"+std::string(Platform_Names[_platform_id])+"/rokubimini0/force/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());

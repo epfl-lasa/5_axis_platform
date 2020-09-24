@@ -9,7 +9,7 @@
 #include "MA_Filter.h"
 #include "Platform.h"
 #include "definitions.h"
-#include "custom_msgs/FootInputMsg_v3.h"
+#include "custom_msgs/FootInputMsg_v5.h"
 #include "custom_msgs/FootOutputMsg_v2.h"
 #include "custom_msgs/setControllerSrv.h"
 #include "custom_msgs/setStateSrv_v2.h"
@@ -56,7 +56,7 @@ class Platform
 
     // ROS variables  
 
-      ros::Subscriber<custom_msgs::FootInputMsg_v3>*  _subFootInput;
+      ros::Subscriber<custom_msgs::FootInputMsg_v5>*  _subFootInput;
       ros::Publisher *_pubFootOutput;
       custom_msgs::FootOutputMsg_v2 _msgFootOutput;
       ros::ServiceServer<custom_msgs::setStateSrv_v2Request,custom_msgs::setStateSrv_v2Response> *_servChangeState;
@@ -67,6 +67,7 @@ class Platform
         volatile float _ros_speed[NB_AXIS];
         volatile float _ros_effort[NB_AXIS];
         volatile float _ros_forceSensor[NB_AXIS_WRENCH];
+        volatile float _ros_filterAxisFS[NB_AXIS];
 
         volatile bool _ros_flagDefaultControl;
         volatile int8_t _ros_controlledAxis;
@@ -92,6 +93,7 @@ class Platform
 
         bool _workspaceLimitReached[NB_AXIS];
         bool _platform_flagDefaultControl;
+        bool _flagRosConnected;
 
         Eigen::Matrix<float, NB_AXIS, 1> _positionOffsets; //! in m or radians
         Eigen::Matrix<float, NB_AXIS, 1> _positionD;
@@ -112,6 +114,7 @@ class Platform
         Eigen::Matrix<float, NB_AXIS, 1> _effortMNEG;
         Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
         Eigen::Matrix<float, NB_AXIS, 1> _rcmCtrlEffort;
+        Eigen::Matrix<float, NB_AXIS, 1> _platform_filterAxisFS;
         float _cosDiffRCMCtrl;
         float _rcmCtrlOut;
         float _rcmAngleD;
@@ -223,7 +226,7 @@ class Platform
       private:
         // ROS
         static void
-        updateFootInput(const custom_msgs::FootInputMsg_v3 &msg); //! 2
+        updateFootInput(const custom_msgs::FootInputMsg_v5 &msg); //! 2
         static void updateState(const custom_msgs::setStateSrv_v2::Request &req,
                                 custom_msgs::setStateSrv_v2::Response &resp); //! 3
         static void

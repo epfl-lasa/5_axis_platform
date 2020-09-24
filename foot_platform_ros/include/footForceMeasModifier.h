@@ -33,7 +33,7 @@
 #include "geometry_msgs/WrenchStamped.h"
 #include "ros/ros.h"
 #include <boost/shared_ptr.hpp>
-#include <custom_msgs/FootInputMsg_v3.h>
+#include <custom_msgs/FootInputMsg_v5.h>
 #include <custom_msgs/FootOutputMsg_v2.h>
 #include <custom_msgs/setControllerSrv.h>
 #include <custom_msgs/setStateSrv_v2.h>
@@ -117,7 +117,7 @@ private:
   geometry_msgs::PointStamped _msgForceSensorCoG;
   geometry_msgs::WrenchStamped _msgForceModified; //! intented for the node FootVariableSynchronizer
   geometry_msgs::WrenchStamped _msgForceFootRestWorld; //! intented for the node FootVariableSynchronizer
-  custom_msgs::FootInputMsg_v3 _msgLegGravCompFI; //! intented for the node FootVariableSynchronizer
+  custom_msgs::FootInputMsg_v5 _msgLegGravCompFI; //! intented for the node FootVariableSynchronizer
 
   // ros variables
   urdf::Model _myModel;

@@ -16,7 +16,7 @@ Platform::Platform()
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _flagEmergencyCalled = false;
   _effortD_ADD.setConstant(0.0f);
-    
+  _flagRosConnected = false;  
   _effortD.setConstant(0.0f);
   _effortM.setConstant(0.0f);
   _effortMNEG.setConstant(0.0f);
@@ -76,9 +76,13 @@ for (int k = 0; k < NB_AXIS; k++) {
 
     limitSwitchesClear();
 
+    
+
     _ros_position[k]=0.0f;
     _ros_speed[k]=0.0f;
     _ros_effort[k] = 0.0f;
+    _ros_filterAxisFS[k]=1.0f;
+    _platform_filterAxisFS(k)=1.0f;
 
     _pidPosition[k] = new PID(&_innerTimer, &_position(k), &_positionCtrlOut(k), &_positionD_filtered(k), _platform_kpPosition(k), _platform_kiPosition(k), _platform_kdPosition(k), DIRECT, POS_PID_FILTER_GAINS[k]);
     _pidPosition[k]->setMode(AUTOMATIC);

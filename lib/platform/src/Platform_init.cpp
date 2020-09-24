@@ -28,7 +28,7 @@ void Platform::init()
   }
   _spi->unlock(); 
 
-  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg_v3>(PLATFORM_SUBSCRIBER_NAME, updateFootInput);
+  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg_v5>(PLATFORM_SUBSCRIBER_NAME, updateFootInput);
   _servChangeState = new ros::ServiceServer<custom_msgs::setStateSrv_v2::Request,custom_msgs::setStateSrv_v2::Response>(SERVICE_CHANGE_STATE_NAME, updateState);
   _servChangeCtrl = new ros::ServiceServer<custom_msgs::setControllerSrv::Request,custom_msgs::setControllerSrv::Response>(SERVICE_CHANGE_CTRL_NAME, updateController);
   

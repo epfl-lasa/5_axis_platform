@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   return -1;
   }
   
-  float frequency = 500.0f;
+  float frequency = 450.0f;
   footStatePublisher footStatePublisher(nh_, frequency, platform_id_);
 
     if (!footStatePublisher.init()) {

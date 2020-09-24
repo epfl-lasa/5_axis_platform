@@ -14,7 +14,7 @@ void Platform::communicateToRos()
 
 //*****************ROS-MESSAGE-SUBSCRIBER- CALLBACK**********
 //! 1
-void Platform::updateFootInput(const custom_msgs::FootInputMsg_v3 &msg)
+void Platform::updateFootInput(const custom_msgs::FootInputMsg_v5 &msg)
 {
   //me->_platformMutex.lock();
   for (uint c = 0 ; c < NB_FI_CATEGORY; c++) {
@@ -26,12 +26,14 @@ void Platform::updateFootInput(const custom_msgs::FootInputMsg_v3 &msg)
       me->_ros_position[k]=msg.ros_position[rosAxis[k]];
       me->_ros_speed[k]=msg.ros_speed[rosAxis[k]];
       me->_ros_effort[k] = msg.ros_effort[rosAxis[k]];
+      me->_ros_filterAxisFS[k] = msg.ros_filterAxisForce[rosAxis[k]];
   }
   
   for (uint k = PITCH; k < NB_AXIS; k++) {
     me->_ros_position[k] = msg.ros_position[rosAxis[k]]*DEG_TO_RAD;
     me->_ros_speed[k] = msg.ros_speed[rosAxis[k]] * DEG_TO_RAD;
     me->_ros_effort[k] = msg.ros_effort[rosAxis[k]];
+    me->_ros_filterAxisFS[k] = msg.ros_filterAxisForce[rosAxis[k]];
   }
   
   for (uint c=0; c<NB_AXIS_WRENCH; c++)
@@ -136,6 +138,11 @@ void Platform::pubFootOutput()
 
 void Platform::updatePlatformFromRos() {
 
+  for (size_t i = 0; i < NB_AXIS; i++)
+  {
+    _platform_filterAxisFS(i) = _ros_filterAxisFS[i];
+  }
+  
   calculateMeasTorques();
   if (_flagClearLastState) {
     clearLastState();
@@ -204,6 +211,7 @@ void Platform::calculateMeasTorques() {
   _effortM(PITCH) = effortM_PITCH;
   _effortM(ROLL) = effortM_ROLL;
   _effortM(YAW) = effortM_YAW;
+  _effortM = _effortM.cwiseProduct(_platform_filterAxisFS);
   _effortMNEG=-_effortM;
 }
 
@@ -344,14 +352,18 @@ void Platform::retrieveParams(Param_Category category_)
 
 bool Platform::waitUntilRosConnect()
 {
-  if (!_nh.connected()) {
-      //_platformMutex.lock();
-      _nh.spinOnce();
-      //_platformMutex.unlock();
-      return false;
-  }
-  else
+  if ( !_flagRosConnected )
   {
-    return true;
-  }  
+    if (!_nh.connected()) {
+        //_platformMutex.lock();
+        _nh.spinOnce();
+        //_platformMutex.unlock();
+        _flagRosConnected = false;
+    }
+    else
+    {
+      _flagRosConnected =  true;
+    }  
+  }
+  return _flagRosConnected;
 }

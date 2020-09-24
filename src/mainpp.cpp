@@ -55,8 +55,7 @@ void loop(void)
       else
       {
         platform._flagLoadParams = false;
-      }
-      
+      } 
       flag_doComm=false;
     }
   }
