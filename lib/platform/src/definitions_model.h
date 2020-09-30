@@ -39,8 +39,12 @@ enum frame_chain {
     const float r8 = 0.209f;
 
     const float LINKS_MASS[NB_LINKS] = {6.20696344f, 1.86377694f, 3.59020320f,
-                                        6.40922346f, 1.17868723f, 0.39114648f,
+                                        6.40922346f, 1.17868723f, 0.46082997f,
                                         0.30000000f}; //0.37200000f
+
+    // const float LINKS_MASS[NB_LINKS] = {6.20696344f, 1.86377694f, 3.59020320f,
+    //                                     6.40922346f, 1.17868723f, 0.39114648f,
+    //                                     0.30000000f}; //0.37200000f                                        
 
 #if (PLATFORM_ID == RIGHT_PLATFORM)
     //! Geometric Parameters
@@ -52,13 +56,15 @@ enum frame_chain {
             {-0.15354810f, 0.02479498f, 0.06831312f},        // X
             {-0.00593072f, -0.00000124f, -0.00156324f}, // PITCH
             { 0.03719409f, -0.00002562f, -0.00002217f},  // ROLL
-            { 0.00002617f, -0.00000265f,	0.10239610f},   // YAW
+            { 0.00004367f, -0.00000225f,  0.10098165f},   // YAW-ALU
+            // { 0.00002617f, -0.00000265f,	0.10239610f},   // YAW
             {-0.03198766f, 0.00021421f, 0.02133190f}};  // PEDAL
 
 
         const float IZZ_pitch_raw_no_fs = 0.09345014f + PITCH_REDUCTION_R*PITCH_REDUCTION_R*PITCH_ROTOR_INERTIA; //! Yes, its the same
         const float IZZ_roll_raw_no_fs = 0.00126543f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;  //! Yes, its the same
-        const float IZZ_yaw_raw_fs = 0.00017310f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;
+        // const float IZZ_yaw_raw_fs = 0.00017310f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;
+        const float IZZ_yaw_raw_fs = 0.00022433f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA; // ALU
 
         const float LINKS_MOMENT_OF_INERTIAS[NB_LINKS][NB_CART_AXIS * NB_CART_AXIS] = {
             { 0.16517950f, 0.01377594f, -0.00180234f, 
@@ -81,10 +87,14 @@ enum frame_chain {
             -0.00000106f,  0.00213092f, 0.00000026f, 
              0.00003310f,  0.00000026f, IZZ_roll_raw_no_fs} // LINK_ROLL W.R.T COM_ROLL
             ,
-            {0.00028064f, 0.00000000f, 0.00000015f,
-             0.00000000f, 0.00027286f, 0.00000000f,
-             0.00000015f, 0.00000000f, IZZ_yaw_raw_fs,
-            } // LINK_YAW W.R.T COM_YAW
+            // {0.00028064f, 0.00000000f, 0.00000015f,
+            //  0.00000000f, 0.00027286f, 0.00000000f,
+            //  0.00000015f, 0.00000000f, IZZ_yaw_raw_fs,
+            // } // LINK_YAW W.R.T COM_YAW
+            { 0.00031468f,	0.00000000f, 0.00000015f,
+              0.00000000f,	0.00030286f, -0.00000001f,
+              0.00000015f,	-0.00000001f, IZZ_yaw_raw_fs,
+            } // LINK_YAW W.R.T COM_YAW ALU
             ,
             { 0.00044045f , -0.00001582f , 0.00012683f, 
              -0.00001582f ,  0.00271438f ,-0.00000105f, 
@@ -99,12 +109,15 @@ enum frame_chain {
             { -0.15354810f, -0.02479498f,-0.06831312f},  // X
             { -0.00593072f, -0.00000124f,-0.00156324f}, // PITCH
             {  0.03719409f, -0.00002562f,-0.00002217f},  // ROLL
-            { -0.00002617f,  0.00000265f, 0.10239610f},   // YAW
+            { -0.00004367f, 0.00000225f,  0.10098165f},   // YAW-ALU
+            // { -0.00002617f,  0.00000265f, 0.10239610f},   // YAW
             { -0.03198766f,  0.00021421f, 0.02133190f}};  // PEDAL
 
         const float IZZ_pitch_raw_no_fs = 0.09345014f + PITCH_REDUCTION_R*PITCH_REDUCTION_R*PITCH_ROTOR_INERTIA; //! Yes, its the same
         const float IZZ_roll_raw_no_fs = 0.00126543f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;  //! Yes, its the same
-        const float IZZ_yaw_raw_fs = 0.00017310f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;
+        // const float IZZ_yaw_raw_fs = 0.00017310f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;
+        const float IZZ_yaw_raw_fs = 0.00022433f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA; // ALU
+
 
         const float LINKS_MOMENT_OF_INERTIAS[NB_LINKS][NB_CART_AXIS * NB_CART_AXIS] = {
             {  0.16517950f, -0.01377594f,  0.00180234f,
@@ -127,10 +140,14 @@ enum frame_chain {
             -0.00000106f, 0.00213092f,  0.00000026f, 
              0.00003310f, 0.00000026f,   IZZ_roll_raw_no_fs} // LINK_ROLL W.R.T COM_ROLL
             ,
-            { 0.00028064f, 0.00000000f, -0.00000015f,
-              0.00000000f, 0.00027286f,  0.00000000f,
-             -0.00000015f, 0.00000000f,  IZZ_yaw_raw_fs,
-            } // LINK_YAW W.R.T COM_YAW
+            // { 0.00028064f, 0.00000000f, -0.00000015f,
+            //   0.00000000f, 0.00027286f,  0.00000000f,
+            //  -0.00000015f, 0.00000000f,  IZZ_yaw_raw_fs,
+            // } // LINK_YAW W.R.T COM_YAW
+            { 0.00031468f,	0.00000000f, -0.00000015f,
+              0.00000000f,	0.00030286f, 0.00000001f,
+              -0.00000015f,	0.00000001f, IZZ_yaw_raw_fs,
+            } // LINK_YAW W.R.T COM_YAW ALU
             ,
             { 0.00044045f , -0.00001582f , 0.00012683f, 
              -0.00001582f ,  0.00271438f ,-0.00000105f, 
