@@ -1,6 +1,6 @@
 <launch>
 	<arg name="id"       default="right" />
-	<arg name="freq"     default="400"/>
+	<arg name="freq"     default="400.0"/>
 	<arg name="offset_x" default="0.0"/>
     <arg name="offset_y" default="0.0"/>
     <arg name="offset_z" default="0.0"/>
@@ -26,10 +26,11 @@
 		</group>
 
 		<node name="platform_state_publisher" pkg="robot_state_publisher" type="state_publisher">
-			<param name="publish_frequency" value="$(arg freq)"/>
+			<param name="publish_frequency" type="double" value="1000.0"/>
 			<param name="tf_prefix" value="$(arg id)"/>
 			<remap from="robot_description" to="platform_description" />
 			<remap from="joint_states" to="platform_joint_publisher/joint_states" />
+			
 		</node>
 	
 	</group>
