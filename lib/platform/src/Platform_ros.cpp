@@ -115,19 +115,21 @@ void Platform::pubFootOutput()
   _msgFootOutput.platform_stamp = _nh.now();
   _msgFootOutput.platform_id = PLATFORM_ID;
   
-  for (uint k=0; k<PITCH; k++)
+  for (uint k=0; k<NB_AXIS; k++)
   {
-    _msgFootOutput.platform_position[rosAxis[k]] = _position(k);
-    _msgFootOutput.platform_speed[rosAxis[k]]= _speed(k);
+    if (k>=PITCH)
+    {
+      _msgFootOutput.platform_position[rosAxis[k]] = _position(k) * RAD_TO_DEG;
+      _msgFootOutput.platform_speed[rosAxis[k]] = _speed(k) * RAD_TO_DEG;
+    }
+    else
+    {
+      _msgFootOutput.platform_position[rosAxis[k]] = _position(k);
+      _msgFootOutput.platform_speed[rosAxis[k]]= _speed(k);
+    }
+    _msgFootOutput.platform_effortRef[rosAxis[k]] = _forceSensorD(k);
     _msgFootOutput.platform_effortD[rosAxis[k]] =_effortD(k);
     _msgFootOutput.platform_effortM[rosAxis[k]] =_effortM(k);
-  }
-
-  for (uint k = PITCH; k < NB_AXIS; k++) {
-    _msgFootOutput.platform_position[rosAxis[k]] = _position(k) * RAD_TO_DEG;
-    _msgFootOutput.platform_speed[rosAxis[k]] = _speed(k) * RAD_TO_DEG;
-    _msgFootOutput.platform_effortD[rosAxis[k]] = _effortD(k);
-    _msgFootOutput.platform_effortM[rosAxis[k]] = _effortM(k);
   }
 
   //_msgFootOutput.platform_effortM[0] = _timestep;
@@ -208,8 +210,8 @@ void Platform::calculateMeasTorques() {
 
   _effortM(Y) = effortM_Y;
   _effortM(X) = effortM_X;
-  _effortM(PITCH) = effortM_PITCH;
-  _effortM(ROLL) = effortM_ROLL;
+  _effortM(PITCH) = -effortM_PITCH;
+  _effortM(ROLL) = -effortM_ROLL;
   _effortM(YAW) = effortM_YAW;
   _effortM = _effortM.cwiseProduct(_platform_filterAxisFS);
   _effortMNEG=-_effortM;

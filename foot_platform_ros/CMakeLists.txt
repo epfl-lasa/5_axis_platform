@@ -36,9 +36,11 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS})
 
 add_executable(footStatePublisher src/footStatePublisher.cpp src/footStatePublisher_node.cpp)
+add_executable(footPlatformVirtual src/footPlatformVirtual.cpp src/footPlatformVirtual_node.cpp)
 add_executable(footForceMeasModifier src/footForceMeasModifier.cpp src/footForceMeasModifier_node.cpp)
 
 target_link_libraries(footStatePublisher ${catkin_LIBRARIES})
+target_link_libraries(footPlatformVirtual ${catkin_LIBRARIES})
 target_link_libraries(footForceMeasModifier ${catkin_LIBRARIES})
 
 # add_dependencies(footStatePublisher ${PROJECT_NAME}_gencpp)

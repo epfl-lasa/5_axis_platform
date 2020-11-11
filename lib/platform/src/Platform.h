@@ -10,7 +10,7 @@
 #include "Platform.h"
 #include "definitions.h"
 #include "custom_msgs/FootInputMsg_v5.h"
-#include "custom_msgs/FootOutputMsg_v2.h"
+#include "custom_msgs/FootOutputMsg_v3.h"
 #include "custom_msgs/setControllerSrv.h"
 #include "custom_msgs/setStateSrv_v2.h"
 #include "definitions.h"
@@ -58,7 +58,7 @@ class Platform
 
       ros::Subscriber<custom_msgs::FootInputMsg_v5>*  _subFootInput;
       ros::Publisher *_pubFootOutput;
-      custom_msgs::FootOutputMsg_v2 _msgFootOutput;
+      custom_msgs::FootOutputMsg_v3 _msgFootOutput;
       ros::ServiceServer<custom_msgs::setStateSrv_v2Request,custom_msgs::setStateSrv_v2Response> *_servChangeState;
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 

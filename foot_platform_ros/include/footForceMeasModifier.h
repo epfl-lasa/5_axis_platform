@@ -34,7 +34,7 @@
 #include "ros/ros.h"
 #include <boost/shared_ptr.hpp>
 #include <custom_msgs/FootInputMsg_v5.h>
-#include <custom_msgs/FootOutputMsg_v2.h>
+#include <custom_msgs/FootOutputMsg_v3.h>
 #include <custom_msgs/setControllerSrv.h>
 #include <custom_msgs/setStateSrv_v2.h>
 #include "../../../5_axis_platform/lib/platform/src/definitions_main.h"
@@ -76,6 +76,7 @@ private:
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _forceFiltered_prev;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _forceModified;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _forceInFootRest;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _torquesModified;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _forcePedalBias;
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _forcePedalBiasInit;
   Eigen::Matrix<double, NB_AXIS_WRENCH, NB_AXIS_WRENCH> _rotationfSensor;
@@ -114,7 +115,9 @@ private:
 
   // ros variables
   
+  custom_msgs::FootOutputMsg_v3 _msgTorquesModified;
   geometry_msgs::PointStamped _msgForceSensorCoG;
+  geometry_msgs::WrenchStamped _msgPedalBias; 
   geometry_msgs::WrenchStamped _msgForceModified; //! intented for the node FootVariableSynchronizer
   geometry_msgs::WrenchStamped _msgForceFootRestWorld; //! intented for the node FootVariableSynchronizer
   custom_msgs::FootInputMsg_v5 _msgLegGravCompFI; //! intented for the node FootVariableSynchronizer
@@ -131,11 +134,13 @@ private:
   // Subscribers declarations
 
   // Publisher declaration
-  ros::Publisher _pubForceBias;
+  ros::Publisher _pubForceModified;
+  ros::Publisher _pubPedalBias;
+  ros::Publisher _pubTorquesModified;
   ros::Publisher _pubForceSensorCoG;
   ros::Publisher _pubForceFootRestWorld;
   ros::Publisher _pubLegCompFootInput; 
-  ros::Subscriber _subPlatformOutput; // FootOutputMsg_v2
+  ros::Subscriber _subPlatformOutput; // FootOutputMsg_v3
   ros::Subscriber _subLegGravityComp; //Reads the wrench needed for gravity compensation of the leg (in the foot base frame) to torques for the joints of the platform.
   ros::Subscriber _subLegCoG; 
   ros::Subscriber _subForceSensor;  // geometry_msgs/WrenchStamped.h
@@ -174,18 +179,19 @@ private:
   void modifyForce();
   void readLegGravityComp(const geometry_msgs::WrenchStampedConstPtr &msg);
   void readLegCoG(const geometry_msgs::PointStampedConstPtr &msg);
-  void readPlatformOutput(const custom_msgs::FootOutputMsg_v2::ConstPtr &msg);
+  void readPlatformOutput(const custom_msgs::FootOutputMsg_v3::ConstPtr &msg);
   void updateTreeFKState();
   void computeGravityTorque(); //! effort in each leg joint
   void computePedalBias();
   void computeWrenchFromPedalMeasBias();
   void computeLegGravityCompTorque(); //using the jacobian of the platform
   void publishForceModified(); // to be read by the foot variables synchronizer
+  void publishTorquesModified(); // to be read by the foot variables synchronizer
+  void publishPedalBias();
   void publishLegCompFootInput(); // to be read by the foot variables synchronizer
   // KDL::Frame readTF(std::string frame_origin_, std::string frame_destination_);
   void publishForceFootRestWorld();
 
-  
   void publishForceSensorStaticCoG();
 
   //! OTHER METHODS

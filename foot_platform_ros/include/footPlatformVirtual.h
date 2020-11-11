@@ -1,5 +1,5 @@
-#ifndef __footStatePublisher_H__
-#define __footStatePublisher_H__
+#ifndef __footPlatformVirtual_H__
+#define __footPlatformVirtual_H__
 
 #include "Eigen/Eigen"
 #include <signal.h>
@@ -26,7 +26,7 @@
 
 using namespace std;
 
-class footStatePublisher {
+class footPlatformVirtual {
 
 public:
   enum Platform_Name { UNKNOWN = 0, RIGHT = 1, LEFT = 2};
@@ -38,14 +38,20 @@ private:
   Platform_Name _platform_id;
 
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _ros_state_position;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _ros_state_positionPrev;
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _ros_state_velocity;
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _ros_state_effort;
+
+  double _msgTime;
+  double _msgTimePrev;
   
   //KDL variables
 
   // ros variables
 
-  sensor_msgs::JointState _msgJointStates;
+  custom_msgs::FootOutputMsg_v3 _msgVirtualOutput;
+  sensor_msgs::JointState _msgPlatformJointStates;
+
 
   // ros variables
 
@@ -59,8 +65,10 @@ private:
   // Subscribers declarations
  
   // Publisher declaration
-  ros::Publisher _pubFootJointStates;
-  ros::Subscriber _subPlatformOutput; // FootOutputMsg_v3
+  ros::Publisher _pubVirtualFootOutput; // FootOutputMsg_v3
+  ros::Publisher _pubPlatformJointStates; // sensor_msgs::JointState
+  ros::Subscriber _subVirtualFootInput; // FootInputMsg_v5
+  ros::Subscriber _subPlatformJointStates; //sensor_msgs::JointState
   //! boolean variables
   bool _flagPlatformConnected;
 
@@ -68,16 +76,16 @@ private:
   bool _stop;
 
   std::mutex _mutex;
-  static footStatePublisher *me;
+  static footPlatformVirtual *me;
 
   //! Dynamic Reconfigures
 
   // METHODS
 public:
-  footStatePublisher(ros::NodeHandle &n_1, double frequency,
-                     footStatePublisher::Platform_Name platform_id_);
+  footPlatformVirtual(ros::NodeHandle &n_1, double frequency,
+                     footPlatformVirtual::Platform_Name platform_id_);
 
-  ~footStatePublisher();
+  ~footPlatformVirtual();
 
   bool init();
   void run();
@@ -86,10 +94,12 @@ private:
   //! ROS METHODS
 
   // bool allSubscribersOK();
-  void publishFootJointStates();
-  void readPlatformOutput(const custom_msgs::FootOutputMsg_v3::ConstPtr &msg);
+  void publishVirtualFootOutput();
+  void publishPlatformJointStates();
+  void readPlatformJointStates(const sensor_msgs::JointState::ConstPtr &msg);
+  void readVirtualFootInput(const custom_msgs::FootInputMsg_v5::ConstPtr &msg);
 
   //! OTHER METHODS
   static void stopNode(int sig);
 };
-#endif // __footStatePublisher_H__
+#endif // __footPlatformVirtual_H__

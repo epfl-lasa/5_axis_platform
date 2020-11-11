@@ -14,8 +14,12 @@
 			<node name="virtual_platform_joint_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui">
 				<param name="publish_frequency" value="$(arg freq)"/>
 				<remap from="robot_description" to="platform_description" />
-				<remap from="joint_states" to="platform_joint_publisher/joint_states" />
+				<remap from="joint_states" to="platform_joint_publisher/joint_states_2" />
 			</node>	
+		    <node name="platform_joint_publisher" pkg="foot_platform_ros" type="footPlatformVirtual" output="screen">
+				<param name="platformID" value="$(arg id)"/>  
+				<remap from="joint_states" to="platform_joint_publisher/joint_states" />
+			</node>
 		</group>	  
 
 		<group unless="$(arg virtual_platform)">

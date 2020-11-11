@@ -43,7 +43,6 @@ const float SCALE_GAINS_LINEAR_SPEED = 1e-2f;
 const float SCALE_GAINS_ANGULAR_POSITION = 1e-4f * RAD_TO_DEG;
 const float SCALE_GAINS_ANGULAR_SPEED = 1e-5f * RAD_TO_DEG;
 
-
 //! Event based haptics
 
 #define NB_FF_COMP 1
