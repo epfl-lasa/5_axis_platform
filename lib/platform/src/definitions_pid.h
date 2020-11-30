@@ -19,9 +19,9 @@ const float ALPHA_RCM_PID_FILTER = 0.8f;
 
     #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
 
-        const float SPEED_D_HOMING_Y = 1.0f * 0.6f;                                                 //[m/s]
-        const float SPEED_D_HOMING_X = -1.0f * 0.6f;                                                 //[m/s]
-        const float SPEED_D_HOMING_PITCH  = 300 * DEG_TO_RAD * 0.5f;                              //[deg/s             
+        const float SPEED_D_HOMING_Y = 1.0f * 0.5f;                                                 //[m/s]
+        const float SPEED_D_HOMING_X = -1.0f * 0.5f;                                                 //[m/s]
+        const float SPEED_D_HOMING_PITCH  = 200 * DEG_TO_RAD * 0.5f;                              //[deg/s             
     #else 
         
         const float SPEED_D_HOMING_Y = 1.0f * 0.3f;                                                 //[m/s]

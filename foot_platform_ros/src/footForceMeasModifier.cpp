@@ -114,7 +114,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
   if (_platform_id == LEFT) {
 
     _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/left/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
-    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("left/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/left/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
     _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
         PLATFORM_PUBLISHER_NAME_LEFT, 1,
@@ -172,21 +172,20 @@ void footForceMeasModifier::stopNode(int sig) { me->_stop = true; }
 void footForceMeasModifier::run() {
   while (!_stop) {
     if (_flagPlatformConnected) {
-      if ((_platform_id != (Platform_Name)_ros_platform_id) &&
-          (_platform_id != UNKNOWN)) 
-      {
-        ROS_ERROR("This node  is acting on the "
-                  "wrong platform");
-        ros::spinOnce();
-        break;
-      } 
-      else {
+      // if ((_platform_id != (Platform_Name)_ros_platform_id) &&
+      //     (_platform_id != UNKNOWN)) 
+      // {
+      //   ROS_ERROR("This node  is acting on the "
+      //             "wrong platform");
+      //   ros::spinOnce();
+      //   break;
+      // } 
+      // else {
         if (_flagFootOutputRead)
         {
           updateTreeFKState();
           computeGravityTorque();
           computeWrenchFromPedalMeasBias();
-        
         if (_flagLegGravityCompWrenchRead)
         {
           computeLegGravityCompTorque();
@@ -213,7 +212,7 @@ void footForceMeasModifier::run() {
 				}
         }
 
-      }
+      // }
     }
     ros::spinOnce();
     _loopRate.sleep();
@@ -307,6 +306,7 @@ void footForceMeasModifier::publishPedalBias(){
 
 void footForceMeasModifier::publishLegCompFootInput()
 {
+  // cout<<"boo"<<endl;
   for (unsigned int i = 0 ; i<NB_PLATFORM_AXIS; i++)
   {
     _msgLegGravCompFI.ros_effort[rosAxis[i]] = _legTorquesGravityComp(i) ;

@@ -15,7 +15,7 @@ void Platform::getMotion()
 //! #2
 void Platform::readActualEffort() //! ADC
 {
-  if ((_timestamp - _analogReadStamp) >= ANALOG_SAMPLING_TIME)
+  if ((_timestamp - _analogReadStamp) > ANALOG_SAMPLING_TIME)
   {
     
     float e_meas[5];
@@ -67,7 +67,7 @@ void Platform::readActualEffort() //! ADC
 //! #3
 void Platform::getPosition()
 {
-  if ((_timestamp - _posSamplingStamp) >= (uint32_t)POSITION_PID_SAMPLE_P)
+  if ((_timestamp - _posSamplingStamp) >= POSITION_PID_SAMPLE_P)
   {
     float encoders_out[NB_AXIS] = {0.0f,0.0f,0.0f,0.0f,0.0f};
     _spi->lock();
@@ -98,7 +98,7 @@ void Platform::getPosition()
 //! #4
 void Platform::getSpeed()
 {
-  if ((_timestamp-_speedSamplingStamp)>=(uint32_t)VELOCITY_PID_SAMPLE_P)
+  if ((_timestamp-_speedSamplingStamp)>= VELOCITY_PID_SAMPLE_P)
   {
     _speed = (_position - _positionPrev) * invSpeedSampT;
     for (uint k = 0; k < NB_AXIS; k++) // to change
@@ -113,7 +113,7 @@ void Platform::getSpeed()
 //! #5
 void Platform::getAcceleration()
 {
-  if ((_timestamp - _accSamplingStamp) >= (uint32_t)ACC_SAMPLE_P)
+  if ((_timestamp - _accSamplingStamp) >=  ACC_SAMPLE_P)
   {
     _acceleration = (_speed - _speedPrev) * invAccSampT;
     for (uint k = 0; k < NB_AXIS; k++) // to change

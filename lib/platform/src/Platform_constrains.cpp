@@ -15,13 +15,13 @@ void Platform::wsConstrains(int axis_)
         _virtualWall(axis_)=fabs(_ros_position[axis_]); //! A symmetric wall will be built on the set position
     }
     
-    if (( _position(axis_) >= _virtualWall(axis_) ))
+    if (( _position(axis_) > _virtualWall(axis_) ))
     {
           _flagInWsConstrains[axis_]=true;
            _positionD(axis_) = _virtualWall(axis_);
            positionAxisControl(CONSTRAINS, axis_);
     }
-    else if (( _position(axis_) <= -_virtualWall(axis_) ))
+    else if (( _position(axis_) < -_virtualWall(axis_) ))
     {
           _flagInWsConstrains[axis_]=true;
            _positionD(axis_) = -_virtualWall(axis_);

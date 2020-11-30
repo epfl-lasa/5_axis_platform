@@ -235,10 +235,10 @@ void Platform::viscFrictionCompensation()
          float dry_scale = 1.0f;
          uint w_sign = MID_FRIC;
 
-         if (_speed(axis_) >= SPEED_THRESHOLD[axis_]) {
+         if (_speed(axis_) > SPEED_THRESHOLD[axis_]) {
            w_sign = POS_FRIC;
          } 
-         else if (_speed(axis_) <= -SPEED_THRESHOLD[axis_]) {
+         else if (_speed(axis_) < -SPEED_THRESHOLD[axis_]) {
            w_sign = NEG_FRIC;
          } 
          else {
