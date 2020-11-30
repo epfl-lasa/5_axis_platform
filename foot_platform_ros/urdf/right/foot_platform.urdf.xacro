@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<robot name="foot_platform" xmlns:xacro="http://www.ros.org/wiki/xacro">
+ <xacro:macro name="create_platform">
+    <xacro:include filename="$(find foot_platform_ros)/urdf/right/foot_platform.links.xacro"/>
+    <xacro:include filename="$(find foot_platform_ros)/urdf/right/foot_platform.joints.xacro"/>
+    <xacro:define_platform_links/>
+    <xacro:define_platform_joints/>
+  </xacro:macro>
+</robot>

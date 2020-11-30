@@ -1,0 +1,39 @@
+<?xml version="2.0"?>
+<launch>
+    <arg name="id1"                 default="right" />
+    <arg name="id2"                 default="left" />
+    <arg name="virtual_platform"   default="true" />
+    <arg name="rviz"                default="true"/>
+    <arg name="offset_x1"            default="0.25"/>
+    <arg name="offset_y1"            default="0.0"/>
+    <arg name="offset_z1"            default="0.0"/>
+	
+    <arg name="offset_x2"            default="-0.25"/>
+    <arg name="offset_y2"            default="0.0"/>
+    <arg name="offset_z2"            default="0.0"/>
+
+    <arg name="rvizconfig" default="$(find foot_platform_ros)/rviz/both/platform_alone.rviz" />
+
+    <include file="$(find foot_platform_ros)/launch/platform_ros.launch">
+        <arg name="id"                 value="$(arg id1)" />
+        <arg name="virtual_platform"   value="$(arg virtual_platform)" />
+        <arg name="rviz"               value="false"/>
+        <arg name="offset_x"           value="$(arg offset_x1)"/>
+        <arg name="offset_y"           value="$(arg offset_y1)"/>
+        <arg name="offset_z"           value="$(arg offset_z1)"/>
+    </include>
+
+    <include file="$(find foot_platform_ros)/launch/platform_ros.launch">
+        <arg name="id"                 value="$(arg id2)" />
+        <arg name="virtual_platform"   value="$(arg virtual_platform)" />
+        <arg name="rviz"               value="false"/>
+        <arg name="offset_x"           value="$(arg offset_x2)"/>
+        <arg name="offset_y"           value="$(arg offset_y2)"/>
+        <arg name="offset_z"           value="$(arg offset_z2)"/>
+    </include>
+
+    <group if="$(arg rviz)">
+		<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)"/>
+	</group>
+  
+</launch>

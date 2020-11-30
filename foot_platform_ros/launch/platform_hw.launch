@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="id"                default="right"/>
+    <arg name="baud"             default="921600" />
+    <arg name="port"             default="/dev/right_platform" />
+    
+
+    <include file="$(find foot_platform_ros)/launch/hw_params_upload.launch">
+        <arg name="id"               value="$(arg id)"/>
+    </include>
+
+    <node pkg="rosserial_python" type="serial_node.py" name="$(arg id)" respawn="false" output="screen">
+        <param name="baud" value="$(arg baud)"/>
+        <param name="port" value="$(arg port)"/>
+    </node>
+</launch>
+

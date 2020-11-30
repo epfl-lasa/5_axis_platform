@@ -1,0 +1,88 @@
+<sdf version='1.6'>
+  <model name='foot_platform'>
+    <link name='base_link'>
+      <pose frame=''>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose frame=''>0.065061 0.237614 0.06685 0 -0 0</pose>
+        <mass>6.20696</mass>
+        <inertia>
+          <ixx>0.16518</ixx>
+          <ixy>0.0137729</ixy>
+          <ixz>-0.00179536</ixz>
+          <iyy>0.154343</iyy>
+          <iyz>0.0178241</iyz>
+          <izz>0.296485</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_link_collision'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://foot_platform_ros/model/meshes/stl/base_collision.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='base_link_visual'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://foot_platform_ros/model/meshes/dae/base_visual.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <link name='y'>
+      <pose frame=''>0 0 0 -1.5708 0 0</pose>
+      <inertial>
+        <pose frame=''>0.028171 -0.075855 -0.009694 0 -0 0</pose>
+        <mass>1.86378</mass>
+        <inertia>
+          <ixx>0.00343968</ixx>
+          <ixy>7.319e-05</ixy>
+          <ixz>1.718e-05</ixz>
+          <iyy>0.0682056</iyy>
+          <iyz>0.00085107</iyz>
+          <izz>0.0693822</izz>
+        </inertia>
+      </inertial>
+      <collision name='y_collision'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://foot_platform_ros/model/meshes/stl/y_collision.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='y_visual'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://foot_platform_ros/model/meshes/dae/y_visual.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='y_joint' type='prismatic'>
+      <child>y</child>
+      <parent>base_link</parent>
+      <axis>
+        <xyz>0 1 -4e-06</xyz>
+        <limit>
+          <lower>-0.09</lower>
+          <upper>0.09</upper>
+          <effort>23.5</effort>
+          <velocity>10</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+        <use_parent_model_frame>1</use_parent_model_frame>
+      </axis>
+    </joint>
+  </model>
+</sdf>
