@@ -47,9 +47,9 @@
     </link>
     <link name="x">
       <inertial>
-        <origin xyz="-0.15354810 0.02479498 0.06831312" rpy="0 0 0"/>
+        <origin xyz="-0.15354818 0.02479469 0.08202519" rpy="0 0 0"/>
         <mass value="3.59020320"/><!-- kg -->
-        <inertia ixx="0.02391576"  ixy="-0.00245204"  ixz="-0.00647808" iyy="0.02208247" iyz="0.00612089" izz="0.02573858" />
+        <inertia ixx="0.02459840"  ixy="-0.00245203"  ixz="-0.00658714" iyy="0.02276527" iyz="0.00666509" izz="0.02573845" />
       </inertial>
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -68,9 +68,9 @@
     
     <link name="pitch"> 
       <inertial>
-        <origin xyz="-0.00593072	-0.00000124	 -0.00156324" rpy="0 0 0"/>
+        <origin xyz="-0.00510491 0.00000315  0.00119335" rpy="0 0 0"/>
         <mass value="6.40922346"/><!-- kg -->
-        <inertia ixx="0.10886020"  ixy="0.00001273"  ixz="0.00088705" iyy="0.02644452" iyz="0.00000809" izz="${0.09345014 + pitch_gear_r*pitch_gear_r*pitch_rotor_inertia}" />
+        <inertia ixx="0.11348694"  ixy="0.00001100"  ixz="0.00098943" iyy="0.03076458" iyz="0.00001246" izz="${0.09509689 + pitch_gear_r*pitch_gear_r*pitch_rotor_inertia}" />
       </inertial>
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>

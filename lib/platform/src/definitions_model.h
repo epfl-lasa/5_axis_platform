@@ -53,15 +53,14 @@ enum frame_chain {
         const float LINKS_COM[NB_LINKS][NB_CART_AXIS] = {
             {0.06378538f, 0.23761375f, 0.06685000f},    // Base
             {0.02817123f, -0.07585496f, -0.00969366f},  // Y
-            {-0.15354810f, 0.02479498f, 0.06831312f},        // X
-            {-0.00593072f, -0.00000124f, -0.00156324f}, // PITCH
+            {-0.15354818f, 0.02479469f, 0.08202519f},        // X
+            {-0.00510491f, 0.00000315f,  0.00119335f,}, // PITCH
             { 0.03719409f, -0.00002562f, -0.00002217f},  // ROLL
             { 0.00004367f, -0.00000225f,  0.10098165f},   // YAW-ALU
-            // { 0.00002617f, -0.00000265f,	0.10239610f},   // YAW
             {-0.03198766f, 0.00021421f, 0.02133190f}};  // PEDAL
 
 
-        const float IZZ_pitch_raw_no_fs = 0.09345014f + PITCH_REDUCTION_R*PITCH_REDUCTION_R*PITCH_ROTOR_INERTIA; //! Yes, its the same
+        const float IZZ_pitch_raw_no_fs = 0.09509689f + PITCH_REDUCTION_R*PITCH_REDUCTION_R*PITCH_ROTOR_INERTIA; //! Yes, its the same
         const float IZZ_roll_raw_no_fs = 0.00126543f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;  //! Yes, its the same
         // const float IZZ_yaw_raw_fs = 0.00017310f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA;
         const float IZZ_yaw_raw_fs = 0.00022433f + ROLL_YAW_REDUCTION_R*ROLL_YAW_REDUCTION_R*ROLL_YAW_ROTOR_INERTIA; // ALU
@@ -75,13 +74,13 @@ enum frame_chain {
              0.00002371f, 0.06755732f, 0.00085107f, 
              0.00000365f, 0.00085107f, 0.06873399f} // LINK Y W.R.T COM_Y
             ,
-            { 0.02391576f,-0.00245204f,-0.00647808f,
-             -0.00245204f, 0.02208247f, 0.00612089f,
-             -0.00647808f, 0.00612089f, 0.02573858f}  // LINK X W.R.T COM_X
+            { 0.02459840f, -0.00245203f,  -0.00658714f,
+             -0.00245203f,  0.02276527f,   0.00666509f,
+             -0.00658714f,  0.00666509f,   0.02573845f}  // LINK X W.R.T COM_X
             ,
-            {0.10886020f, 0.00001273f, 0.00088705f, 
-             0.00001273f, 0.02644452f, 0.00000809f, 
-             0.00088705f, 0.00000809f,  IZZ_pitch_raw_no_fs} // LINK_PITCH W.R.T COM_PITCH
+            {0.11348694f, 0.00001100f, 0.00098943f,   
+             0.00001100f, 0.03076458f, 0.00001246f,   
+             0.00098943f, 0.00001246f, IZZ_pitch_raw_no_fs} // LINK_PITCH W.R.T COM_PITCH
             ,
             {0.00153790f, -0.00000106f, 0.00003310f, 
             -0.00000106f,  0.00213092f, 0.00000026f, 
