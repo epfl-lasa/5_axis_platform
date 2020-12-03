@@ -109,7 +109,8 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 					    	"/"+std::string(Platform_Names[_platform_id])+"/rokubimini0/force/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
   _pubForceFootRestWorld = _n.advertise<geometry_msgs::WrenchStamped>("force_foot_rest_world", 1);
-
+  _pubManipEllipsoidRot = _n.advertise<visualization_msgs::Marker>("foot_manipulability_rot", 0);
+  _pubManipEllipsoidLin = _n.advertise<visualization_msgs::Marker>("foot_manipulability_lin", 0);
 
   if (_platform_id == LEFT) {
 
@@ -253,7 +254,11 @@ void footForceMeasModifier::updateTreeFKState() {
     _myFrames.push_back(frame_);
     // cout<<_myFrames[i].p.data[0]<<" "<<_myFrames[i].p.data[1]<<" "<<_myFrames[i].p.data[2]<<endl;
   }
+  _footBaseFrame = _myFrames[_myFootRestChain.getNrOfSegments()-1];
   _myJacobianSolver->JntToJac(_platformJoints,_myFootBaseJacobian,_myFootRestChain.getNrOfSegments() - 1);
+  computeFootManipulability();
+   publishManipulabilityEllipsoidRot();
+   publishManipulabilityEllipsoidLin();
 }
 
 void footForceMeasModifier::computeWrenchFromPedalMeasBias()
@@ -486,4 +491,86 @@ void footForceMeasModifier::publishForceSensorStaticCoG(){
 void footForceMeasModifier::modifyForce() {
     _forceModified = _forceFiltered - (_undesiredForceBias-_forcePedalBiasInit);
     //cout<<_forcePedalBiasInit<<endl;
+}
+
+
+void footForceMeasModifier::computeFootManipulability()
+{
+  Eigen::Matrix<double, NB_AXIS_WRENCH, NB_PLATFORM_AXIS> jacobian_ = _myFootBaseJacobian.data;
+  _mySVD.compute(jacobian_, ComputeThinU | ComputeThinV);
+  Eigen::VectorXd mySingValues = _mySVD.singularValues();
+  //cout<<"Singular Values :"<<endl<<_mySVD.singularValues()<<endl;
+  cout << "Foot Platform Condition Number: "<<mySingValues.minCoeff()/mySingValues.maxCoeff() << endl;
+  cout << "Foot Platform Yoshikawa Manipulability: "<<mySingValues.prod()<< endl;
+}
+
+
+void footForceMeasModifier::publishManipulabilityEllipsoidRot() {
+  // _mutex.lock();
+  VectorXd svdValues = _mySVD.singularValues();
+  Matrix<double, 3,3> leftSVDVectors = _mySVD.matrixU().block(3,2,3,3);
+  Quaternion<double> svdSingQuaternion(leftSVDVectors);
+  std::string frame_name;
+  std::string ns_name;
+  frame_name = _platform_id == RIGHT ? "/right/platform_base_link" : "/left/platform_base_link";
+  ns_name = _platform_id == RIGHT ? "/right" : "/left";
+  _msgManipEllipsoidRot.header.frame_id = frame_name;
+  _msgManipEllipsoidRot.header.stamp = ros::Time::now();
+  _msgManipEllipsoidRot.ns = ns_name;
+  _msgManipEllipsoidRot.id = 0;
+  _msgManipEllipsoidRot.type = visualization_msgs::Marker::SPHERE;
+  _msgManipEllipsoidRot.action = visualization_msgs::Marker::ADD;
+  _msgManipEllipsoidRot.pose.position.x = _footBaseFrame.p.x();
+  _msgManipEllipsoidRot.pose.position.y = _footBaseFrame.p.y();
+  _msgManipEllipsoidRot.pose.position.z = _footBaseFrame.p.z();
+  _msgManipEllipsoidRot.pose.orientation.x = svdSingQuaternion.x();
+  _msgManipEllipsoidRot.pose.orientation.y = svdSingQuaternion.y();
+  _msgManipEllipsoidRot.pose.orientation.z = svdSingQuaternion.z();
+  _msgManipEllipsoidRot.pose.orientation.w = svdSingQuaternion.w();
+  _msgManipEllipsoidRot.scale.x = svdValues(2) * 1;
+  _msgManipEllipsoidRot.scale.y = svdValues(3) * 1;
+  _msgManipEllipsoidRot.scale.z = svdValues(4) * 1;
+  _msgManipEllipsoidRot.color.a = 0.5; // Don't forget to set the alpha!
+  _msgManipEllipsoidRot.color.r = 0;
+  _msgManipEllipsoidRot.color.g = 1;
+  _msgManipEllipsoidRot.color.b = 0;
+  // only if using a MESH_RESOURCE marker type:
+  // marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+  _pubManipEllipsoidRot.publish(_msgManipEllipsoidRot);
+  // _mutex.unlock();
+}
+
+void footForceMeasModifier::publishManipulabilityEllipsoidLin() {
+   // _mutex.lock();
+  VectorXd svdValues = _mySVD.singularValues();
+  Matrix<double, 3,3> leftSVDVectors = _mySVD.matrixU().block(0,0,3,3);
+  Quaternion<double> svdSingQuaternion(leftSVDVectors);
+  std::string frame_name;
+  std::string ns_name;
+  frame_name = _platform_id == RIGHT ? "/right/platform_base_link" : "/left/platform_base_link";
+  ns_name = _platform_id == RIGHT ? "/right" : "/left";
+  _msgManipEllipsoidLin.header.frame_id = frame_name;
+  _msgManipEllipsoidLin.header.stamp = ros::Time::now();
+  _msgManipEllipsoidLin.ns = ns_name;
+  _msgManipEllipsoidLin.id = 0;
+  _msgManipEllipsoidLin.type = visualization_msgs::Marker::SPHERE;
+  _msgManipEllipsoidLin.action = visualization_msgs::Marker::ADD;
+  _msgManipEllipsoidLin.pose.position.x = _footBaseFrame.p.x();
+  _msgManipEllipsoidLin.pose.position.y = _footBaseFrame.p.y();
+  _msgManipEllipsoidLin.pose.position.z = _footBaseFrame.p.z();
+  _msgManipEllipsoidLin.pose.orientation.x = svdSingQuaternion.x();
+  _msgManipEllipsoidLin.pose.orientation.y = svdSingQuaternion.y();
+  _msgManipEllipsoidLin.pose.orientation.z = svdSingQuaternion.z();
+  _msgManipEllipsoidLin.pose.orientation.w = svdSingQuaternion.w();
+  _msgManipEllipsoidLin.scale.x = svdValues(0);
+  _msgManipEllipsoidLin.scale.y = svdValues(1);
+  _msgManipEllipsoidLin.scale.z = svdValues(2);
+  _msgManipEllipsoidLin.color.a = 0.5; // Don't forget to set the alpha!
+  _msgManipEllipsoidLin.color.r = 0;
+  _msgManipEllipsoidLin.color.g = 1;
+  _msgManipEllipsoidLin.color.b = 1;
+  // only if using a MESH_RESOURCE marker type:
+  // marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+  _pubManipEllipsoidLin.publish(_msgManipEllipsoidLin);
+  // _mutex.unlock();
 }

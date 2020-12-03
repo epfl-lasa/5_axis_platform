@@ -47,8 +47,10 @@
 #include <sensor_msgs/JointState.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
+#include <visualization_msgs/Marker.h>
 
 using namespace std;
+using namespace Eigen;
 
 class footForceMeasModifier {
 
@@ -98,10 +100,12 @@ private:
   KDL::JntArray _gravityTorques;
   KDL::ChainJntToJacSolver* _myJacobianSolver;
   KDL::Jacobian _myFootBaseJacobian;
+  Eigen::JacobiSVD<MatrixXd> _mySVD;
   KDL::Tree _myTree;
   KDL::Vector _grav_vector;
   std::vector<KDL::Segment> _mySegments;
   std::vector<KDL::Frame> _myFrames; //!
+  KDL::Frame _footBaseFrame;
   KDL::ChainDynParam* _myChainDyn;
   KDL::Chain _myFootRestChain;
   KDL::Chain _myVirtualAnkleChain;
@@ -114,7 +118,8 @@ private:
   KDL::ChainFkSolverPos_recursive* _myFKSolver;
 
   // ros variables
-  
+  visualization_msgs::Marker _msgManipEllipsoidRot;
+  visualization_msgs::Marker _msgManipEllipsoidLin;
   custom_msgs::FootOutputMsg_v3 _msgTorquesModified;
   geometry_msgs::PointStamped _msgForceSensorCoG;
   geometry_msgs::WrenchStamped _msgPedalBias; 
@@ -140,6 +145,10 @@ private:
   ros::Publisher _pubForceSensorCoG;
   ros::Publisher _pubForceFootRestWorld;
   ros::Publisher _pubLegCompFootInput; 
+  ros::Publisher _pubManipEllipsoidRot;
+
+  ros::Publisher _pubManipEllipsoidLin;
+
   ros::Subscriber _subPlatformOutput; // FootOutputMsg_v3
   ros::Subscriber _subLegGravityComp; //Reads the wrench needed for gravity compensation of the leg (in the foot base frame) to torques for the joints of the platform.
   ros::Subscriber _subLegCoG; 
@@ -191,7 +200,9 @@ private:
   void publishLegCompFootInput(); // to be read by the foot variables synchronizer
   // KDL::Frame readTF(std::string frame_origin_, std::string frame_destination_);
   void publishForceFootRestWorld();
-
+  void computeFootManipulability(); //Foot Platform
+  void publishManipulabilityEllipsoidRot();
+  void publishManipulabilityEllipsoidLin();
   void publishForceSensorStaticCoG();
 
   //! OTHER METHODS
