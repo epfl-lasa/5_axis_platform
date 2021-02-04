@@ -17,7 +17,7 @@ const float ALPHA_RCM_PID_FILTER = 0.8f;
 //! List of Gains
 //******************************HOMING********************************
 
-    #if (PLATFORM_ID==LEFT_PLATFORM) //! TODO: Set for the left platform
+    #if (PLATFORM_ID==LEFT_PLATFORM_ID) //! TODO: Set for the left platform
 
         const float SPEED_D_HOMING_Y = 1.0f * 0.5f;                                                 //[m/s]
         const float SPEED_D_HOMING_X = -1.0f * 0.5f;                                                 //[m/s]
@@ -55,7 +55,7 @@ const float RCM_PID_GAINS_DEFAULT[3] = {0.0f, 0.0f, 0.0f};
 const float RCM_POS_DEFAULT[NB_CART_AXIS] = {0.0f, 0.0f, 0.5446f};
 //*************************GOTO******************************************************
 
-#if (PLATFORM_ID == LEFT_PLATFORM)
+#if (PLATFORM_ID == LEFT_PLATFORM_ID)
 
 const float GT_KP_POSITION_Y = 5000.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m]
 const float GT_KP_POSITION_X = 5000.0f * SCALE_GAINS_LINEAR_POSITION; //[N/m]
@@ -75,7 +75,7 @@ const float GT_KD_POSITION_PITCH =    30.0f * SCALE_GAINS_ANGULAR_POSITION; //[N
 const float GT_KD_POSITION_ROLL =    35.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm.s/deg]
 const float GT_KD_POSITION_YAW =    35.0f * SCALE_GAINS_ANGULAR_POSITION; //[Nm.s/deg]
 
-#else //! TODO TUNE FOR RIGHT_PLATFORM     
+#else //! TODO TUNE FOR RIGHT_PLATFORM_ID     
 
         const float GT_KP_POSITION_Y =  5000.0f * SCALE_GAINS_LINEAR_POSITION;                   //[N/m]
         const float GT_KP_POSITION_X =  5000.0f * SCALE_GAINS_LINEAR_POSITION;                   //[N/m]
@@ -104,7 +104,7 @@ const float POS_PID_GAINS_DEFAULT[3][NB_AXIS] = {
              GT_KD_POSITION_ROLL, GT_KD_POSITION_YAW}};
         //*************************W_CONSTRAINS****AKA.VIRTUAL_WALLS****************************
 
-#if (PLATFORM_ID == LEFT_PLATFORM)
+#if (PLATFORM_ID == LEFT_PLATFORM_ID)
 
         const float C_WS_KP_POSITION_Y =  1000.0f * SCALE_GAINS_LINEAR_POSITION;           //[N/m]
         const float C_WS_KP_POSITION_X =  1000.0f * SCALE_GAINS_LINEAR_POSITION;           //[N/m]                              

@@ -3,13 +3,13 @@
     <arg name="id1"                 default="right" />
     <arg name="id2"                 default="left" />
     <arg name="virtual_platform"   default="true" />
-    <arg name="rviz"                default="true"/>
+    <arg name="rviz"                default="false"/>
     <arg name="offset_x1"            default="0.25"/>
-    <arg name="offset_y1"            default="0.0"/>
+    <arg name="offset_y1"            default="0.36046"/>
     <arg name="offset_z1"            default="0.0"/>
 	
     <arg name="offset_x2"            default="-0.25"/>
-    <arg name="offset_y2"            default="0.0"/>
+    <arg name="offset_y2"            default="0.36046"/>
     <arg name="offset_z2"            default="0.0"/>
 
     <arg name="rvizconfig" default="$(find foot_platform_ros)/rviz/both/platform_alone.rviz" />

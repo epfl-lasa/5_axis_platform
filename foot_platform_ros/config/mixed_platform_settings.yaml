@@ -1,0 +1,8 @@
+/mixed_platform:
+  mainPlatform: 'right'
+  mappingMain: ['move_y','move_x','move_z','~','move_yaw'] # Y, X, PITCH, ROLL, YAW 
+  mappingAux: ['clutch','switch','grasp','~','~'] # Y, X, PITCH, ROLL, YAW  
+  auxPlatformWorkspaceLimsMinLeft: [-0.070, -0.0975, -0.200, 0.00000, -0.349066] # Y,X,PITCH,ROLL,YAW
+  auxPlatformWorkspaceLimsMaxLeft: [0.090, 0.0975, 0.0872665, -0.126892 , 0.349066]
+  auxPlatformWorkspaceLimsMinRight: [-0.040, -0.0975, -0.200, 0.000, -0.349066] # Y,X,PITCH,ROLL,YAW
+  auxPlatformWorkspaceLimsMaxRight: [0.040, 0.040, 0.0872665, 0.226892, 0.349066] #[0.090, 0.0975, 0.0872665, 0.226892, 0.349066]

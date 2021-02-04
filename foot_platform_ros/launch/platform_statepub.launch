@@ -7,13 +7,13 @@
 	<arg name="virtual_platform" default="true" />
 	<arg name="model" default="$(find foot_platform_ros)/urdf/$(arg id)/foot_platform.create.xacro" />
 
-	<group ns="$(arg id)">
+	<group ns="$(arg id)_platform">
 	  	
-		<param name="platform_description" command="$(find xacro)/xacro --inorder $(arg model)"/>  
+		<param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model) platform_id:=$(arg id)"/>  
+		
 		<group if="$(arg virtual_platform)">
 			<node name="virtual_platform_joint_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui">
 				<param name="publish_frequency" value="$(arg freq)"/>
-				<remap from="robot_description" to="platform_description" />
 				<remap from="joint_states" to="platform_joint_publisher/joint_states_2" />
 			</node>	
 		    <node name="platform_joint_publisher" pkg="foot_platform_ros" type="footPlatformVirtual" output="screen">
@@ -31,14 +31,11 @@
 
 		<node name="platform_state_publisher" pkg="robot_state_publisher" type="state_publisher">
 			<param name="publish_frequency" type="double" value="1000.0"/>
-			<param name="tf_prefix" value="$(arg id)"/>
-			<remap from="robot_description" to="platform_description" />
 			<remap from="joint_states" to="platform_joint_publisher/joint_states" />
-			
 		</node>
 	
 	</group>
 
-	<node pkg="tf2_ros" type="static_transform_publisher" name="world_to_$(arg id)_platform" args="$(arg offset_x) $(arg offset_y) $(arg offset_z) 0 0 0 1 world $(arg id)/platform_base_link" />
+	<node pkg="tf2_ros" type="static_transform_publisher" name="world_to_$(arg id)_platform" args="$(arg offset_x) $(arg offset_y) $(arg offset_z) 0 0 0 1 world $(arg id)_platform_base_link" />
 
 </launch>

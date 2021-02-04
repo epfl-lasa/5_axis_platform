@@ -54,12 +54,11 @@ bool footStatePublisher::init() //! Initialization of the node. Its datatype
 
   if (_n.ok()) {
     ros::spinOnce();
-    ROS_INFO("The platform joint state publisher "
-             "is about to start ");
+    ROS_INFO("[%s platform j.pub.]: The platform joint state publisher is about to start ",Platform_Names[_platform_id]);
     return true;
   } 
   else {
-    ROS_ERROR("The ros node has a problem.");
+    ROS_ERROR("[%s platform j.pub.]: The ros node has a problem.",Platform_Names[_platform_id]);
     return false;
   }
 }
@@ -69,11 +68,9 @@ void footStatePublisher::stopNode(int sig) { me->_stop = true; }
 void footStatePublisher::run() {
   while (!_stop) {
     if (_flagPlatformConnected) {
-      if ((_platform_id != (Platform_Name)_ros_platform_id) &&
-          (_platform_id != UNKNOWN)) 
+      if ((_platform_id != (Platform_Name)_ros_platform_id)) 
       {
-        ROS_ERROR("This node  is acting on the "
-                  "wrong platform");
+        ROS_ERROR("[%s platform j.pub.]: This node is acting on the wrong platform",Platform_Names[_platform_id]);
         ros::spinOnce();
         break;
       } 
@@ -84,7 +81,7 @@ void footStatePublisher::run() {
     ros::spinOnce();
     _loopRate.sleep();
   }
-  ROS_INFO("Platform state variables stopped");
+  ROS_INFO("[%s platform j.pub.]: Platform state variables stopped",Platform_Names[_platform_id]);
   ros::spinOnce();
   _loopRate.sleep();
   ros::shutdown();
@@ -102,7 +99,7 @@ void footStatePublisher::publishFootJointStates() {
   _msgJointStates.effort.resize(NB_PLATFORM_AXIS);
   
   for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
-    _msgJointStates.name[k] = Platform_Axis_Names[k];
+    _msgJointStates.name[k] = std::string(Platform_Names[_platform_id])  + "_" +  std::string(Platform_Axis_Names[k]);
     _msgJointStates.position[k] = _ros_state_position[k];
     _msgJointStates.velocity[k] = _ros_state_velocity[k];
     _msgJointStates.effort[k] = _ros_state_effort[k];

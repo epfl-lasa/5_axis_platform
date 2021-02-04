@@ -1,12 +1,17 @@
 #ifndef DEFINITIONS_MAIN_H
 #define DEFINITIONS_MAIN_H
 
-#include "math.h"
 
-//! Platform type
-#define RIGHT_PLATFORM 1
-#define LEFT_PLATFORM 2
-#define PLATFORM_ID RIGHT_PLATFORM //! 1:Right 2:Left
+#include "math.h"
+// //! Platform type
+
+
+// #define RIGHT_PLATFORM_ID 1
+// #define LEFT_PLATFORM_ID 2
+enum Platform_IT {RIGHT_PLATFORM_IT = 0, LEFT_PLATFORM_IT = 1, NB_PLATFORMS};
+enum Platform_ID {NO_PLATFORM_ID=0,RIGHT_PLATFORM_ID=1,LEFT_PLATFORM_ID=2};
+
+#define PLATFORM_ID LEFT_PLATFORM_ID //! 1:Right 2:Left
 
 //! Indexing
 #define NB_LIMS 2
@@ -18,8 +23,8 @@
 
 //! Physics and Math Constants
 #define GRAVITY -9.80665F
-const float RAD_TO_DEG = 180.0f / M_PI;
-const float DEG_TO_RAD = M_PI / 180.0f;
+const double RAD_TO_DEG = 180.0f / M_PI;
+const double DEG_TO_RAD = M_PI / 180.0f;
 
 //! Features of platform
 extern const char *Platform_Names[];

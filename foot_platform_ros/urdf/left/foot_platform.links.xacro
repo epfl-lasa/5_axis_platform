@@ -5,8 +5,8 @@
   <xacro:property name="pitch_gear_r" value="${12.0}"/>
   <xacro:property name="roll_yaw_gear_r" value="${12.96}"/>
 
-  <xacro:macro name="define_platform_links">
-    <link name="platform_base_link" >
+  <xacro:macro name="define_platform_links" params="platform_id:=left"> 
+    <link name="${platform_id}_platform_base_link" >
       <!--inertial>  KDL doesn't like the base with inertia
         <mass value="6.20696344"/>
         <origin xyz="-0.06393533 0.23761375 0.06685000" rpy="0 0 0"/>
@@ -26,7 +26,7 @@
       </collision>
     </link>
 
-    <link name="y">
+    <link name="${platform_id}_platform_y">
         <inertial>
         <origin xyz="-0.02817123 -0.07585496 0.00969366" rpy="0 0 0"/>
         <mass value="1.86377694"/><!-- kg -->
@@ -45,7 +45,7 @@
         </geometry>
       </collision>
     </link>
-    <link name="x">
+    <link name="${platform_id}_platform_x">
       <inertial>
         <origin xyz="-0.15354810 -0.02479498 -0.06831312" rpy="0 0 0"/>
         <mass value="3.59020320"/><!-- kg -->
@@ -64,9 +64,9 @@
         </geometry>
       </collision>
     </link>
-    <link name="z_link"/> <!--virtual link--> 
+    <link name="${platform_id}_platform_z_link"/> <!--virtual link--> 
     
-    <link name="pitch"> 
+    <link name="${platform_id}_platform_pitch"> 
       <inertial>
         <origin xyz="-0.00593072	-0.00000124	 -0.00156324" rpy="0 0 0"/>
         <mass value="6.40922346"/><!-- kg -->
@@ -85,7 +85,7 @@
         </geometry>
       </collision>
     </link>
-    <link name="roll">
+    <link name="${platform_id}_platform_roll">
       <inertial>
         <origin xyz="0.03719409 -0.00002562 -0.00002217" rpy="0 0 0"/>
         <mass value="1.17868723"/><!-- kg -->
@@ -104,7 +104,7 @@
         </geometry>
       </collision>
     </link> 
-    <link name="yaw">
+    <link name="${platform_id}_platform_yaw">
       <inertial>
         <origin xyz="-0.00002617   0.00000265  0.10239610" rpy="0 0 0"/>
         <mass value="0.39114648"/><!-- kg -->
@@ -123,7 +123,7 @@
         </geometry>
       </collision> 
     </link> 
-    <link name="fSensor"> 
+    <link name="${platform_id}_platform_fSensor"> 
         <inertial>
         <origin xyz="-0.03198766 0.00021421 0.02133190" rpy="0 0 0"/>
         <mass value="0.37200000"/><!-- 0.372 kg -->
@@ -142,9 +142,9 @@
         </geometry>
       </collision>
     </link> 
-    <link name="foot_rest" /> <!-- virtual link-->
-    <link name="virtual_ankle" /> <!-- virtual link-->
-    <link name="pedal_tip" /> <!-- virtual link-->
+    <link name="${platform_id}_platform_foot_rest" /> <!-- virtual link-->
+    <link name="${platform_id}_platform_virtual_ankle" /> <!-- virtual link-->
+    <link name="${platform_id}_platform_pedal_tip" /> <!-- virtual link-->
   </xacro:macro>
 </robot>
  

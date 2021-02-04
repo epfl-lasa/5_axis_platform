@@ -46,7 +46,7 @@ enum frame_chain {
     //                                     6.40922346f, 1.17868723f, 0.39114648f,
     //                                     0.37200000f}; //  0.37200000f                                     
 
-#if (PLATFORM_ID == RIGHT_PLATFORM)
+#if (PLATFORM_ID == RIGHT_PLATFORM_ID)
     //! Geometric Parameters
         //! Links Inertial Parameters
 

@@ -12,14 +12,14 @@ int main(int argc, char **argv) {
 
   if (platform_name.compare("right")==0)
   {
-      platform_id_ = footPlatformVirtual::RIGHT;
+    platform_id_ = footPlatformVirtual::RIGHT;
   } 
   else if (platform_name.compare("left")==0) {
     platform_id_ = footPlatformVirtual::LEFT;
   }
     else {
-  ROS_ERROR("You didn't enter a platformID left or right");
-  return -1;
+    ROS_ERROR("You didn't enter a platformID left or right");
+    return -1;
   }
   
   float frequency = 450.0f;

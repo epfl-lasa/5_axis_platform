@@ -68,14 +68,14 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
   //  _tfListener = new tf2_ros::TransformListener(_tfBuffer);
 
   if (!kdl_parser::treeFromUrdfModel(_myModel, _myTree)) {
-    ROS_ERROR("Failed to construct kdl tree");
+    ROS_ERROR("[%s force sensor]: Failed to construct kdl tree",Platform_Names[_platform_id]);
     _stop=true;
   }
 
-  _myTree.getChain("platform_base_link", "foot_rest", _myFootRestChain);
+  _myTree.getChain(std::string(Platform_Names[_platform_id]) + "_platform_base_link", std::string(Platform_Names[_platform_id]) + "_platform_foot_rest", _myFootRestChain);
 
 
-  _myTree.getChain("platform_base_link", "virtual_ankle", _myVirtualAnkleChain);
+  _myTree.getChain(std::string(Platform_Names[_platform_id]) + "_platform_base_link", std::string(Platform_Names[_platform_id]) + "_platform_virtual_ankle", _myVirtualAnkleChain);
 
   _myChainDyn = new KDL::ChainDynParam(_myFootRestChain, _grav_vector);
 
@@ -88,8 +88,8 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
 
   for (int joint_=0; joint_<NB_PLATFORM_AXIS; joint_++ )
    {
-     _platformJointLims[L_MIN].data(joint_) = _myModel.getJoint(Platform_Axis_Names[joint_])->limits->lower;
-     _platformJointLims[L_MAX].data(joint_) = _myModel.getJoint(Platform_Axis_Names[joint_])->limits->upper;
+     _platformJointLims[L_MIN].data(joint_) = _myModel.getJoint(std::string(Platform_Names[_platform_id]) + "_" + std::string(Platform_Axis_Names[joint_]))->limits->lower;
+     _platformJointLims[L_MAX].data(joint_) = _myModel.getJoint(std::string(Platform_Names[_platform_id]) + "_" + std::string(Platform_Axis_Names[joint_]))->limits->upper;
    }
 
 }
@@ -114,8 +114,8 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 
   if (_platform_id == LEFT) {
 
-    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/left/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
-    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/left/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/left_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/left_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
     _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
         PLATFORM_PUBLISHER_NAME_LEFT, 1,
@@ -126,8 +126,8 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
   }
   if (_platform_id == RIGHT) {
 
-    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/right/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
-    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/right/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/right_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/right_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
     _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
         PLATFORM_PUBLISHER_NAME_RIGHT, 1,
@@ -149,7 +149,9 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 	  
 
 	if (!_n.getParam("force_alpha", _force_filt_alpha))
-		{ ROS_ERROR("No force filter gain found"); }
+		{ 
+      ROS_ERROR("[%s force sensor]: No force filter gain found",Platform_Names[_platform_id]);
+    }
 	
   _force_filt_alphas.setConstant(_force_filt_alpha);
 
@@ -158,12 +160,11 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 
   if (_n.ok()) {
     ros::spinOnce();
-    ROS_INFO("The platform joint state publisher "
-             "is about to start ");
+    ROS_INFO("[%s force sensor]: The platform joint state publisher is about to start ",Platform_Names[_platform_id]);
     return true;
   } 
   else {
-    ROS_ERROR("The ros node has a problem.");
+    ROS_ERROR("[%s force sensor]: The ros node has a problem.",Platform_Names[_platform_id]);
     return false;
   }
 }
@@ -173,52 +174,41 @@ void footForceMeasModifier::stopNode(int sig) { me->_stop = true; }
 void footForceMeasModifier::run() {
   while (!_stop) {
     if (_flagPlatformConnected) {
-      // if ((_platform_id != (Platform_Name)_ros_platform_id) &&
-      //     (_platform_id != UNKNOWN)) 
-      // {
-      //   ROS_ERROR("This node  is acting on the "
-      //             "wrong platform");
-      //   ros::spinOnce();
-      //   break;
-      // } 
-      // else {
-        if (_flagFootOutputRead)
-        {
-          updateTreeFKState();
-          computeGravityTorque();
-          computeWrenchFromPedalMeasBias();
-        if (_flagLegGravityCompWrenchRead)
-        {
-          computeLegGravityCompTorque();
-          publishLegCompFootInput();
-        }
-        if (_flagForceConnected)
-				{ 
-          filterForce();
-          if (_ros_platform_machineState!=EMERGENCY && _ros_platform_machineState!=CENTERING)
-          {
-            if (!_flagForceCalibrated)
-            {
-					    calibrateForce();
-            }
-					  else
-					  {
-					    modifyForce();
-              publishForceModified();
-              publishForceFootRestWorld();
-              publishTorquesModified();
-              publishPedalBias();
+      if (_flagFootOutputRead){
+        updateTreeFKState();
+        computeGravityTorque();
+        computeWrenchFromPedalMeasBias();
+      if (_flagLegGravityCompWrenchRead){
+        computeLegGravityCompTorque();
+        publishLegCompFootInput();
+      }
+      if (_flagForceConnected){ 
+        filterForce();
+        if (_ros_platform_machineState!=EMERGENCY && _ros_platform_machineState!=CENTERING){
+
+          if (!_flagForceCalibrated){
+            calibrateForce();
+          }else {
+            modifyForce();
+            publishForceModified();
+            publishForceFootRestWorld();
+            publishTorquesModified();
+            publishPedalBias();
 					  }
+        
+        } else{
+            ROS_INFO_ONCE("[%s force sensor]: Please put the platform in state TELEOPERATION.",Platform_Names[_platform_id]);
           }
 				}
         }
+    }else {
 
-      // }
-    }
+      ROS_INFO_ONCE("[%s force sensor]: The platform is not connected yet",Platform_Names[_platform_id]);
+    }  
     ros::spinOnce();
     _loopRate.sleep();
   }
-  ROS_INFO("Platform state variables stopped");
+  ROS_INFO("[%s force sensor]: The force sensor modifier stopped",Platform_Names[_platform_id]);
   ros::spinOnce();
   _loopRate.sleep();
   ros::shutdown();
@@ -235,6 +225,7 @@ void footForceMeasModifier::readPlatformOutput(const custom_msgs::FootOutputMsg_
   }
   me->_platformJoints.data = _platform_position;
   if (!_flagPlatformConnected) {
+    ROS_INFO("[%s force sensor]: Platform Connected",Platform_Names[_platform_id]);
     _flagPlatformConnected = true;
   }
   _flagFootOutputRead = true;
@@ -297,14 +288,14 @@ void footForceMeasModifier::computeLegGravityCompTorque() {
 void footForceMeasModifier::publishForceModified() {
   
     _msgForceModified.header.stamp = ros::Time::now();
-    _msgForceModified.header.frame_id = _platform_id ==RIGHT ? "right/fSensor" : "left/fSensor";
+    _msgForceModified.header.frame_id = _platform_id ==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor";
     tf::wrenchEigenToMsg(_forceModified,_msgForceModified.wrench);
     _pubForceModified.publish(_msgForceModified);
 }
 
 void footForceMeasModifier::publishPedalBias(){
   _msgPedalBias.header.stamp = ros::Time::now();
-  _msgPedalBias.header.frame_id = _platform_id ==RIGHT ? "right/fSensor" : "left/fSensor";
+  _msgPedalBias.header.frame_id = _platform_id ==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor";
   tf::wrenchEigenToMsg(_forcePedalBias,_msgPedalBias.wrench);
   _pubPedalBias.publish(_msgPedalBias);
 }
@@ -330,7 +321,7 @@ void footForceMeasModifier::readForceSensor(const geometry_msgs::WrenchStamped::
   _forceMeasurements = _rotationfSensor * _forceMeasurements;
     if (!_flagForceConnected)
 	 {
-		ROS_INFO("Force Sensor Connected");
+		ROS_INFO("[%s force sensor]: Force Sensor Connected",Platform_Names[_platform_id]);
     _flagForceConnected = true;
 	 }
 }
@@ -351,7 +342,7 @@ void footForceMeasModifier::calibrateForce()
 	if (_calibrationCount==NB_CALIBRATION_COUNT)
 	{
           _undesiredForceBias = (_undesiredForceBias.array()/NB_CALIBRATION_COUNT).matrix();
-		  ROS_INFO("Sensor Calibrated!");
+		  ROS_INFO("[%s force sensor]: Sensor Calibrated!",Platform_Names[_platform_id]);
 		  cout<<"Undesired force bias: "<<_undesiredForceBias.transpose()<<endl;
       _flagForceCalibrated = true;
       _forcePedalBiasInit = _forcePedalBias;
@@ -376,8 +367,8 @@ void footForceMeasModifier::calibrateForce()
 //   }
 //   else 
 //   {
-//     destination_frame = "right/"+frame_destination_;
-//     original_frame = "right/"+frame_origin_;
+//     destination_frame = "/right_"+frame_destination_;
+//     original_frame = "/right_"+frame_origin_;
 //   }
 
 
@@ -390,7 +381,7 @@ void footForceMeasModifier::calibrateForce()
     
 //   } catch (tf2::TransformException ex) {
 //     if (count>2)
-//     { ROS_ERROR("%s", ex.what());
+//     { ROS_ERROR("[%s force sensor]: %s", ex.what(),Platform_Names[_platform_id]);
 //       count = 0;
 //     }
 //     else
@@ -439,7 +430,7 @@ void footForceMeasModifier::publishForceFootRestWorld(){
   _forceInFootRest.segment(3,3) = momentRotated_ +  distanceFSToFootRest.cross(forceRotated_);
 
   _msgForceFootRestWorld.header.stamp = ros::Time::now();
-  _msgForceFootRestWorld.header.frame_id = _platform_id ==RIGHT ? "right/foot_rest" : "left/foot_rest";
+  _msgForceFootRestWorld.header.frame_id = _platform_id ==RIGHT ? "/right_platform_foot_rest" : "/left_platform_foot_rest";
   tf::wrenchEigenToMsg(_forceInFootRest,_msgForceFootRestWorld.wrench);
   _pubForceFootRestWorld.publish(_msgForceFootRestWorld);
   }
@@ -478,7 +469,7 @@ void footForceMeasModifier::publishForceSensorStaticCoG(){
 		}	
 		
 		std::string frame_name;
-		frame_name = _platform_id==RIGHT ? "/right/fSensor" : "/left/fSensor"; 
+		frame_name = _platform_id==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor"; 
 		_msgForceSensorCoG.header.stamp = ros::Time::now();
 		_msgForceSensorCoG.header.frame_id = frame_name; 
 		_msgForceSensorCoG.point.x = _forceSensorCoG(0);
@@ -500,8 +491,8 @@ void footForceMeasModifier::computeFootManipulability()
   _mySVD.compute(jacobian_, ComputeThinU | ComputeThinV);
   Eigen::VectorXd mySingValues = _mySVD.singularValues();
   //cout<<"Singular Values :"<<endl<<_mySVD.singularValues()<<endl;
-  cout << "Foot Platform Condition Number: "<<mySingValues.minCoeff()/mySingValues.maxCoeff() << endl;
-  cout << "Foot Platform Yoshikawa Manipulability: "<<mySingValues.prod()<< endl;
+  // cout << "Foot Platform Condition Number: "<<mySingValues.minCoeff()/mySingValues.maxCoeff() << endl;
+  // cout << "Foot Platform Yoshikawa Manipulability: "<<mySingValues.prod()<< endl;
 }
 
 
@@ -512,7 +503,7 @@ void footForceMeasModifier::publishManipulabilityEllipsoidRot() {
   Quaternion<double> svdSingQuaternion(leftSVDVectors);
   std::string frame_name;
   std::string ns_name;
-  frame_name = _platform_id == RIGHT ? "/right/platform_base_link" : "/left/platform_base_link";
+  frame_name = _platform_id == RIGHT ? "/right_platform_base_link" : "/left_platform_base_link";
   ns_name = _platform_id == RIGHT ? "/right" : "/left";
   _msgManipEllipsoidRot.header.frame_id = frame_name;
   _msgManipEllipsoidRot.header.stamp = ros::Time::now();
@@ -547,7 +538,7 @@ void footForceMeasModifier::publishManipulabilityEllipsoidLin() {
   Quaternion<double> svdSingQuaternion(leftSVDVectors);
   std::string frame_name;
   std::string ns_name;
-  frame_name = _platform_id == RIGHT ? "/right/platform_base_link" : "/left/platform_base_link";
+  frame_name = _platform_id == RIGHT ? "/right_platform_base_link" : "/left_platform_base_link";
   ns_name = _platform_id == RIGHT ? "/right" : "/left";
   _msgManipEllipsoidLin.header.frame_id = frame_name;
   _msgManipEllipsoidLin.header.stamp = ros::Time::now();

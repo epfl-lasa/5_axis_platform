@@ -48,7 +48,7 @@ const float INV_TORQUE_K[] = {1.0f / TORQUE_K[Y], 1.0f / TORQUE_K[X], 1.0f / TOR
 
 //! Platform Specific Parameters
 
-#if (PLATFORM_ID == LEFT_PLATFORM)
+#if (PLATFORM_ID == LEFT_PLATFORM_ID)
 
 const float ADC_EFFORT_SCALE[NB_AXIS] = {1.0f, 1.0f, 1.0f, 2.12571428571f, 2.26086956522f};
 
@@ -62,7 +62,7 @@ const float HOMING_OFFSET_X = -X_RANGE / 2;
 const float HOMING_OFFSET_Y = Y_RANGE / 2;
 //const float HOMING_OFFSET_PITCH = (17.0f + 7.4139f) * DEG_TO_RAD; //! [deg]
 
-const float HOMING_OFFSET_PITCH = 25.0f * DEG_TO_RAD; //! [deg]
+const float HOMING_OFFSET_PITCH = (25.0f - 2.84f) * DEG_TO_RAD; //! [deg]
 const float HOMING_OFFSET_ROLL = (0.0f) * DEG_TO_RAD;
 const float HOMING_OFFSET_YAW = 0.0f;
 

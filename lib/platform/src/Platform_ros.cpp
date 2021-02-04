@@ -6,7 +6,7 @@ void Platform::communicateToRos()
   // Publish foot output
   //_platformMutex.lock();
     pubFootOutput();
-    _nh.spinOnce(); //Publishes and Retrieves Messages
+    _nh.spinOnce();
   //_platformMutex.unlock();
    // For Retrieving and Publishing to ROS. We can put it separate in the main in  case we want to put it in an interruption
 }
@@ -112,7 +112,7 @@ void Platform::updateController(const custom_msgs::setControllerSrv::Request &re
 //! 4
 void Platform::pubFootOutput()
 {
-  _msgFootOutput.platform_stamp = _nh.now();
+  //_msgFootOutput.platform_stamp = _nh.now();
   _msgFootOutput.platform_id = PLATFORM_ID;
   
   for (uint k=0; k<NB_AXIS; k++)

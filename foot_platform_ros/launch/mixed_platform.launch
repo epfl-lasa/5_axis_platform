@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <rosparam command="load" file="$(find foot_platform_ros)/config/mixed_platform_settings.yaml"/>
+    
+    <node name="mixed_platform_joint_publisher" pkg="foot_platform_ros"	 type="mixedPlatformStatePublisher" output="screen"/>
+</launch>

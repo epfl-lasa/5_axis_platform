@@ -66,60 +66,60 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        fSensor:
+        right_platform_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        foot_rest:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        pedal_tip:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        pitch:
+        right_platform_fSensor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        platform_base_link:
+        right_platform_foot_rest:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_platform_pedal_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_platform_pitch:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        roll:
+        right_platform_roll:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        virtual_ankle:
+        right_platform_virtual_ankle:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        x:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        y:
+        right_platform_x:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        yaw:
+        right_platform_y:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        z_link:
+        right_platform_yaw:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_platform_z_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
       Name: RobotModel
-      Robot Description: /right/platform_description
-      TF Prefix: right
+      Robot Description: /right_platform/robot_description
+      TF Prefix: ""
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -128,49 +128,49 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        left/fSensor:
+        left_platform_base_link:
           Value: true
-        left/foot_rest:
+        left_platform_fSensor:
           Value: true
-        left/pedal_tip:
+        left_platform_foot_rest:
           Value: true
-        left/pitch:
+        left_platform_pedal_tip:
           Value: true
-        left/platform_base_link:
+        left_platform_pitch:
           Value: true
-        left/roll:
+        left_platform_roll:
           Value: true
-        left/virtual_ankle:
+        left_platform_virtual_ankle:
           Value: true
-        left/x:
+        left_platform_x:
           Value: true
-        left/y:
+        left_platform_y:
           Value: true
-        left/yaw:
+        left_platform_yaw:
           Value: true
-        left/z_link:
+        left_platform_z_link:
           Value: true
-        right/fSensor:
+        right_platform_base_link:
           Value: true
-        right/foot_rest:
+        right_platform_fSensor:
           Value: true
-        right/pedal_tip:
+        right_platform_foot_rest:
           Value: true
-        right/pitch:
+        right_platform_pedal_tip:
           Value: true
-        right/platform_base_link:
+        right_platform_pitch:
           Value: true
-        right/roll:
+        right_platform_roll:
           Value: true
-        right/virtual_ankle:
+        right_platform_virtual_ankle:
           Value: true
-        right/x:
+        right_platform_x:
           Value: true
-        right/y:
+        right_platform_y:
           Value: true
-        right/yaw:
+        right_platform_yaw:
           Value: true
-        right/z_link:
+        right_platform_z_link:
           Value: true
         world:
           Value: true
@@ -181,31 +181,31 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          left/platform_base_link:
-            left/y:
-              left/x:
-                left/z_link:
-                  left/pitch:
-                    left/roll:
-                      left/yaw:
-                        left/fSensor:
-                          left/foot_rest:
-                            left/pedal_tip:
+          left_platform_base_link:
+            left_platform_y:
+              left_platform_x:
+                left_platform_z_link:
+                  left_platform_pitch:
+                    left_platform_roll:
+                      left_platform_yaw:
+                        left_platform_fSensor:
+                          left_platform_foot_rest:
+                            left_platform_pedal_tip:
                               {}
-                            left/virtual_ankle:
+                            left_platform_virtual_ankle:
                               {}
-          right/platform_base_link:
-            right/y:
-              right/x:
-                right/z_link:
-                  right/pitch:
-                    right/roll:
-                      right/yaw:
-                        right/fSensor:
-                          right/foot_rest:
-                            right/pedal_tip:
+          right_platform_base_link:
+            right_platform_y:
+              right_platform_x:
+                right_platform_z_link:
+                  right_platform_pitch:
+                    right_platform_roll:
+                      right_platform_yaw:
+                        right_platform_fSensor:
+                          right_platform_foot_rest:
+                            right_platform_pedal_tip:
                               {}
-                            right/virtual_ankle:
+                            right_platform_virtual_ankle:
                               {}
       Update Interval: 0
       Value: true
@@ -219,60 +219,60 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        fSensor:
+        left_platform_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        foot_rest:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        pedal_tip:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        pitch:
+        left_platform_fSensor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        platform_base_link:
+        left_platform_foot_rest:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_platform_pedal_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_platform_pitch:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        roll:
+        left_platform_roll:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        virtual_ankle:
+        left_platform_virtual_ankle:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        x:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        y:
+        left_platform_x:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        yaw:
+        left_platform_y:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        z_link:
+        left_platform_yaw:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_platform_z_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
       Name: RobotModel
-      Robot Description: left/platform_description
-      TF Prefix: left
+      Robot Description: /left_platform/robot_description
+      TF Prefix: ""
       Update Interval: 0
       Value: true
       Visual Enabled: true

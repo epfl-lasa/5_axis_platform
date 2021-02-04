@@ -14,6 +14,10 @@
 
     <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/platform_geom_data.yaml"/>
     
+    <include file="$(find foot_platform_ros)/launch/hw_params_upload.launch">
+        <arg name="id"               value="$(arg id)"/>
+    </include>
+
     <group unless="$(arg virtual_platform)">
         <include file="$(find foot_platform_ros)/launch/platform_hw.launch">
             <arg name="baud" value="$(arg baud)"/>

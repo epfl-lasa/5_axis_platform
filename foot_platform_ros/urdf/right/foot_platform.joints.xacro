@@ -14,75 +14,75 @@
   <xacro:property name="d7_platform" value="${platform_geom_data['d7']}"/> <!-- [m]-->
   <xacro:property name="r8_platform" value="${platform_geom_data['r8']}"/> <!-- [m]-->
 
-  <xacro:macro name="define_platform_joints">
-    <joint name="platform_y" type="prismatic">
+  <xacro:macro name="define_platform_joints" params="platform_id:=right">
+    <joint name="${platform_id}_platform_y" type="prismatic">
       <origin xyz="0 0 0" rpy="-${pi/2} 0 0"/>
-      <parent link="platform_base_link"/>
-      <child link="y"/>
+      <parent link="${platform_id}_platform_base_link"/>
+      <child link="${platform_id}_platform_y"/>
       <limit effort="23.5" velocity="10.0" lower="-0.090" upper="0.090"/>
       <axis xyz="0 0 1"/> 
     </joint>
 
-    <joint name="platform_x" type="prismatic">
+    <joint name="${platform_id}_platform_x" type="prismatic">
       <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
-      <parent link="y"/>
-      <child link="x"/>
+      <parent link="${platform_id}_platform_y"/>
+      <child link="${platform_id}_platform_x"/>
       <limit effort="30" velocity="10.0" lower="-0.0975" upper="0.0975"/>
       <axis xyz="0 0 1"/> 
     </joint>
 
-    <joint name="z_joint" type="fixed">
+    <joint name="${platform_id}_z_joint" type="fixed">
       <origin xyz="0 0 0" rpy="0 0 ${pi}"/>
-      <parent link="x"/>
-      <child link="z_link"/>
+      <parent link="${platform_id}_platform_x"/>
+      <child link="${platform_id}_platform_z_link"/>
     </joint>
 
-    <joint name="platform_pitch" type="revolute">
+    <joint name="${platform_id}_platform_pitch" type="revolute">
       <origin xyz="${r3_platform} 0 0" rpy="0 0 0"/>
-      <parent link="z_link"/>
-      <child link="pitch"/>
+      <parent link="${platform_id}_platform_z_link"/>
+      <child link="${platform_id}_platform_pitch"/>
       <limit effort="7" velocity="10.0" lower="${radians(-27.5)}" upper="${radians(27.5)}"/>
       <axis xyz="0 0 1"/> 
     </joint>
 
-    <joint name="platform_roll" type="revolute">
+    <joint name="${platform_id}_platform_roll" type="revolute">
       <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
-      <parent link="pitch"/>
-      <child link="roll"/>
-      <limit effort="7" velocity="10.0" lower="${radians(-80)}" upper="${radians(20.5)}"/>
+      <parent link="${platform_id}_platform_pitch"/>
+      <child link="${platform_id}_platform_roll"/>
+      <limit effort="7" velocity="10.0" lower="${radians(0.0)}" upper="${radians(20.5)}"/>
       <axis xyz="0 0 1"/> 
     </joint>
 
-    <joint name="platform_yaw" type="revolute">
+    <joint name="${platform_id}_platform_yaw" type="revolute">
       <origin xyz="0 0 0" rpy="-${pi/2} 0 -${pi/2}"/>
-      <parent link="roll"/>
-      <child link="yaw"/>
-      <limit effort="7" velocity="10.0" lower="${radians(-100)}" upper="${radians(100)}"/>
+      <parent link="${platform_id}_platform_roll"/>
+      <child link="${platform_id}_platform_yaw"/>
+      <limit effort="7" velocity="10.0" lower="${radians(-25)}" upper="${radians(25)}"/>
       <axis xyz="0 0 1"/> 
     </joint>
 
-    <joint name="fSensor_joint" type="fixed">
+    <joint name="${platform_id}_fSensor_joint" type="fixed">
       <origin xyz="0 0 ${d6_platform}" rpy="0 0 ${pi/2}"/>
-      <parent link="yaw"/>
-      <child link="fSensor"/>
+      <parent link="${platform_id}_platform_yaw"/>
+      <child link="${platform_id}_platform_fSensor"/>
     </joint>
 
-    <joint name="footRest_joint" type="fixed">
+    <joint name="${platform_id}_footRest_joint" type="fixed">
       <origin xyz="0 0 ${d7_platform}" rpy="0 0 ${pi}"/>
-      <parent link="fSensor"/>
-      <child link="foot_rest"/>
+      <parent link="${platform_id}_platform_fSensor"/>
+      <child link="${platform_id}_platform_foot_rest"/>
     </joint>
 
-    <joint name="virtualAnkle_joint" type="fixed">
+    <joint name="${platform_id}_virtualAnkle_joint" type="fixed">
       <origin xyz="${-r7_leg} 0 ${d7_leg}" rpy="0 0 0"/>
-      <parent link="foot_rest"/>
-      <child link="virtual_ankle"/>
+      <parent link="${platform_id}_platform_foot_rest"/>
+      <child link="${platform_id}_platform_virtual_ankle"/>
     </joint>
 
-    <joint name="footTip_joint" type="fixed">
+    <joint name="${platform_id}_footTip_joint" type="fixed">
       <origin xyz="${r8_platform} 0 0" rpy="0 0 0"/>
-      <parent link="foot_rest"/>
-      <child link="pedal_tip"/>
+      <parent link="${platform_id}_platform_foot_rest"/>
+      <child link="${platform_id}_platform_pedal_tip"/>
     </joint>  
 </xacro:macro>
 </robot>

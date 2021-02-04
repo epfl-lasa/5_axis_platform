@@ -40,13 +40,13 @@ bool footPlatformVirtual::init() //! Initialization of the node. Its datatype
 {
     _pubVirtualFootOutput = _n.advertise<custom_msgs::FootOutputMsg_v3>("/FI_Output/"+std::string(Platform_Names_2[_platform_id]), 0);
     
-    _pubPlatformJointStates = _n.advertise<sensor_msgs::JointState>("/"+std::string(Platform_Names[_platform_id])+"/platform_joint_publisher/joint_states", 0);
+    _pubPlatformJointStates = _n.advertise<sensor_msgs::JointState>("/"+std::string(Platform_Names[_platform_id])+"_platform/platform_joint_publisher/joint_states", 0);
     
     _subVirtualFootInput = _n.subscribe<custom_msgs::FootInputMsg_v5>("/FI_Input/"+std::string(Platform_Names_2[_platform_id])
     , 1, boost::bind(&footPlatformVirtual::readVirtualFootInput, this, _1),
     ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
     
-    _subPlatformJointStates = _n.subscribe<sensor_msgs::JointState>("/"+std::string(Platform_Names[_platform_id])+"/platform_joint_publisher/joint_states_2"
+    _subPlatformJointStates = _n.subscribe<sensor_msgs::JointState>("/"+std::string(Platform_Names[_platform_id])+"_platform/platform_joint_publisher/joint_states_2"
     , 1, boost::bind(&footPlatformVirtual::readPlatformJointStates, this, _1),
     ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
@@ -55,11 +55,11 @@ bool footPlatformVirtual::init() //! Initialization of the node. Its datatype
 
   if (_n.ok()) {
     ros::spinOnce();
-    ROS_INFO("The virtual platform output is about to start ");
+    ROS_INFO("[%s virtual_platform]: The virtual platform output is about to start ",Platform_Names[_platform_id]);
     return true;
   } 
   else {
-    ROS_ERROR("The ros node has a problem.");
+    ROS_ERROR("[%s virtual_platform]: The ros node has a problem.",Platform_Names[_platform_id]);
     return false;
   }
 }
@@ -75,7 +75,7 @@ void footPlatformVirtual::run() {
     ros::spinOnce();
     _loopRate.sleep();
   }
-  ROS_INFO("Virtual platform stopped");
+  ROS_INFO("[%s virtual_platform]: Virtual platform stopped",Platform_Names[_platform_id]);
   ros::spinOnce();
   _loopRate.sleep();
   ros::shutdown();
@@ -133,7 +133,7 @@ void footPlatformVirtual::publishPlatformJointStates() {
   _msgPlatformJointStates.effort.resize(NB_PLATFORM_AXIS);
   
   for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
-    _msgPlatformJointStates.name[k] = Platform_Axis_Names[k];
+    _msgPlatformJointStates.name[k] = std::string(Platform_Names[_platform_id]) +"_"+ std::string(Platform_Axis_Names[k]);
     _msgPlatformJointStates.position[k] = _ros_state_position[k];
     _msgPlatformJointStates.velocity[k] = _ros_state_velocity[k];
     _msgPlatformJointStates.effort[k] = _ros_state_effort[k];
