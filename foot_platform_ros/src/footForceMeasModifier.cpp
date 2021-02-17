@@ -102,11 +102,11 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 {
   _pubForceModified = _n.advertise<geometry_msgs::WrenchStamped>("force_modified", 1);
   _pubPedalBias = _n.advertise<geometry_msgs::WrenchStamped>("pedal_bias_force", 1);
-  _pubTorquesModified = _n.advertise<custom_msgs::FootOutputMsg_v3>("torques_modified", 1);
+  _pubTorquesModified = _n.advertise<custom_msgs::FootOutputMsg>("torques_modified", 1);
   _pubForceSensorCoG = _n.advertise<geometry_msgs::PointStamped>("/" + std::string(Platform_Names[_platform_id]) +"/force_sensor_cog" , 1);
-  _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg_v5>("leg_comp_platform_effort", 1);
+  _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg>("leg_comp_platform_effort", 1);
   _subForceSensor = _n.subscribe<geometry_msgs::WrenchStamped>(
-					    	"/"+std::string(Platform_Names[_platform_id])+"/rokubimini0/force/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
+					    	"/ft_"+std::string(Platform_Names[_platform_id])+"/rokubimini/ft_"+std::string(Platform_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
   _pubForceFootRestWorld = _n.advertise<geometry_msgs::WrenchStamped>("force_foot_rest_world", 1);
   _pubManipEllipsoidRot = _n.advertise<visualization_msgs::Marker>("foot_manipulability_rot", 0);
@@ -117,7 +117,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
     _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/left_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
     _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/left_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
-    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
+    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_LEFT, 1,
         boost::bind(&footForceMeasModifier::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
@@ -129,7 +129,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
     _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/right_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
     _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/right_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
-    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
+    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_RIGHT, 1,
         boost::bind(&footForceMeasModifier::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
@@ -215,7 +215,7 @@ void footForceMeasModifier::run() {
 }
 
 
-void footForceMeasModifier::readPlatformOutput(const custom_msgs::FootOutputMsg_v3::ConstPtr &msg) {  
+void footForceMeasModifier::readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg) {  
   _ros_platform_machineState =msg->platform_machineState;
   _ros_platform_id = msg->platform_id;
   for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
@@ -444,8 +444,8 @@ void footForceMeasModifier::publishTorquesModified(){
     _msgTorquesModified.platform_stamp=ros::Time::now();
     _msgTorquesModified.platform_effortM.fill(0.0);
     _torquesModified = _myFootBaseJacobian.data.transpose() * _forceInFootRest;
-    _torquesModified(p_pitch)*=-1;
-    _torquesModified(p_pitch)*=-1;
+    // _torquesModified(p_pitch)*=-1;
+    // _torquesModified(p_pitch)*=-1;
     for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
     {
       _msgTorquesModified.platform_effortM[i]=_torquesModified(i);

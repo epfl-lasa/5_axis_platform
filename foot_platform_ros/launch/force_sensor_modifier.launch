@@ -1,17 +1,36 @@
 <?xml version="1.0"?>
 <launch>
     <arg name= "id"         default="right"/>
+    <arg name="two_platforms" default="false"/>
 	<arg name="forceAlpha" default="0.97"/>
     
-      <include file="$(find rokubimini_cosmo)/launch/rokubimini.launch">
-            <arg name="id" value="$(arg id)"/>            
+      <include file="$(find foot_platform_ros)/launch/force_sensors.launch">
+        <arg name="ft_name" value="ft_$(arg id)"/>
+        <arg name="ft_port" value="/dev/$(arg id)_force_sensor"/>                        
+        <arg name="two_sensors" value="$(arg two_platforms)"/>
       </include>    
 
-    <group ns="$(arg id)_platform">
-        <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
-            <param name="platformID" value="$(arg id)"/>
-			<param name="force_alpha" value="$(arg forceAlpha)"/>
-        </node>
+    <group unless="$(arg two_platforms)">
+        <group ns="$(arg id)_platform">
+            <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
+                <param name="platformID" value="$(arg id)"/>
+                <param name="force_alpha" value="$(arg forceAlpha)"/>
+            </node>
+        </group>
+    </group>
+    <group if="$(arg two_platforms)">
+         <group ns="right_platform">
+            <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
+                <param name="platformID" value="right"/>
+                <param name="force_alpha" value="$(arg forceAlpha)"/>
+            </node>
+        </group>
+         <group ns="left_platform">
+            <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
+                <param name="platformID" value="left"/>
+                <param name="force_alpha" value="$(arg forceAlpha)"/>
+            </node>
+        </group>
     </group>
 
 </launch>

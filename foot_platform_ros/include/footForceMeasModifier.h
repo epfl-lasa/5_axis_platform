@@ -33,10 +33,10 @@
 #include "geometry_msgs/WrenchStamped.h"
 #include "ros/ros.h"
 #include <boost/shared_ptr.hpp>
-#include <custom_msgs/FootInputMsg_v5.h>
-#include <custom_msgs/FootOutputMsg_v3.h>
+#include <custom_msgs/FootInputMsg.h>
+#include <custom_msgs/FootOutputMsg.h>
 #include <custom_msgs/setControllerSrv.h>
-#include <custom_msgs/setStateSrv_v2.h>
+#include <custom_msgs/setStateSrv.h>
 #include "../../../5_axis_platform/lib/platform/src/definitions_main.h"
 #include "../../../5_axis_platform/lib/platform/src/definitions_ros.h"
 // #include "../../../5_axis_platform/lib/platform/src/definitions_pid.h"
@@ -120,12 +120,12 @@ private:
   // ros variables
   visualization_msgs::Marker _msgManipEllipsoidRot;
   visualization_msgs::Marker _msgManipEllipsoidLin;
-  custom_msgs::FootOutputMsg_v3 _msgTorquesModified;
+  custom_msgs::FootOutputMsg _msgTorquesModified;
   geometry_msgs::PointStamped _msgForceSensorCoG;
   geometry_msgs::WrenchStamped _msgPedalBias; 
   geometry_msgs::WrenchStamped _msgForceModified; //! intented for the node FootVariableSynchronizer
   geometry_msgs::WrenchStamped _msgForceFootRestWorld; //! intented for the node FootVariableSynchronizer
-  custom_msgs::FootInputMsg_v5 _msgLegGravCompFI; //! intented for the node FootVariableSynchronizer
+  custom_msgs::FootInputMsg _msgLegGravCompFI; //! intented for the node FootVariableSynchronizer
 
   // ros variables
   urdf::Model _myModel;
@@ -149,7 +149,7 @@ private:
 
   ros::Publisher _pubManipEllipsoidLin;
 
-  ros::Subscriber _subPlatformOutput; // FootOutputMsg_v3
+  ros::Subscriber _subPlatformOutput; // FootOutputMsg
   ros::Subscriber _subLegGravityComp; //Reads the wrench needed for gravity compensation of the leg (in the foot base frame) to torques for the joints of the platform.
   ros::Subscriber _subLegCoG; 
   ros::Subscriber _subForceSensor;  // geometry_msgs/WrenchStamped.h
@@ -188,7 +188,7 @@ private:
   void modifyForce();
   void readLegGravityComp(const geometry_msgs::WrenchStampedConstPtr &msg);
   void readLegCoG(const geometry_msgs::PointStampedConstPtr &msg);
-  void readPlatformOutput(const custom_msgs::FootOutputMsg_v3::ConstPtr &msg);
+  void readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg);
   void updateTreeFKState();
   void computeGravityTorque(); //! effort in each leg joint
   void computePedalBias();

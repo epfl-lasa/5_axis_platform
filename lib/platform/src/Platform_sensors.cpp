@@ -21,7 +21,7 @@ void Platform::readActualEffort() //! ADC
     float e_meas[5];
     float e_raw[5];
 
-    for (uint k = 0; k < NB_AXIS; k++)
+    for (size_t k = 0; k < NB_AXIS; k++)
     {
       e_meas[k] = ADC_SIGN[k]*_motorCurrents[k]->read();
       e_raw[k] = (e_meas[k] - 0.1f) * (2.0f * MAX_EFFORT[k]) / (0.8f) - 1.0f * MAX_EFFORT[k];
@@ -38,7 +38,7 @@ void Platform::readActualEffort() //! ADC
       {
        if (_innerCounterADC>200)
        { 
-          for (uint k = 0; k < NB_AXIS; k++)
+          for (size_t k = 0; k < NB_AXIS; k++)
           {
             _adc_sum[k] += _effortM(k);
           }
@@ -48,7 +48,7 @@ void Platform::readActualEffort() //! ADC
 
     if (_innerCounterADC == 500)
     {
-      for (uint k = 0; k < NB_AXIS; k++)
+      for (size_t k = 0; k < NB_AXIS; k++)
         {
           _effortMFilters[k].setBias(_adc_sum[k] / (_innerCounterADC - 200) + ADC_USER_BIAS[k]);
           _adc_sum[k]=0.0f;
@@ -71,7 +71,7 @@ void Platform::getPosition()
   {
     float encoders_out[NB_AXIS] = {0.0f,0.0f,0.0f,0.0f,0.0f};
     _spi->lock();
-      for (uint k = 0; k < NB_AXIS; k++)
+      for (size_t k = 0; k < NB_AXIS; k++)
       {
         encoders_out[k] = _encoders[k]->QEC_getPosition(_spi);
       }
@@ -101,7 +101,7 @@ void Platform::getSpeed()
   if ((_timestamp-_speedSamplingStamp)>= VELOCITY_PID_SAMPLE_P)
   {
     _speed = (_position - _positionPrev) * invSpeedSampT;
-    for (uint k = 0; k < NB_AXIS; k++) // to change
+    for (size_t k = 0; k < NB_AXIS; k++) // to change
     {
       _speed(k) = _speedFilters[k].update(_speed(k));
     }
@@ -116,7 +116,7 @@ void Platform::getAcceleration()
   if ((_timestamp - _accSamplingStamp) >=  ACC_SAMPLE_P)
   {
     _acceleration = (_speed - _speedPrev) * invAccSampT;
-    for (uint k = 0; k < NB_AXIS; k++) // to change
+    for (size_t k = 0; k < NB_AXIS; k++) // to change
     {    
       _acceleration(k) = _accFilters[k].update(_acceleration(k));
     }

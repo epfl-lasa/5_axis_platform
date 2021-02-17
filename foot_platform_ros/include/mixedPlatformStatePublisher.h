@@ -6,10 +6,10 @@
 #include "nav_msgs/Path.h"
 #include "ros/ros.h"
 #include <boost/shared_ptr.hpp>
-#include <custom_msgs/FootInputMsg_v5.h>
-#include <custom_msgs/FootOutputMsg_v3.h>
+#include <custom_msgs/FootInputMsg.h>
+#include <custom_msgs/FootOutputMsg.h>
 #include <custom_msgs/setControllerSrv.h>
-#include <custom_msgs/setStateSrv_v2.h>
+#include <custom_msgs/setStateSrv.h>
 #include "../../../5_axis_platform/lib/platform/src/definitions_main.h"
 #include "../../../5_axis_platform/lib/platform/src/definitions_pid.h"
 #include "../../../5_axis_platform/lib/platform/src/definitions_ros.h"
@@ -37,7 +37,8 @@ using namespace std;
   enum Aux_Platform_Actions : size_t { AUX_PLATFORMS_ACTIONS };
   #undef ListofAuxPlatformActions
   extern const char *Aux_Platform_Actions_Names[];
-
+  
+  #define NB_AUX_ACTIONS_CHECK NB_AUX_ACTIONS-2
   
   #define MAIN_PLATFORMS_ACTIONS  \
     ListofMainPlatformActions(MOVE_Y,"move_y") \
@@ -54,26 +55,27 @@ using namespace std;
 class mixedPlatformStatePublisher {
 
 public:
+  enum Action_Aux_State {AUX_ON, AUX_OFF,NB_A_AUX_STATES};
+  enum Tool_Control {TOOL_POSITION_CTRL,TOOL_SPEED_CTRL};
   enum Tool_IT {RIGHT_TOOL_IT=0, LEFT_TOOL_IT=1, NB_TOOLS};
   enum Tool_ID {NO_TOOL_ID=0, RIGHT_TOOL_ID=1, LEFT_TOOL_ID=2};
   enum Tool_Type {FORCEPS=0, CAMERA=1}; 
   enum MixedPlatform_State {BOTH_TOOLS_DISABLED, 
-                            RIGHT_TOOL_ENABLED,
-                            LEFT_TOOL_ENABLED,
-                            WAITING_TOOL_TO_CHANGE,
-                            STANDBY,
-                            CALCULATE_OFFSET_MIXED_PLATFORM
+                            TOOL_ENABLED,
+                            TOOL_SWITCH,
                             };
 private:
   
   
   MixedPlatform_State _mixedPlatformState;
+  MixedPlatform_State _nextMixedPlatformState;
 
-  Platform_ID _mainPlatformID, _auxPlatformID;
+  uint8_t _mainPlatformID, _auxPlatformID;
   Platform_IT _mainPlatformIT, _auxPlatformIT;
   Tool_IT _currentToolIT, _prevEnabledToolIT;
   Tool_ID _currentToolID, _prevEnabledToolID;
   Tool_Type _toolTypes[NB_TOOLS];
+  Tool_Control _toolControls[NB_TOOLS];
   Main_Platform_Actions _mainPlatformAxisToAction[NB_PLATFORM_AXIS];
   Aux_Platform_Actions _auxPlatformAxisToAction[NB_PLATFORM_AXIS];
 
@@ -87,20 +89,20 @@ private:
   double *_mixedPlatformVelocity[NB_PLATFORM_AXIS];
   double *_mixedPlatformEffort[NB_PLATFORM_AXIS];
 
-  //Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _mixedPlatformPosition;
 
-  //Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _mixedPlatformVelocity;
-  //Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _mixedPlatformEffort;
-  
-  
   Eigen::Matrix<double,NB_PLATFORM_AXIS,NB_LIMS> _auxPlatformWSLims;
 
-
+  Eigen::Matrix<double,NB_PLATFORM_AXIS,NB_LIMS> _deadZoneValues[NB_PLATFORMS];
 
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platformPositionOffset[NB_TOOLS];
   // ros variables
   custom_msgs::TwoFeetOneToolMsg _msgMixedPlatformState;
 
+  bool _requestAuxAction[NB_AUX_ACTIONS_CHECK];
+  bool _flagOffsetCalculated;
+  bool _flagPrevToolSaved;
+
+  bool _flagWarningCenterMainPlatform;
   // ros variables
 
   ros::NodeHandle _n;

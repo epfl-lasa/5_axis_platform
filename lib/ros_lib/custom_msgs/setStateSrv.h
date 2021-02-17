@@ -15,11 +15,14 @@ static const char SETSTATESRV[] = "custom_msgs/setStateSrv";
     public:
       typedef int8_t _ros_machineState_type;
       _ros_machineState_type ros_machineState;
-      uint8_t ros_effortComp[4];
+      uint32_t ros_effortComp_length;
+      typedef uint8_t _ros_effortComp_type;
+      _ros_effortComp_type st_ros_effortComp;
+      _ros_effortComp_type * ros_effortComp;
 
     setStateSrvRequest():
       ros_machineState(0),
-      ros_effortComp()
+      ros_effortComp_length(0), ros_effortComp(NULL)
     {
     }
 
@@ -33,7 +36,12 @@ static const char SETSTATESRV[] = "custom_msgs/setStateSrv";
       u_ros_machineState.real = this->ros_machineState;
       *(outbuffer + offset + 0) = (u_ros_machineState.base >> (8 * 0)) & 0xFF;
       offset += sizeof(this->ros_machineState);
-      for( uint32_t i = 0; i < 4; i++){
+      *(outbuffer + offset + 0) = (this->ros_effortComp_length >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (this->ros_effortComp_length >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (this->ros_effortComp_length >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (this->ros_effortComp_length >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_effortComp_length);
+      for( uint32_t i = 0; i < ros_effortComp_length; i++){
       *(outbuffer + offset + 0) = (this->ros_effortComp[i] >> (8 * 0)) & 0xFF;
       offset += sizeof(this->ros_effortComp[i]);
       }
@@ -51,15 +59,24 @@ static const char SETSTATESRV[] = "custom_msgs/setStateSrv";
       u_ros_machineState.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
       this->ros_machineState = u_ros_machineState.real;
       offset += sizeof(this->ros_machineState);
-      for( uint32_t i = 0; i < 4; i++){
-      this->ros_effortComp[i] =  ((uint8_t) (*(inbuffer + offset)));
-      offset += sizeof(this->ros_effortComp[i]);
+      uint32_t ros_effortComp_lengthT = ((uint32_t) (*(inbuffer + offset))); 
+      ros_effortComp_lengthT |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1); 
+      ros_effortComp_lengthT |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2); 
+      ros_effortComp_lengthT |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3); 
+      offset += sizeof(this->ros_effortComp_length);
+      if(ros_effortComp_lengthT > ros_effortComp_length)
+        this->ros_effortComp = (uint8_t*)realloc(this->ros_effortComp, ros_effortComp_lengthT * sizeof(uint8_t));
+      ros_effortComp_length = ros_effortComp_lengthT;
+      for( uint32_t i = 0; i < ros_effortComp_length; i++){
+      this->st_ros_effortComp =  ((uint8_t) (*(inbuffer + offset)));
+      offset += sizeof(this->st_ros_effortComp);
+        memcpy( &(this->ros_effortComp[i]), &(this->st_ros_effortComp), sizeof(uint8_t));
       }
      return offset;
     }
 
     const char * getType(){ return SETSTATESRV; };
-    const char * getMD5(){ return "d88c773d83c787bc6a01848e2ea96e7e"; };
+    const char * getMD5(){ return "a5055ad8e0b2a6be8a39c16fccf50195"; };
 
   };
 

@@ -9,10 +9,10 @@
 #include "MA_Filter.h"
 #include "Platform.h"
 #include "definitions.h"
-#include "custom_msgs/FootInputMsg_v5.h"
-#include "custom_msgs/FootOutputMsg_v3.h"
+#include "custom_msgs/FootInputMsg.h"
+#include "custom_msgs/FootOutputMsg.h"
 #include "custom_msgs/setControllerSrv.h"
-#include "custom_msgs/setStateSrv_v2.h"
+#include "custom_msgs/setStateSrv.h"
 #include "definitions.h"
 
 #include "PID_v1.h"
@@ -30,12 +30,12 @@ class Platform
     bool _stop;
 
     //Power Electronics Variables
-    PinName _esconEnabledPins[NB_AXIS];
-    InterruptIn* _esconEnabled[NB_AXIS];
+    PinName _esconEnabledPins[NB_PLATFORM_AXIS];
+    InterruptIn* _esconEnabled[NB_PLATFORM_AXIS];
     volatile unsigned int _allEsconOk;
     bool _recoveringFromError;
     bool _flagBiasADCOk;
-    float _adc_sum[NB_AXIS];
+    float _adc_sum[NB_PLATFORM_AXIS];
     DigitalOut* _enableMotors;
 
     //Public Time
@@ -56,26 +56,21 @@ class Platform
 
     // ROS variables  
 
-      ros::Subscriber<custom_msgs::FootInputMsg_v5>*  _subFootInput;
+      ros::Subscriber<custom_msgs::FootInputMsg>*  _subFootInput;
       ros::Publisher *_pubFootOutput;
-      custom_msgs::FootOutputMsg_v3 _msgFootOutput;
-      ros::ServiceServer<custom_msgs::setStateSrv_v2Request,custom_msgs::setStateSrv_v2Response> *_servChangeState;
+      custom_msgs::FootOutputMsg _msgFootOutput;
+      custom_msgs::FootInputMsg _msgFootInput;
+      custom_msgs::setStateSrvRequest _reqSrvState;
+      custom_msgs::setControllerSrvRequest _reqSrvController;
+      ros::ServiceServer<custom_msgs::setStateSrvRequest,custom_msgs::setStateSrvResponse> *_servChangeState;
       ros::ServiceServer<custom_msgs::setControllerSrvRequest,custom_msgs::setControllerSrvResponse> *_servChangeCtrl;
 
       //CLIENT VARIABLES FROM (ROS)
-        volatile float _ros_position[NB_AXIS];
-        volatile float _ros_speed[NB_AXIS];
-        volatile float _ros_effort[NB_AXIS];
         volatile float _ros_forceSensor[NB_AXIS_WRENCH];
-        volatile float _ros_filterAxisFS[NB_AXIS];
 
-        volatile bool _ros_flagDefaultControl;
-        volatile int8_t _ros_controlledAxis;
-        volatile Controller _ros_controllerType;
-        volatile uint8_t _ros_effortComp[NB_EFFORT_COMPONENTS];
-        volatile State _ros_state;
-        
         volatile bool _flagLoadParams;
+        volatile bool _flagControllerRequest;
+        volatile bool _flagStateRequest;
 
         // State variables
         State _platform_state;
@@ -83,111 +78,98 @@ class Platform
         uint8_t _platform_effortComp[NB_EFFORT_COMPONENTS];
         Controller _platform_controllerType;
 
-        volatile bool _flagClearLastState;
-        volatile bool _flagControllerTypeChanged;
+        bool _flagControllerTypeChanged;
         bool _flagDefaultCtrlNew;
-        volatile bool _flagCtrlGainsNew;
-        volatile bool _flagInputReceived[NB_FI_CATEGORY];
         volatile bool _flagEmergencyCalled;
+        volatile bool _flagRosInputReceived;
         bool _enterStateOnceFlag[NB_MACHINE_STATES];
 
-        bool _workspaceLimitReached[NB_AXIS];
+        bool _workspaceLimitReached[NB_PLATFORM_AXIS];
         bool _platform_flagDefaultControl;
         bool _flagRosConnected;
 
-        Eigen::Matrix<float, NB_AXIS, 1> _positionOffsets; //! in m or radians
-        Eigen::Matrix<float, NB_AXIS, 1> _positionD;
-        Eigen::Matrix<float, NB_AXIS, 1> _virtualWall;
-        Eigen::Matrix<float, NB_AXIS, 1> _positionD_filtered;
-        Eigen::Matrix<float, NB_AXIS, 1> _positionCtrlOut;
-        Eigen::Matrix<float, NB_AXIS, 1> _position;
-        Eigen::Matrix<float, NB_AXIS, 1> _positionPrev;
-        Eigen::Matrix<float, NB_AXIS, 1> _speed;
-        Eigen::Matrix<float, NB_AXIS, 1> _speedPrev;
-        Eigen::Matrix<float, NB_AXIS, 1> _acceleration;
-        Eigen::Matrix<float, NB_AXIS, 1> _speedD;
-        Eigen::Matrix<float, NB_AXIS, 1> _speedCtrlOut;
-        Eigen::Matrix<float, NB_AXIS, 1> _forceSensorCtrlOut;
-        Eigen::Matrix<float, NB_AXIS, 1> _forceSensorD;
-        Eigen::Matrix<float, NB_AXIS, 1> _effortD;
-        Eigen::Matrix<float, NB_AXIS, 1> _effortM;
-        Eigen::Matrix<float, NB_AXIS, 1> _effortMNEG;
-        Eigen::Matrix<float, NB_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
-        Eigen::Matrix<float, NB_AXIS, 1> _rcmCtrlEffort;
-        Eigen::Matrix<float, NB_AXIS, 1> _platform_filterAxisFS;
-        float _cosDiffRCMCtrl;
-        float _rcmCtrlOut;
-        float _rcmAngleD;
-        bool _flagOutofRCMControl;
-        LP_Filter _posDesiredFilters[NB_AXIS];
-        LP_Filter _speedFilters[NB_AXIS];
-        LP_Filter _accFilters[NB_AXIS];
-        LP_Filter _effortMFilters[NB_AXIS];
-        volatile uint _switchesState[NB_AXIS];
-        bool _flagInWsConstrains[NB_AXIS];
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _positionOffsets; //! in m or radians
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _positionD_filtered;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _positionCtrlOut;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _position;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _positionD;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _softLimitsCtrlOut;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _softLimitsMin;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _softLimitsMax;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _softLimitsD;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _positionPrev;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _speed;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _speedPrev;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _acceleration;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _speedD;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _speedCtrlOut;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _forceSensorCtrlOut;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _forceSensorD;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _effortD;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _effortM;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _effortMNEG;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, NB_EFFORT_COMPONENTS> _effortD_ADD;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_filterAxisFS;
+        bool _flagOutofSoftLimitsControl;
+        LP_Filter _posDesiredFilters[NB_PLATFORM_AXIS];
+        LP_Filter _speedFilters[NB_PLATFORM_AXIS];
+        LP_Filter _accFilters[NB_PLATFORM_AXIS];
+        LP_Filter _effortMFilters[NB_PLATFORM_AXIS];
+        volatile uint8_t _switchesState[NB_PLATFORM_AXIS];
+        bool _flagInWsConstrains[NB_PLATFORM_AXIS];
 
 
         // Hardware variables
-        PinName _csPins[NB_AXIS];
-        QEC_1X *_encoders[NB_AXIS];
-        PinName _motorPins[NB_AXIS];
-        PwmOut *_motors[NB_AXIS];
-        PinName _limitSwitchesPins[NB_AXIS];
-        PinName _motorCurrentsPins[NB_AXIS];
-        AnalogIn *_motorCurrents[NB_AXIS];
+        PinName _csPins[NB_PLATFORM_AXIS];
+        QEC_1X *_encoders[NB_PLATFORM_AXIS];
+        PinName _motorPins[NB_PLATFORM_AXIS];
+        PwmOut *_motors[NB_PLATFORM_AXIS];
+        PinName _limitSwitchesPins[NB_PLATFORM_AXIS];
+        PinName _motorCurrentsPins[NB_PLATFORM_AXIS];
+        AnalogIn *_motorCurrents[NB_PLATFORM_AXIS];
 
-        InterruptIn *_limitSwitches[NB_AXIS];
+        InterruptIn *_limitSwitches[NB_PLATFORM_AXIS];
         SPI *_spi;
 
         // PID variables
         // General Variables
-        Matrix<float, NB_AXIS, 1> _platform_kpPosition;
-        Matrix<float, NB_AXIS, 1> _platform_kiPosition;
-        Matrix<float, NB_AXIS, 1> _platform_kdPosition;
-        Matrix<float, NB_AXIS, 1> _platform_kpSpeed;
-        Matrix<float, NB_AXIS, 1> _platform_kiSpeed;
-        Matrix<float, NB_AXIS, 1> _platform_kdSpeed;
-        Matrix<float, NB_AXIS, 1> _platform_kpFS;
-        Matrix<float, NB_AXIS, 1> _platform_kiFS;
-        Matrix<float, NB_AXIS, 1> _platform_kdFS;
-        float _platform_kpRCM;
-        float _platform_kiRCM;
-        float _platform_kdRCM;
-
-        Eigen::Matrix<float, NB_AXIS, 1> _maxCtrlEfforts;
-        Eigen::Matrix<float, NB_AXIS, 1> _rcmMaxCtrlEfforts;
-
-        Eigen::Vector3f _platform_posRCM;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kpPosition;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kiPosition;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kdPosition;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kpSpeed;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kiSpeed;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kdSpeed;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kpFS;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kiFS;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kdFS;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kpSoftLimits;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kiSoftLimits;
+        Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _platform_kdSoftLimits;
         
+        Eigen::Matrix<float, NB_AXIS, 1> _maxCtrlEfforts;
 
-        volatile float _ros_kpPosition[NB_AXIS];
-        volatile float _ros_kiPosition[NB_AXIS];
-        volatile float _ros_kdPosition[NB_AXIS];
-        volatile float _ros_kpSpeed[NB_AXIS];
-        volatile float _ros_kiSpeed[NB_AXIS];
-        volatile float _ros_kdSpeed[NB_AXIS];
-
-        float _rosParam_kpPosition[NB_AXIS];
-        float _rosParam_kiPosition[NB_AXIS];
-        float _rosParam_kdPosition[NB_AXIS];
-        float _rosParam_kpSpeed[NB_AXIS];
-        float _rosParam_kiSpeed[NB_AXIS];
-        float _rosParam_kdSpeed[NB_AXIS];
-        float _rosParam_kpFS[NB_AXIS];
-        float _rosParam_kiFS[NB_AXIS];
-        float _rosParam_kdFS[NB_AXIS];
-        float _rosParam_kpRCM;
-        float _rosParam_kiRCM;
-        float _rosParam_kdRCM;
-        float _rosParam_posRCM[NB_CART_AXIS];
+        float _rosParam_kpPosition[NB_PLATFORM_AXIS];
+        float _rosParam_kiPosition[NB_PLATFORM_AXIS];
+        float _rosParam_kdPosition[NB_PLATFORM_AXIS];
+        float _rosParam_kpSpeed[NB_PLATFORM_AXIS];
+        float _rosParam_kiSpeed[NB_PLATFORM_AXIS];
+        float _rosParam_kdSpeed[NB_PLATFORM_AXIS];
+        float _rosParam_kpFS[NB_PLATFORM_AXIS];
+        float _rosParam_kiFS[NB_PLATFORM_AXIS];
+        float _rosParam_kdFS[NB_PLATFORM_AXIS];
+        float _rosParam_pointSoftLimitsMin[NB_PLATFORM_AXIS];
+        float _rosParam_pointSoftLimitsMax[NB_PLATFORM_AXIS];
+        float _rosParam_kpSoftLimits[NB_PLATFORM_AXIS];
+        float _rosParam_kiSoftLimits[NB_PLATFORM_AXIS];
+        float _rosParam_kdSoftLimits[NB_PLATFORM_AXIS];
         int _rosParam_compensation[NB_COMPENSATION_COMP];
 
         // PID
 
-        PID *_pidPosition[NB_AXIS];
-        PID *_pidSpeed[NB_AXIS];
-        PID *_pidForceSensor[NB_AXIS];
-        PID *_pidRCM;
+        PID *_pidPosition[NB_PLATFORM_AXIS];
+        PID *_pidSpeed[NB_PLATFORM_AXIS];
+        PID *_pidForceSensor[NB_PLATFORM_AXIS];
+        PID *_pidSoftLimits[NB_PLATFORM_AXIS];
 
         // Other variables
 
@@ -226,15 +208,19 @@ class Platform
       private:
         // ROS
         static void
-        updateFootInput(const custom_msgs::FootInputMsg_v5 &msg); //! 2
-        static void updateState(const custom_msgs::setStateSrv_v2::Request &req,
-                                custom_msgs::setStateSrv_v2::Response &resp); //! 3
+        updateFootInput(const custom_msgs::FootInputMsg &msg); //! 2
+        static void updateState(const custom_msgs::setStateSrv::Request &req,
+                                custom_msgs::setStateSrv::Response &resp); //! 3
         static void
         updateController(const custom_msgs::setControllerSrv::Request &req,
                          custom_msgs::setControllerSrv::Response &resp); //! 4
         void pubFootOutput();                                            //! 5
+        void updateControllerRequest();
+        void updateStateInfo();
       private:
+        void updateFootInputFromRos();
         void updatePlatformFromRos();
+        void parseROSMessage();
         void calculateMeasTorques();
 
         //! Platform_effort.cpp
@@ -257,8 +243,8 @@ class Platform
         boundMat(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> x,
                  Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> minLimit,
                  Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> maxLimit);
-        Eigen::Matrix<float, NB_AXIS * NB_AXIS, NB_AXIS>
-        kroneckerProductEye(Eigen::Matrix<float, NB_AXIS, 1> xVector);
+        Eigen::Matrix<float, NB_PLATFORM_AXIS * NB_PLATFORM_AXIS, NB_PLATFORM_AXIS>
+        kroneckerProductEye(Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> xVector);
         
         //!Platform_sensors.cpp
         public : void getMotion(); //! 1
@@ -283,33 +269,22 @@ class Platform
   //! Platform_control.cpp
   private:
       // Position and Speed control
-      void positionAllControl(EffortComp Component);                             //! 1
-      void positionAxisControl(EffortComp Component, int axis);                //! 2
-      void speedAxisControl(EffortComp Component, int axis);              //! 3
-      void speedAllControl(EffortComp Component);                            //! 4
-      void gotoPointAxis(int axis_, float point);                         //! 5
-      void gotoPointAll(float pointX, float pointY, float pointPITCH,     
-      float pointROLL, float pointYAW);                                   //! 6
+      void positionAxisControl(EffortComp Component, int axis_);                //! 2
+      void speedAxisControl(EffortComp Component, int axis_);              //! 3
+      void controlPositionWS(EffortComp Component, int axis);                        //! 5
       void gotoPointGainsDefault();                              //! 7
       void speedPIDGainsDefault();                                 //!
       void forceSensorPIDGainsDefault();                                 //!
       void posCtrlLimitsSet();                                    //!
       void speedCtrlLimitsSet();                                 //!
       void forceSensorCtrlLimitsSet();                                 //!
-      void rcmCtrlLimitsSet();                                 //!
+      void softLimitsCtrlLimitsSet();                                 //!
       void posInterpolator(int axis);
       void loadDefaultPIDGains();
       void loadParamPIDGains();
       void loadParamCompensation();
       void loadROSPIDGains();
       void setPIDGains();
-      
-    //! Platform_rcm.cpp
-
-    private:
-
-      void rcmControl();  
-      
       
     //! Platform_compensation.cpp
 
@@ -328,23 +303,22 @@ class Platform
 
       Eigen::Matrix<float, NB_STICTION_AXIS, 1>
           _dryFrictionEffortSign[NB_SIGN_COMP];
-      Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP> _compensationEffort;
-      Eigen::Matrix<float, 2 * NB_AXIS, NB_STICTION_AXIS>
+      Eigen::Matrix<float, NB_PLATFORM_AXIS, NB_COMPENSATION_COMP> _compensationEffort;
+      Eigen::Matrix<float, 2 * NB_PLATFORM_AXIS, NB_STICTION_AXIS>
           _predictors[NB_SIGN_COMP];
 
-      Eigen::Matrix<float, NB_AXIS, NB_COMPENSATION_COMP - 1> _compTorqueLims[NB_LIMS];
-      Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeomJacobian[NB_LINKS];
-      Eigen::Matrix<float, 6, NB_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
+      Eigen::Matrix<float, NB_PLATFORM_AXIS, NB_COMPENSATION_COMP - 1> _compTorqueLims[NB_LIMS];
+      Eigen::Matrix<float, 6, NB_PLATFORM_AXIS> _linkCOMGeomJacobian[NB_LINKS];
+      Eigen::Matrix<float, 6, NB_PLATFORM_AXIS> _linkCOMGeometricJ_prev[NB_LINKS];
       Eigen::Matrix<float, 3, 3> _rotationMatrixCOM[NB_LINKS];
       Eigen::Matrix<float, 3, 3> _rotationMatrixCOM_prev[NB_LINKS];
 
-      Eigen::Matrix<float, 6, NB_AXIS> _devLinkCOMGeomJacobian[NB_LINKS];
+      Eigen::Matrix<float, 6, NB_PLATFORM_AXIS> _devLinkCOMGeomJacobian[NB_LINKS];
       Eigen::Matrix<float, 3, 3> _devRotationMatrixCOM[NB_LINKS];
       volatile bool _flagSpeedSampledForCoriolis;
 
       // Platform_constrains.cpp
       void wsConstrains(int axis_); //! -1 := all of them                 //! 1
-      void wsConstrainsGainsDefault(); //! 3
 
       //! Platform_clear.cpp
     private:
@@ -371,17 +345,17 @@ class Platform
     Eigen::Matrix<float,NB_LINKS,1> _massLinks;
     Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS> _momentInertiaLinks[NB_LINKS];
 
-    Eigen::Matrix<float, NB_AXIS, 1> _jointsViscosityGains;
+    Eigen::Matrix<float, NB_PLATFORM_AXIS, 1> _jointsViscosityGains;
 
     Eigen::Vector3f positionFrame(frame_chain frame); //! Based on off-line DH forward kinematics
     Eigen::Matrix3f rotationMatrix(frame_chain frame);
-    Eigen::Matrix<float,6,NB_AXIS> geometricJacobian(frame_chain frame);
+    Eigen::Matrix<float,6,NB_PLATFORM_AXIS> geometricJacobian(frame_chain frame);
     Eigen::Vector3f comLinkWRTBase(link_chain link);
     Eigen::Matrix3f comRotationMatrix(link_chain link);
-    Eigen::Matrix<float, 6, NB_AXIS> comGeometricJacobian(link_chain link);
+    Eigen::Matrix<float, 6, NB_PLATFORM_AXIS> comGeometricJacobian(link_chain link);
 #if (CORILIS_DEV_STRATEGY==CORIOLIS_KRONECKER)
-    Eigen::Matrix<float, 6, NB_AXIS*NB_AXIS> devQComGeomJacobian(link_chain link);
-    Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS * NB_AXIS>
+    Eigen::Matrix<float, 6, NB_PLATFORM_AXIS*NB_PLATFORM_AXIS> devQComGeomJacobian(link_chain link);
+    Eigen::Matrix<float, NB_CART_AXIS, NB_CART_AXIS * NB_PLATFORM_AXIS>
     devQComRotationMatrix(link_chain link);
 #endif
 
@@ -391,7 +365,7 @@ class Platform
     //! Platform_feedforward.cpp
 
     void feedForwardControl();
-    Eigen::Matrix<float, NB_AXIS, NB_FF_COMP> _feedForwardTorque;
+    Eigen::Matrix<float, NB_PLATFORM_AXIS, NB_FF_COMP> _feedForwardTorque;
     void eventVibration(frame_chain frame);
     bool _flagVibration;
     bool _flagContact;

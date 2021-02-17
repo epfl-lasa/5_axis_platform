@@ -19,8 +19,8 @@ const float ALPHA_RCM_PID_FILTER = 0.8f;
 
     #if (PLATFORM_ID==LEFT_PLATFORM_ID) //! TODO: Set for the left platform
 
-        const float SPEED_D_HOMING_Y = 1.0f * 0.5f;                                                 //[m/s]
-        const float SPEED_D_HOMING_X = -1.0f * 0.5f;                                                 //[m/s]
+        const float SPEED_D_HOMING_Y = 1.0f * 0.3f;                                                 //[m/s]
+        const float SPEED_D_HOMING_X = -1.0f * 0.3f;                                                 //[m/s]
         const float SPEED_D_HOMING_PITCH  = 200 * DEG_TO_RAD * 0.5f;                              //[deg/s             
     #else 
         
@@ -29,13 +29,13 @@ const float ALPHA_RCM_PID_FILTER = 0.8f;
         const float SPEED_D_HOMING_PITCH  = -200 * DEG_TO_RAD * 0.5f;                              //[deg/s]
     #endif
 
-        const float HOMING_KP_SPEED_Y = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m]   
-        const float HOMING_KP_SPEED_X = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                 //[N.s/m]
-        const float HOMING_KP_SPEED_PITCH = 1700.0f * SCALE_GAINS_ANGULAR_SPEED;           //[Nm.s/deg]
+        const float HOMING_KP_SPEED_Y = 1000.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m]   
+        const float HOMING_KP_SPEED_X = 1000.0f * SCALE_GAINS_LINEAR_SPEED;                 //[N.s/m]
+        const float HOMING_KP_SPEED_PITCH = 1000.0f * SCALE_GAINS_ANGULAR_SPEED;           //[Nm.s/deg]
 
         const float HOMING_KI_SPEED_Y = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m.s]     
         const float HOMING_KI_SPEED_X = 2500.0f * SCALE_GAINS_LINEAR_SPEED;                //[N.s/m.s]
-        const float HOMING_KI_SPEED_PITCH = 850.0f * SCALE_GAINS_ANGULAR_SPEED;            //[N.s/deg.s]    
+        const float HOMING_KI_SPEED_PITCH = 1000.0f * SCALE_GAINS_ANGULAR_SPEED;            //[N.s/deg.s]    
 
 const float SPEED_PID_GAINS_DEFAULT[3][NB_AXIS] = {
             {HOMING_KP_SPEED_Y, HOMING_KP_SPEED_X, HOMING_KP_SPEED_PITCH,

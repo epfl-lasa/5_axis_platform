@@ -5,13 +5,15 @@
 #include "math.h"
 // //! Platform type
 
-
-// #define RIGHT_PLATFORM_ID 1
-// #define LEFT_PLATFORM_ID 2
+#define NO_PLATFORM_ID 0
+#define RIGHT_PLATFORM_ID 1
+#define LEFT_PLATFORM_ID 2
 enum Platform_IT {RIGHT_PLATFORM_IT = 0, LEFT_PLATFORM_IT = 1, NB_PLATFORMS};
-enum Platform_ID {NO_PLATFORM_ID=0,RIGHT_PLATFORM_ID=1,LEFT_PLATFORM_ID=2};
 
-#define PLATFORM_ID LEFT_PLATFORM_ID //! 1:Right 2:Left
+
+
+//#define PLATFORM_ID LEFT_PLATFORM_ID //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM_ID
 
 //! Indexing
 #define NB_LIMS 2
@@ -23,8 +25,12 @@ enum Platform_ID {NO_PLATFORM_ID=0,RIGHT_PLATFORM_ID=1,LEFT_PLATFORM_ID=2};
 
 //! Physics and Math Constants
 #define GRAVITY -9.80665F
-const double RAD_TO_DEG = 180.0f / M_PI;
-const double DEG_TO_RAD = M_PI / 180.0f;
+const float RAD_TO_DEG = 180.0f / M_PI;
+const float DEG_TO_RAD = M_PI / 180.0f;
+
+const float ConversionAxisROSToPlatform[] = {1.0f, 1.0f,DEG_TO_RAD,DEG_TO_RAD,DEG_TO_RAD};
+const float ConversionAxisPlatformToROS[] = {1.0f, 1.0f,RAD_TO_DEG,RAD_TO_DEG,RAD_TO_DEG};
+
 
 //! Features of platform
 extern const char *Platform_Names[];
@@ -63,12 +69,12 @@ enum WrenchAxis { FX, FY, FZ, TX, TY, TZ, NB_AXIS_WRENCH };
 //! Components of the desired effort
 enum EffortComp {
   NORMAL,
-  CONSTRAINS,
+  SOFT_LIMITS,
   COMPENSATION,
+  CUSTOM_IMPEDANCE,
   FEEDFORWARD,
-  RCM_MOTION,
   NB_EFFORT_COMPONENTS
-}; //! Normal, Constrains, Compensation, Feedforward, RCM Control
+}; //! Normal, Constrains, Compensation, CustomImpedance, Feedforward.
 
 //! State Machine
 enum State {

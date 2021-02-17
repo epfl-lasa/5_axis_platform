@@ -12,10 +12,10 @@ void Platform::init()
 
     //}
     _pidPosition[k]->setSampleTime(POSITION_PID_SAMPLE_P); //! [us]
+    _pidSoftLimits[k]->setSampleTime(POSITION_PID_SAMPLE_P); //! [us]
     _pidSpeed[k]->setSampleTime(VELOCITY_PID_SAMPLE_P);
     _pidForceSensor[k]->setSampleTime(ACC_SAMPLE_P);
     }
-    _pidRCM->setSampleTime(POSITION_PID_SAMPLE_P);
     loadDefaultPIDGains();
     //! Attach interruptions to callbacks on falling edge
     _limitSwitches[X]->fall(&switchCallbackX);
@@ -23,13 +23,13 @@ void Platform::init()
     _limitSwitches[PITCH]->fall(&switchCallbackPitch);
 
     _spi->lock();
-    for (uint k = 0; k < NB_AXIS; k++) {
+    for (size_t k = 0; k < NB_AXIS; k++) {
       _encoders[k]->QEC_init((int)k, ENCODER_SCALE[k], ENCODER_SIGN[k], _spi);
   }
   _spi->unlock(); 
 
-  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg_v5>(PLATFORM_SUBSCRIBER_NAME, updateFootInput);
-  _servChangeState = new ros::ServiceServer<custom_msgs::setStateSrv_v2::Request,custom_msgs::setStateSrv_v2::Response>(SERVICE_CHANGE_STATE_NAME, updateState);
+  _subFootInput = new ros::Subscriber<custom_msgs::FootInputMsg>(PLATFORM_SUBSCRIBER_NAME, updateFootInput);
+  _servChangeState = new ros::ServiceServer<custom_msgs::setStateSrv::Request,custom_msgs::setStateSrv::Response>(SERVICE_CHANGE_STATE_NAME, updateState);
   _servChangeCtrl = new ros::ServiceServer<custom_msgs::setControllerSrv::Request,custom_msgs::setControllerSrv::Response>(SERVICE_CHANGE_CTRL_NAME, updateController);
   
   _pubFootOutput = new ros::Publisher(PLATFORM_PUBLISHER_NAME, &_msgFootOutput);

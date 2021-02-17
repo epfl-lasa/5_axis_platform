@@ -4,13 +4,8 @@
 
 void Platform::step()
 {
-  //_platformMutex.lock();
- // memset(_logMsg, 0, sizeof(_logMsg)); //! Flush the char
-
-  if ((_ros_state == RESET_UC) || ((_platform_state == RESET_UC)) || (_allEsconOk && _recoveringFromError))
+  if ((_platform_state == RESET_UC) || (_allEsconOk && _recoveringFromError))
   {
-    //sprintf(_logMsg, "%s : ABOUT TO RESTART THE PLATFORM CONTROLLER", Platform_Names[PLATFORM_ID]);
-    //_nh.loginfo(_logMsg);
     NVIC_SystemReset();
     _stop = true;
     rtos::ThisThread::sleep_for(5000);
@@ -20,12 +15,16 @@ void Platform::step()
   getMotion(); //! SPI
   
   _allEsconOk=1;
-  for (uint k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  for (size_t k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
 
-  if (!_allEsconOk || _flagEmergencyCalled)
+  if (_allEsconOk==0 || _flagEmergencyCalled)
   {
     _platform_state = EMERGENCY;
     _recoveringFromError=true;
+  }
+  if(!_flagRosConnected)
+  {
+    _platform_state = EMERGENCY;
   }
 
   switch (_platform_state)
@@ -33,13 +32,8 @@ void Platform::step()
 
   case STANDBY:{ 
         if (!_enterStateOnceFlag[STANDBY]){
-          // TODO
-          //sprintf(_logMsg, "%s : MOVING TO STATE STANDBY", Platform_Names[PLATFORM_ID]);
-          //_nh.loginfo(_logMsg);
           _enableMotors->write(0);
           _enterStateOnceFlag[STANDBY]=true;
-          //sprintf(_logMsg, "Timestep: %f milliseconds", ((float)_timestep * 1e-3));
-          //_nh.loginfo(_logMsg);
         }
         totalEffortDClear(-1);
         break;
@@ -51,17 +45,12 @@ void Platform::step()
           if(!_enterStateOnceFlag[HOMING])
           {           
             _platform_controllerType = SPEED_CTRL;
-            for (uint k = 0; k < NB_AXIS; k++) {
-              _pidSpeed[k]->reset();
-            }
+            resetControllers(SPEED_CTRL);
             _platform_effortComp[NORMAL]=1;
             loadDefaultPIDGains();
             speedCtrlLimitsSet();
-            //sprintf(_logMsg, "%s : MOVING TO STATE HOMING", Platform_Names[PLATFORM_ID]);
-            //_nh.loginfo(_logMsg);
             _enableMotors->write(1);
             limitSwitchesClear();
-            // Set commanded forces and torques for homing
             _enterStateOnceFlag[HOMING]=true;
 
             _speedD[X] = SPEED_D_HOMING_X;         // m/s
@@ -70,7 +59,7 @@ void Platform::step()
           }
 
           compEffortClear(-1, NORMAL);
-          speedAllControl(NORMAL);
+          speedAxisControl(NORMAL,-1);
 
           // Definition of the transition rule to the next state
           if ((_switchesState[X] == 1) && (_switchesState[Y] == 1) && (_switchesState[PITCH] == 1))
@@ -103,21 +92,20 @@ void Platform::step()
           if (!_enterStateOnceFlag[CENTERING])
           {
             _platform_controllerType = POSITION_CTRL;
-            for (uint k = 0; k < NB_AXIS; k++) {
+            for (size_t k = 0; k < NB_AXIS; k++) {
               _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
             }
             _platform_effortComp[NORMAL] = 1;
             loadDefaultPIDGains();
             posCtrlLimitsSet();
-            //sprintf(_logMsg, "%s : MOVING TO STATE CENTERING", Platform_Names[PLATFORM_ID]);
-            //_nh.loginfo(_logMsg);
             _enableMotors->write(1);
             _enterStateOnceFlag[CENTERING]=true;
           }
           // Main State
 
           compEffortClear(-1, NORMAL);
-          gotoPointAll(0.0,0.0,0.0,0.0,0.0); //! Go to the center of the WS
+          _positionD.setZero();
+          positionAxisControl(NORMAL,-1);
 
           if((fabs(_positionD(X)-_position(X)) < 0.003f) && (fabs(_positionD(Y)-_position(Y)) < 0.003f) && (fabs(_positionD(PITCH)-_position(PITCH)) < 3.0f*DEG_TO_RAD))
           {
@@ -146,48 +134,31 @@ void Platform::step()
           //
           _platform_controllerType = TORQUE_CTRL;
           resetControllers(SPEED_CTRL);
+          resetControllers(SOFT_LIMITS_CTRL);
           resetControllers(POSITION_CTRL);
           resetControllers(FS_CTRL);
           loadParamPIDGains();
           posCtrlLimitsSet(); // for constrains
           forceSensorCtrlLimitsSet();
-          rcmCtrlLimitsSet();
-          //sprintf(_logMsg, "%s : MOVING TO STATE TELEOPERATION", Platform_Names[PLATFORM_ID]);
-          //_nh.loginfo(_logMsg);
+          softLimitsCtrlLimitsSet();
           _enterStateOnceFlag[TELEOPERATION]=true;
           _enableMotors->write(1);
           _flagOutofCompensation=true;
-          _flagOutofRCMControl = true;
+          _flagOutofSoftLimitsControl = true;
         }
 
         //! Clear the vector of efforts
-        compEffortClear(-1, CONSTRAINS);
+        compEffortClear(-1, CUSTOM_IMPEDANCE);
         compEffortClear(-1, COMPENSATION);
         compEffortClear(-1, FEEDFORWARD);
-        compEffortClear(-1, RCM_MOTION);
+        compEffortClear(-1, SOFT_LIMITS);
         // Main State
-        if (_flagInputReceived[MSG_TORQUE]) {
-            for (uint k=0; k<NB_AXIS; k++) {
-              _effortD_ADD(k,NORMAL) = _ros_effort[k];
-            }
-            _flagInputReceived[MSG_TORQUE] = false;
-        }
-
-        if (flagPositionInControl()) { //! Constrains / Virtual Walls
-          if (_flagInputReceived[MSG_POSITION]) {
-            for (uint k = 0; k < NB_AXIS; k++) {
-              _positionD(k) = _ros_position[k];
-            }
-            _flagInputReceived[MSG_POSITION] = false;
+        updatePlatformFromRos();
+        if (_platform_effortComp[CUSTOM_IMPEDANCE] == 1) {
+          if (flagPositionInControl()) {
+              positionAxisControl(CUSTOM_IMPEDANCE,_platform_controlledAxis);
           }
         }
-      
-          if (_platform_effortComp[CONSTRAINS] == 1) {
-            if (flagPositionInControl()) {
-              wsConstrains(_platform_controlledAxis); //! workspace constraints : soft
-                                        //! limits, or joystick effect, etc
-            }
-          }
 
           if (_platform_effortComp[COMPENSATION] == 1) {
             if (_flagOutofCompensation)
@@ -203,17 +174,17 @@ void Platform::step()
             }
           }
 
-          if (_platform_effortComp[RCM_MOTION] == 1) {
-            if (_flagOutofRCMControl) {
-              loadParamCompensation();
-              _flagOutofRCMControl = false;
+          if (_platform_effortComp[SOFT_LIMITS] == 1) {
+            if (_flagOutofSoftLimitsControl) {
+              loadParamPIDGains();  
+              _flagOutofSoftLimitsControl = false;
             }
-            rcmControl();
+            wsConstrains(_platform_controlledAxis);
           } 
           else {
-            if (!_flagOutofRCMControl) {
-              resetControllers(RCM_CTRL);
-              _flagOutofRCMControl = true;
+            if (!_flagOutofSoftLimitsControl) {
+              resetControllers(SOFT_LIMITS_CTRL);
+              _flagOutofSoftLimitsControl = true;
             }
           }
 
@@ -227,18 +198,12 @@ void Platform::step()
         
         if (!_enterStateOnceFlag[ROBOT_STATE_CONTROL])
         {
-          _platform_controllerType=TORQUE_CTRL;
-          for (uint k = 0; k<NB_AXIS; k++)
-          {
-              _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
-              _pidSpeed[k]->reset();
-          }
-          loadParamPIDGains();
-          posCtrlLimitsSet(); // for constrains
-          speedCtrlLimitsSet(); // for constrains
-          //sprintf(_logMsg, "%s : MOVING TO STATE ROBOT_STATE_CONTROL",
-          //        Platform_Names[PLATFORM_ID]);
-          //_nh.loginfo(_logMsg);
+          _platform_controllerType=POSITION_CTRL;
+         resetControllers(POSITION_CTRL);
+         resetControllers(SPEED_CTRL);
+         loadParamPIDGains();
+         posCtrlLimitsSet(); // for constrains
+         speedCtrlLimitsSet(); // for constrains
           _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
           _enableMotors->write(1);
           _flagOutofCompensation=true;
@@ -246,110 +211,42 @@ void Platform::step()
 
         // Main state
           totalEffortDClear(-1);
-
-          if (flagPositionInControl()) {
-            if (_flagInputReceived[MSG_POSITION]) {
-              for (uint k = 0; k < NB_AXIS; k++) 
-              {
-                  _positionD(k)=_ros_position[k];
-              }
-                _flagInputReceived[MSG_POSITION] = false;
-            }
-          
-            if (_platform_controlledAxis == -1) 
-            {
-              for (uint k=0; k<NB_AXIS; k++)
-              {
-                if (_workspaceLimitReached[k])
-                {
-                  _pidPosition[k]->reset();   
-                }
-                else
-                {
-                  gotoPointAxis(k, _positionD(k));
-                }
-              }
-            } 
-            
-            else 
-            {
-              if (_workspaceLimitReached[_platform_controlledAxis])
-              {
-                _pidPosition[_platform_controlledAxis]->reset();
-              }
-              else
-              {
-                gotoPointAxis(_platform_controlledAxis, _positionD[_platform_controlledAxis]);
-              }
-              
-            }
-            
-          }
-          else if (flagSpeedInControl())
-          {
-            if (_flagInputReceived[MSG_SPEED]) {
-              if (_platform_controlledAxis==-1)
-              {
-                for (uint k = 0; k < NB_AXIS; k++) {
-                  _speedD(k) = _ros_speed[k];
-                }
-              }
-              else {
-                _speedD[_platform_controlledAxis] = _ros_speed[_platform_controlledAxis];
-              }
-                  _flagInputReceived[MSG_SPEED] = false;
-            } 
-            //! Add speed controller here!  
-          }
-
-          if (_platform_effortComp[COMPENSATION] == 1) {
-            if (_flagOutofCompensation) {
-              loadParamCompensation();
-              _flagOutofCompensation = false;
-            }
-            dynamicCompensation();
-          } else {
-            if (!_flagOutofCompensation) {
-              resetControllers(FS_CTRL);
-              _flagOutofCompensation = true;
-            }
-          }
-          break;
+          updatePlatformFromRos();
+          positionAxisControl(NORMAL,-1);
+        break;               
     }
         
     case EMERGENCY:
     {
           _enableMotors->write(0);
           if(!_enterStateOnceFlag[EMERGENCY]){
-            for (uint k = 0; k < NB_AXIS; k++) {
+            for (size_t k = 0; k < NB_AXIS; k++) {
               _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
               _pidSpeed[k]->reset();
             }
-            if(!_allEsconOk) {
-              //_nh.logerror("The servoamplifiers are not doing fine. Try restarting the microcontroller or rebooting the power supply");
-              }
-            //sprintf(_logMsg,"%s MOVING TO STATE EMERGENCY",Platform_Names[PLATFORM_ID]);
-            //_nh.loginfo(_logMsg);
             _enterStateOnceFlag[EMERGENCY]=true;
           }
             releasePlatform();
             break;
-        }
+    }
         case RESET_UC:
         {
           //defined upstairs
           break;
         }
   }
-  
 
   workspaceCheck(_platform_controlledAxis);
+
+   if(_flagStateRequest)
+  {
+    updateStateInfo();
+    _flagStateRequest=false;
+  }
   
   if (_allEsconOk) {setEfforts();}// Aply the forces and torques}
   //readActualEffort();             //! Using the ESCON 50/5 Analog Output
   
-  //! Update the platform with ROS variables
-  updatePlatformFromRos();
 
   _timestep = float(_innerTimer.read_us() - _timestamp);
   _timestamp=_innerTimer.read_us();
@@ -366,4 +263,35 @@ bool Platform::flagPositionInControl() {
 
 bool Platform::flagSpeedInControl() {
   return (_platform_controllerType == SPEED_CTRL);
+}
+
+void Platform::updatePlatformFromRos(){
+  if(_flagRosInputReceived){
+    updateFootInputFromRos();
+    _flagRosInputReceived=false;
+  }
+  
+  if(_flagControllerRequest)
+  {
+    updateControllerRequest();
+    _flagControllerRequest=false;
+  }
+}
+
+void Platform::controlPositionWS(EffortComp Component, int axis)
+{
+  if (axis == -1) 
+  {
+    for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+    {
+      controlPositionWS(Component,i);
+    }
+  } else{
+      if (_workspaceLimitReached[axis])
+      {
+        _pidPosition[axis]->reset();   
+      } else {
+        positionAxisControl(Component, axis);
+      }
+  }
 }

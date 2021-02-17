@@ -19,23 +19,11 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
       _ros_defaultControl_type ros_defaultControl;
       typedef int8_t _ros_controlledAxis_type;
       _ros_controlledAxis_type ros_controlledAxis;
-      float ros_posP[5];
-      float ros_posI[5];
-      float ros_posD[5];
-      float ros_speedP[5];
-      float ros_speedI[5];
-      float ros_speedD[5];
 
     setControllerSrvRequest():
       ros_controllerType(0),
       ros_defaultControl(0),
-      ros_controlledAxis(0),
-      ros_posP(),
-      ros_posI(),
-      ros_posD(),
-      ros_speedP(),
-      ros_speedI(),
-      ros_speedD()
+      ros_controlledAxis(0)
     {
     }
 
@@ -58,78 +46,6 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
       u_ros_controlledAxis.real = this->ros_controlledAxis;
       *(outbuffer + offset + 0) = (u_ros_controlledAxis.base >> (8 * 0)) & 0xFF;
       offset += sizeof(this->ros_controlledAxis);
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_posPi;
-      u_ros_posPi.real = this->ros_posP[i];
-      *(outbuffer + offset + 0) = (u_ros_posPi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_ros_posPi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_ros_posPi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_ros_posPi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->ros_posP[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_posIi;
-      u_ros_posIi.real = this->ros_posI[i];
-      *(outbuffer + offset + 0) = (u_ros_posIi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_ros_posIi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_ros_posIi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_ros_posIi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->ros_posI[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_posDi;
-      u_ros_posDi.real = this->ros_posD[i];
-      *(outbuffer + offset + 0) = (u_ros_posDi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_ros_posDi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_ros_posDi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_ros_posDi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->ros_posD[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_speedPi;
-      u_ros_speedPi.real = this->ros_speedP[i];
-      *(outbuffer + offset + 0) = (u_ros_speedPi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_ros_speedPi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_ros_speedPi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_ros_speedPi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->ros_speedP[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_speedIi;
-      u_ros_speedIi.real = this->ros_speedI[i];
-      *(outbuffer + offset + 0) = (u_ros_speedIi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_ros_speedIi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_ros_speedIi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_ros_speedIi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->ros_speedI[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_speedDi;
-      u_ros_speedDi.real = this->ros_speedD[i];
-      *(outbuffer + offset + 0) = (u_ros_speedDi.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_ros_speedDi.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_ros_speedDi.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_ros_speedDi.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->ros_speedD[i]);
-      }
       return offset;
     }
 
@@ -154,89 +70,11 @@ static const char SETCONTROLLERSRV[] = "custom_msgs/setControllerSrv";
       u_ros_controlledAxis.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
       this->ros_controlledAxis = u_ros_controlledAxis.real;
       offset += sizeof(this->ros_controlledAxis);
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_posPi;
-      u_ros_posPi.base = 0;
-      u_ros_posPi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_ros_posPi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_ros_posPi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_ros_posPi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->ros_posP[i] = u_ros_posPi.real;
-      offset += sizeof(this->ros_posP[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_posIi;
-      u_ros_posIi.base = 0;
-      u_ros_posIi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_ros_posIi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_ros_posIi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_ros_posIi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->ros_posI[i] = u_ros_posIi.real;
-      offset += sizeof(this->ros_posI[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_posDi;
-      u_ros_posDi.base = 0;
-      u_ros_posDi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_ros_posDi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_ros_posDi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_ros_posDi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->ros_posD[i] = u_ros_posDi.real;
-      offset += sizeof(this->ros_posD[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_speedPi;
-      u_ros_speedPi.base = 0;
-      u_ros_speedPi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_ros_speedPi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_ros_speedPi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_ros_speedPi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->ros_speedP[i] = u_ros_speedPi.real;
-      offset += sizeof(this->ros_speedP[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_speedIi;
-      u_ros_speedIi.base = 0;
-      u_ros_speedIi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_ros_speedIi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_ros_speedIi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_ros_speedIi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->ros_speedI[i] = u_ros_speedIi.real;
-      offset += sizeof(this->ros_speedI[i]);
-      }
-      for( uint32_t i = 0; i < 5; i++){
-      union {
-        float real;
-        uint32_t base;
-      } u_ros_speedDi;
-      u_ros_speedDi.base = 0;
-      u_ros_speedDi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_ros_speedDi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_ros_speedDi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_ros_speedDi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->ros_speedD[i] = u_ros_speedDi.real;
-      offset += sizeof(this->ros_speedD[i]);
-      }
      return offset;
     }
 
     const char * getType(){ return SETCONTROLLERSRV; };
-    const char * getMD5(){ return "f8d7ccb8e953156cb228c974e2ac2cfc"; };
+    const char * getMD5(){ return "dfecad7c4bd7acd4a30656a865a27ce2"; };
 
   };
 

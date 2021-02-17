@@ -12,165 +12,241 @@ namespace custom_msgs
   class FootInputMsg : public ros::Msg
   {
     public:
-      typedef float _FxDes_type;
-      _FxDes_type FxDes;
-      typedef float _FyDes_type;
-      _FyDes_type FyDes;
-      typedef float _TphiDes_type;
-      _TphiDes_type TphiDes;
-      typedef float _TthetaDes_type;
-      _TthetaDes_type TthetaDes;
-      typedef float _TpsiDes_type;
-      _TpsiDes_type TpsiDes;
-      typedef int16_t _stateDes_type;
-      _stateDes_type stateDes;
+      float ros_position[5];
+      float ros_speed[5];
+      float ros_effort[5];
+      float ros_forceSensor[6];
+      float ros_filterAxisForce[5];
+      float ros_kp[5];
+      float ros_kd[5];
+      float ros_ki[5];
 
     FootInputMsg():
-      FxDes(0),
-      FyDes(0),
-      TphiDes(0),
-      TthetaDes(0),
-      TpsiDes(0),
-      stateDes(0)
+      ros_position(),
+      ros_speed(),
+      ros_effort(),
+      ros_forceSensor(),
+      ros_filterAxisForce(),
+      ros_kp(),
+      ros_kd(),
+      ros_ki()
     {
     }
 
     virtual int serialize(unsigned char *outbuffer) const
     {
       int offset = 0;
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_FxDes;
-      u_FxDes.real = this->FxDes;
-      *(outbuffer + offset + 0) = (u_FxDes.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_FxDes.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_FxDes.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_FxDes.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->FxDes);
+      } u_ros_positioni;
+      u_ros_positioni.real = this->ros_position[i];
+      *(outbuffer + offset + 0) = (u_ros_positioni.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_positioni.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_positioni.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_positioni.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_position[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_FyDes;
-      u_FyDes.real = this->FyDes;
-      *(outbuffer + offset + 0) = (u_FyDes.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_FyDes.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_FyDes.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_FyDes.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->FyDes);
+      } u_ros_speedi;
+      u_ros_speedi.real = this->ros_speed[i];
+      *(outbuffer + offset + 0) = (u_ros_speedi.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_speedi.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_speedi.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_speedi.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_speed[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_TphiDes;
-      u_TphiDes.real = this->TphiDes;
-      *(outbuffer + offset + 0) = (u_TphiDes.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_TphiDes.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_TphiDes.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_TphiDes.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->TphiDes);
+      } u_ros_efforti;
+      u_ros_efforti.real = this->ros_effort[i];
+      *(outbuffer + offset + 0) = (u_ros_efforti.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_efforti.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_efforti.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_efforti.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_effort[i]);
+      }
+      for( uint32_t i = 0; i < 6; i++){
       union {
         float real;
         uint32_t base;
-      } u_TthetaDes;
-      u_TthetaDes.real = this->TthetaDes;
-      *(outbuffer + offset + 0) = (u_TthetaDes.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_TthetaDes.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_TthetaDes.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_TthetaDes.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->TthetaDes);
+      } u_ros_forceSensori;
+      u_ros_forceSensori.real = this->ros_forceSensor[i];
+      *(outbuffer + offset + 0) = (u_ros_forceSensori.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_forceSensori.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_forceSensori.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_forceSensori.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_forceSensor[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_TpsiDes;
-      u_TpsiDes.real = this->TpsiDes;
-      *(outbuffer + offset + 0) = (u_TpsiDes.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_TpsiDes.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_TpsiDes.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_TpsiDes.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->TpsiDes);
+      } u_ros_filterAxisForcei;
+      u_ros_filterAxisForcei.real = this->ros_filterAxisForce[i];
+      *(outbuffer + offset + 0) = (u_ros_filterAxisForcei.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_filterAxisForcei.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_filterAxisForcei.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_filterAxisForcei.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_filterAxisForce[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
-        int16_t real;
-        uint16_t base;
-      } u_stateDes;
-      u_stateDes.real = this->stateDes;
-      *(outbuffer + offset + 0) = (u_stateDes.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_stateDes.base >> (8 * 1)) & 0xFF;
-      offset += sizeof(this->stateDes);
+        float real;
+        uint32_t base;
+      } u_ros_kpi;
+      u_ros_kpi.real = this->ros_kp[i];
+      *(outbuffer + offset + 0) = (u_ros_kpi.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_kpi.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_kpi.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_kpi.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_kp[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
+      union {
+        float real;
+        uint32_t base;
+      } u_ros_kdi;
+      u_ros_kdi.real = this->ros_kd[i];
+      *(outbuffer + offset + 0) = (u_ros_kdi.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_kdi.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_kdi.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_kdi.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_kd[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
+      union {
+        float real;
+        uint32_t base;
+      } u_ros_kii;
+      u_ros_kii.real = this->ros_ki[i];
+      *(outbuffer + offset + 0) = (u_ros_kii.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_kii.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_kii.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_kii.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_ki[i]);
+      }
       return offset;
     }
 
     virtual int deserialize(unsigned char *inbuffer)
     {
       int offset = 0;
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_FxDes;
-      u_FxDes.base = 0;
-      u_FxDes.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_FxDes.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_FxDes.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_FxDes.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->FxDes = u_FxDes.real;
-      offset += sizeof(this->FxDes);
+      } u_ros_positioni;
+      u_ros_positioni.base = 0;
+      u_ros_positioni.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_positioni.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_positioni.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_positioni.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_position[i] = u_ros_positioni.real;
+      offset += sizeof(this->ros_position[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_FyDes;
-      u_FyDes.base = 0;
-      u_FyDes.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_FyDes.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_FyDes.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_FyDes.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->FyDes = u_FyDes.real;
-      offset += sizeof(this->FyDes);
+      } u_ros_speedi;
+      u_ros_speedi.base = 0;
+      u_ros_speedi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_speedi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_speedi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_speedi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_speed[i] = u_ros_speedi.real;
+      offset += sizeof(this->ros_speed[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_TphiDes;
-      u_TphiDes.base = 0;
-      u_TphiDes.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_TphiDes.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_TphiDes.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_TphiDes.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->TphiDes = u_TphiDes.real;
-      offset += sizeof(this->TphiDes);
+      } u_ros_efforti;
+      u_ros_efforti.base = 0;
+      u_ros_efforti.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_efforti.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_efforti.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_efforti.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_effort[i] = u_ros_efforti.real;
+      offset += sizeof(this->ros_effort[i]);
+      }
+      for( uint32_t i = 0; i < 6; i++){
       union {
         float real;
         uint32_t base;
-      } u_TthetaDes;
-      u_TthetaDes.base = 0;
-      u_TthetaDes.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_TthetaDes.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_TthetaDes.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_TthetaDes.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->TthetaDes = u_TthetaDes.real;
-      offset += sizeof(this->TthetaDes);
+      } u_ros_forceSensori;
+      u_ros_forceSensori.base = 0;
+      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_forceSensor[i] = u_ros_forceSensori.real;
+      offset += sizeof(this->ros_forceSensor[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_TpsiDes;
-      u_TpsiDes.base = 0;
-      u_TpsiDes.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_TpsiDes.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_TpsiDes.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_TpsiDes.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->TpsiDes = u_TpsiDes.real;
-      offset += sizeof(this->TpsiDes);
+      } u_ros_filterAxisForcei;
+      u_ros_filterAxisForcei.base = 0;
+      u_ros_filterAxisForcei.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_filterAxisForcei.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_filterAxisForcei.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_filterAxisForcei.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_filterAxisForce[i] = u_ros_filterAxisForcei.real;
+      offset += sizeof(this->ros_filterAxisForce[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
       union {
-        int16_t real;
-        uint16_t base;
-      } u_stateDes;
-      u_stateDes.base = 0;
-      u_stateDes.base |= ((uint16_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_stateDes.base |= ((uint16_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      this->stateDes = u_stateDes.real;
-      offset += sizeof(this->stateDes);
+        float real;
+        uint32_t base;
+      } u_ros_kpi;
+      u_ros_kpi.base = 0;
+      u_ros_kpi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_kpi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_kpi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_kpi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_kp[i] = u_ros_kpi.real;
+      offset += sizeof(this->ros_kp[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
+      union {
+        float real;
+        uint32_t base;
+      } u_ros_kdi;
+      u_ros_kdi.base = 0;
+      u_ros_kdi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_kdi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_kdi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_kdi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_kd[i] = u_ros_kdi.real;
+      offset += sizeof(this->ros_kd[i]);
+      }
+      for( uint32_t i = 0; i < 5; i++){
+      union {
+        float real;
+        uint32_t base;
+      } u_ros_kii;
+      u_ros_kii.base = 0;
+      u_ros_kii.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_kii.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_kii.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_kii.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_ki[i] = u_ros_kii.real;
+      offset += sizeof(this->ros_ki[i]);
+      }
      return offset;
     }
 
     const char * getType(){ return "custom_msgs/FootInputMsg"; };
-    const char * getMD5(){ return "a39283cd0a6414e571a661f8b3a644bc"; };
+    const char * getMD5(){ return "bed0fc9cdae72a8ec465791c708cb046"; };
 
   };
 

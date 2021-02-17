@@ -69,7 +69,7 @@ Eigen::Matrix<float, Eigen::Dynamic,  Eigen::Dynamic> Platform::boundMat(Eigen::
 Eigen::Matrix<float, NB_AXIS*NB_AXIS, NB_AXIS> Platform::kroneckerProductEye(Eigen::Matrix<float, NB_AXIS, 1> xVector)
 {
   Eigen::Matrix<float, NB_AXIS * NB_AXIS, NB_AXIS > kProductEye_;
-  kProductEye_.setConstant(0.0f);
+  kProductEye_.setZero();
   for (int i = 0; i < NB_AXIS; i++) {
     kProductEye_.block(i * NB_AXIS, i , NB_AXIS, 1) = xVector.block(0, 0 , NB_AXIS, 1);
   }

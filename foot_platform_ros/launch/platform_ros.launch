@@ -21,8 +21,7 @@
     <group unless="$(arg virtual_platform)">
         <include file="$(find foot_platform_ros)/launch/platform_hw.launch">
             <arg name="baud" value="$(arg baud)"/>
-            <arg name="port" value="/dev/right_platform" if="$(eval arg('id')=='right')"/>
-            <arg name="port" value="/dev/left_platform" if="$(eval arg('id')=='left')"/>
+            <arg name="port" value="/dev/$(arg id)_platform"/>
             <arg name="id" value="$(arg id)"/>
         </include>
     </group>
