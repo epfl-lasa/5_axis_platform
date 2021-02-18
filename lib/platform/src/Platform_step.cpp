@@ -24,6 +24,7 @@ void Platform::step()
   }
   if(!_flagRosConnected)
   {
+    clearLastState();
     _platform_state = EMERGENCY;
   }
 

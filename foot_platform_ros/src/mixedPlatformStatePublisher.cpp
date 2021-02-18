@@ -380,8 +380,10 @@ void mixedPlatformStatePublisher::mixPlatformsActions() {
           _flagOffsetCalculated=true;
         }
       }else {
-        if ( ((_deadZoneValues[_currentToolIT].col(L_MAX) - _platformPosition[_mainPlatformIT]).array() > FLT_EPSILON ).all()
-          && ((-_deadZoneValues[_currentToolIT].col(L_MIN) + _platformPosition[_mainPlatformIT]).array() > FLT_EPSILON ).all() )
+        // if ( ((_deadZoneValues[_currentToolIT].col(L_MAX) - _platformPosition[_mainPlatformIT]).array() > FLT_EPSILON ).all()
+        //   && ((-_deadZoneValues[_currentToolIT].col(L_MIN) + _platformPosition[_mainPlatformIT]).array() > FLT_EPSILON ).all() )
+        if ( ((_deadZoneValues[_currentToolIT].col(L_MAX) - _platformPosition[_mainPlatformIT]).segment(0,p_roll+1).array() > FLT_EPSILON ).all()
+          && ((-_deadZoneValues[_currentToolIT].col(L_MIN) + _platformPosition[_mainPlatformIT]).segment(0,p_roll+1).array() > FLT_EPSILON ).all() )
         { 
           if(!_flagOffsetCalculated)
           {
