@@ -31,6 +31,7 @@ const float ROLL_YAW_RESOLUTION =
     2 * ((2 * M_PI / (4 * 4096)) / ROLL_YAW_REDUCTION_R) * RAD_TO_DEG; //!
 
 //! Motors Datasheet
+
 #define MAX_RPM_P 2110       //! [RPM] No load speed of the motor
 #define TORQUE_CONSTANT_Y 42.3F       //! Torque constant Faulhaber 3890H024C R2016 [mNm/A]
 #define MAX_CURRENT_Y 5.0F           //! Max current Faulhaber 3890H024C R2016 [A]
