@@ -33,7 +33,7 @@ public:
 
 private:
   
-  int8_t _ros_platform_id;
+  uint8_t _ros_platform_id;
   
   Platform_Name _platform_id;
 
