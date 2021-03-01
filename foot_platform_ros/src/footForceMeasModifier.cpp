@@ -102,11 +102,11 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 {
   _pubForceModified = _n.advertise<geometry_msgs::WrenchStamped>("force_modified", 1);
   _pubPedalBias = _n.advertise<geometry_msgs::WrenchStamped>("pedal_bias_force", 1);
-  _pubTorquesModified = _n.advertise<custom_msgs::FootOutputMsg_v3>("torques_modified", 1);
+  _pubTorquesModified = _n.advertise<custom_msgs::FootOutputMsg>("torques_modified", 1);
   _pubForceSensorCoG = _n.advertise<geometry_msgs::PointStamped>("/" + std::string(Platform_Names[_platform_id]) +"/force_sensor_cog" , 1);
-  _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg_v5>("leg_comp_platform_effort", 1);
+  _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg>("leg_comp_platform_effort", 1);
   _subForceSensor = _n.subscribe<geometry_msgs::WrenchStamped>(
-					    	"/"+std::string(Platform_Names[_platform_id])+"/rokubimini0/force/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
+					    	"/ft_"+std::string(Platform_Names[_platform_id])+"/rokubimini/ft_"+std::string(Platform_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
   _pubForceFootRestWorld = _n.advertise<geometry_msgs::WrenchStamped>("force_foot_rest_world", 1);
   _pubManipEllipsoidRot = _n.advertise<visualization_msgs::Marker>("foot_manipulability_rot", 0);
@@ -117,7 +117,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
     _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/left_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
     _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/left_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
-    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
+    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_LEFT, 1,
         boost::bind(&footForceMeasModifier::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
@@ -129,7 +129,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
     _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/right_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
     _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/right_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
-    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
+    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_RIGHT, 1,
         boost::bind(&footForceMeasModifier::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
@@ -169,7 +169,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
   }
 }
 
-void footForceMeasModifier::stopNode(int sig) { me->_stop = true; }
+void footForceMeasModifier::stopNode(int sig) { me->_stop = true; me->publishForceModified(); me->publishForceFootRestWorld();me->publishTorquesModified();me->publishPedalBias();}
 
 void footForceMeasModifier::run() {
   while (!_stop) {
@@ -215,7 +215,7 @@ void footForceMeasModifier::run() {
 }
 
 
-void footForceMeasModifier::readPlatformOutput(const custom_msgs::FootOutputMsg_v3::ConstPtr &msg) {  
+void footForceMeasModifier::readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg) {  
   _ros_platform_machineState =msg->platform_machineState;
   _ros_platform_id = msg->platform_id;
   for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
@@ -287,17 +287,31 @@ void footForceMeasModifier::computeLegGravityCompTorque() {
 
 void footForceMeasModifier::publishForceModified() {
   
-    _msgForceModified.header.stamp = ros::Time::now();
-    _msgForceModified.header.frame_id = _platform_id ==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor";
+  _msgForceModified.header.stamp = ros::Time::now();
+  _msgForceModified.header.frame_id = _platform_id ==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor";
+  if (!_stop)
+  {
+
     tf::wrenchEigenToMsg(_forceModified,_msgForceModified.wrench);
+  }else
+  {
+    tf::wrenchEigenToMsg(Eigen::Matrix<double,NB_AXIS_WRENCH,1>::Zero(),_msgForceModified.wrench);
+  }
+
     _pubForceModified.publish(_msgForceModified);
 }
 
 void footForceMeasModifier::publishPedalBias(){
   _msgPedalBias.header.stamp = ros::Time::now();
   _msgPedalBias.header.frame_id = _platform_id ==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor";
-  tf::wrenchEigenToMsg(_forcePedalBias,_msgPedalBias.wrench);
-  _pubPedalBias.publish(_msgPedalBias);
+  if(!_stop)
+  {
+    tf::wrenchEigenToMsg(_forcePedalBias,_msgPedalBias.wrench);
+  }else{
+    tf::wrenchEigenToMsg(Eigen::Matrix<double,NB_AXIS_WRENCH,1>::Zero(),_msgPedalBias.wrench);
+  }
+    _pubPedalBias.publish(_msgPedalBias);
+
 }
 
 void footForceMeasModifier::publishLegCompFootInput()
@@ -394,47 +408,51 @@ void footForceMeasModifier::calibrateForce()
 // }
 
 void footForceMeasModifier::publishForceFootRestWorld(){
-
   if (_flagForceCalibrated)
-	{	
+  {	
+    _msgForceFootRestWorld.header.stamp = ros::Time::now();
+    _msgForceFootRestWorld.header.frame_id = _platform_id ==RIGHT ? "/right_platform_foot_rest" : "/left_platform_foot_rest";
 
-  Eigen::Matrix<double, NB_AXIS_WRENCH,NB_AXIS_WRENCH> wrenchRotation;
-  wrenchRotation.setIdentity();
-  Eigen::Vector3d forceRotated_, momentRotated_;
-  forceRotated_.setZero();
-  momentRotated_.setZero();
+  if(!_stop)
+  {
+    Eigen::Matrix<double, NB_AXIS_WRENCH,NB_AXIS_WRENCH> wrenchRotation;
+    wrenchRotation.setIdentity();
+    Eigen::Vector3d forceRotated_, momentRotated_;
+    forceRotated_.setZero();
+    momentRotated_.setZero();
 
-  unsigned int framefSensor = _myFootRestChain.getNrOfSegments() - 2; //"fSensor"
-  // cout<<_mySegments[framefSensor].getName().c_str()<<endl;  
-  
-  Eigen::Quaterniond wrenchQuaternion;
-  wrenchQuaternion.setIdentity();
-  tf::quaternionKDLToEigen(_myFrames[framefSensor].M, wrenchQuaternion);
+    unsigned int framefSensor = _myFootRestChain.getNrOfSegments() - 2; //"fSensor"
+    // cout<<_mySegments[framefSensor].getName().c_str()<<endl;  
 
-  wrenchRotation.block(0,0,3,3) = wrenchQuaternion.normalized().toRotationMatrix(); 
-  wrenchRotation.block(3,3,3,3) = wrenchQuaternion.normalized().toRotationMatrix();
+    Eigen::Quaterniond wrenchQuaternion;
+    wrenchQuaternion.setIdentity();
+    tf::quaternionKDLToEigen(_myFrames[framefSensor].M, wrenchQuaternion);
 
-  Eigen::Matrix<double,NB_AXIS_WRENCH,1> wrenchRotated;
-  wrenchRotated.setZero();
-  wrenchRotated = wrenchRotation*(_forceModified - _forcePedalBias);
-  Eigen::Vector3d distanceFSToFootRest; 
-  distanceFSToFootRest.setZero();
-    
-  tf::vectorKDLToEigen(_myFrames[framefSensor+1].p - _myFrames[framefSensor].p,distanceFSToFootRest);
-  
-  forceRotated_ = wrenchRotated.segment(0,3);
-  momentRotated_ =  wrenchRotated.segment(3,3);
+    wrenchRotation.block(0,0,3,3) = wrenchQuaternion.normalized().toRotationMatrix(); 
+    wrenchRotation.block(3,3,3,3) = wrenchQuaternion.normalized().toRotationMatrix();
 
-  _forceInFootRest.segment(0,3) = forceRotated_;
+    Eigen::Matrix<double,NB_AXIS_WRENCH,1> wrenchRotated;
+    wrenchRotated.setZero();
+    wrenchRotated = wrenchRotation*(_forceModified - _forcePedalBias);
+    Eigen::Vector3d distanceFSToFootRest; 
+    distanceFSToFootRest.setZero();
 
-  _forceInFootRest.segment(3,3) = momentRotated_ +  distanceFSToFootRest.cross(forceRotated_);
+    tf::vectorKDLToEigen(_myFrames[framefSensor+1].p - _myFrames[framefSensor].p,distanceFSToFootRest);
 
-  _msgForceFootRestWorld.header.stamp = ros::Time::now();
-  _msgForceFootRestWorld.header.frame_id = _platform_id ==RIGHT ? "/right_platform_foot_rest" : "/left_platform_foot_rest";
-  tf::wrenchEigenToMsg(_forceInFootRest,_msgForceFootRestWorld.wrench);
-  _pubForceFootRestWorld.publish(_msgForceFootRestWorld);
+    forceRotated_ = wrenchRotated.segment(0,3);
+    momentRotated_ =  wrenchRotated.segment(3,3);
+
+    _forceInFootRest.segment(0,3) = forceRotated_;
+
+    _forceInFootRest.segment(3,3) = momentRotated_ +  distanceFSToFootRest.cross(forceRotated_);
+
+      tf::wrenchEigenToMsg(_forceInFootRest,_msgForceFootRestWorld.wrench);
+    }else
+    {
+      tf::wrenchEigenToMsg(Eigen::Matrix<double,NB_AXIS_WRENCH,1>::Zero(),_msgForceFootRestWorld.wrench);
+    }
+    _pubForceFootRestWorld.publish(_msgForceFootRestWorld);
   }
-
 }
 
 void footForceMeasModifier::publishTorquesModified(){
@@ -443,13 +461,22 @@ void footForceMeasModifier::publishTorquesModified(){
   {
     _msgTorquesModified.platform_stamp=ros::Time::now();
     _msgTorquesModified.platform_effortM.fill(0.0);
-    _torquesModified = _myFootBaseJacobian.data.transpose() * _forceInFootRest;
-    _torquesModified(p_pitch)*=-1;
-    _torquesModified(p_pitch)*=-1;
-    for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+    if(!_stop)
     {
-      _msgTorquesModified.platform_effortM[i]=_torquesModified(i);
+      _torquesModified = _myFootBaseJacobian.data.transpose() * _forceInFootRest;
+      // _torquesModified(p_pitch)*=-1;
+      // _torquesModified(p_pitch)*=-1;
+
+
+      for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+      {
+        _msgTorquesModified.platform_effortM[i]=_torquesModified(i);
+      }
+    }else
+    {
+      _msgTorquesModified.platform_effortM.fill(0.0f);
     }
+
     _pubTorquesModified.publish(_msgTorquesModified);
   }
 

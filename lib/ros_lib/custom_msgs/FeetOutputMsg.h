@@ -65,7 +65,7 @@ namespace custom_msgs
     }
 
     const char * getType(){ return "custom_msgs/FeetOutputMsg"; };
-    const char * getMD5(){ return "49c582a6e3f0f645fee4f82b38fa08a1"; };
+    const char * getMD5(){ return "b8fef904baf9c82399a32473a4c1442a"; };
 
   };
 

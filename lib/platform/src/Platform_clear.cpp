@@ -23,7 +23,7 @@ void Platform::positionAllReset()
 //! 2
 void Platform::limitSwitchesClear()
 {
-  for (uint k=0; k<NB_SWITCHES; k++) 
+  for (size_t k=0; k<NB_SWITCHES; k++) 
   {
     _switchesState[k] = 0;
   }
@@ -105,14 +105,14 @@ void Platform::resetControllers(Controller controllerType)
     }
     case(POSITION_CTRL):
       {
-        for (uint k=0; k<NB_AXIS; k++)
+        for (size_t k=0; k<NB_AXIS; k++)
         {
            _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
         }
         break;
       }
     case (SPEED_CTRL): {
-        for (uint k = 0; k < NB_AXIS; k++) {
+        for (size_t k = 0; k < NB_AXIS; k++) {
           _pidSpeed[k]->reset();
         }
         break;
@@ -124,10 +124,14 @@ void Platform::resetControllers(Controller controllerType)
       }
       break;
     }
-    case (RCM_CTRL): {
-        _pidRCM->reset();
-      break;
-    }
+     case(SOFT_LIMITS_CTRL):
+      {
+        for (size_t k=0; k<NB_AXIS; k++)
+        {
+           _pidSoftLimits[k]->reset();
+        }
+        break;
+      }
   }
 }
 
@@ -169,7 +173,7 @@ void Platform::compEffortClear(int axis_, EffortComp component_)
 {
   if (axis_==-1)
   {
-    _effortD_ADD.col(component_).setConstant(0.0f);
+    _effortD_ADD.col(component_).setZero();
      return;
   }
   else
@@ -183,11 +187,11 @@ void Platform::totalEffortDClear(int axis_)
 {
   if (axis_==-1)
     {
-     // _effortD.setConstant(0.0f);
-      _effortD_ADD.setConstant(0.0f);
+     // _effortD.setZero();
+      _effortD_ADD.setZero();
     }
   else
     {  
-      _effortD_ADD.row(axis_).setConstant(0.0f);
+      _effortD_ADD.row(axis_).setZero();
     }
 }

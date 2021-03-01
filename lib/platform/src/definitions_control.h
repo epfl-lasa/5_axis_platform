@@ -11,7 +11,7 @@ enum Controller {
   POS_SPEED_CTRL,
   SPEED_POS_CTRL,
   FS_CTRL,
-  RCM_CTRL
+  SOFT_LIMITS_CTRL
 };
 
 //! Sampling times and loops

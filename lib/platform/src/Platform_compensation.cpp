@@ -55,7 +55,7 @@ void Platform::gravityCompensation()
 
   gravityTau<< 0.0f, 0.0f, GRAVITY, 0.0f, 0.0f, 0.0f; 
 
-  gravityCompTorque.setConstant(0.0f); //! Required torque to compensate
+  gravityCompTorque.setZero(); //! Required torque to compensate
   
   for (int link_= LINK_BASE; link_<NB_LINKS; link_++)
   {
@@ -100,7 +100,7 @@ void Platform::coriolisCompensation() {
 
     // From bjerkeng2012
     Eigen::Matrix<float, NB_AXIS, NB_AXIS> coriolisJointGainMatrix; //! V(q,q)
-    coriolisJointGainMatrix.setConstant(0.0f);
+    coriolisJointGainMatrix.setZero();
 
 #if (CORIOLIS_DEV_STRATEGY == CORIOLIS_KRONECKER)
     Eigen::Matrix<float, NB_AXIS * NB_AXIS, NB_AXIS> kronProductSpeed;
@@ -179,7 +179,7 @@ void Platform::inertiaCompensation() {
 
 void Platform::forceSensorCompensation()
 {
-  _forceSensorD = (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CONSTRAINS) + _effortD_ADD.col(RCM_MOTION));
+  _forceSensorD = (_effortD_ADD.col(NORMAL) + _effortD_ADD.col(CUSTOM_IMPEDANCE) + _effortD_ADD.col(SOFT_LIMITS));
   for (int k=0; k<NB_AXIS; k++)
   {
     if (abs(_platform_filterAxisFS(k)) != 0.0f)

@@ -15,25 +15,26 @@ Platform::Platform()
   _stop=false;
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
   _flagEmergencyCalled = false;
-  _effortD_ADD.setConstant(0.0f);
+  _effortD_ADD.setZero();
   _flagRosConnected = false;  
-  _effortD.setConstant(0.0f);
-  _effortM.setConstant(0.0f);
-  _effortMNEG.setConstant(0.0f);
-  _positionD.setConstant(0.0f);
-  _positionCtrlOut.setConstant(0.0f);
-  _speedCtrlOut.setConstant(0.0f);
-  _forceSensorCtrlOut.setConstant(0.0f);
-  _forceSensorD.setConstant(0.0f);
-  _positionD_filtered.setConstant(0.0f);
-  _position.setConstant(0.0f);
-  _positionPrev.setConstant(0.0f);
-  _positionOffsets.setConstant(0.0f);
-  _virtualWall = Eigen::Map<const Eigen::MatrixXf>(C_WS_LIMITS, NB_AXIS, 1);
-  _speed.setConstant(0.0f);
-  _speedD.setConstant(0.0f);
-  _speedPrev.setConstant(0.0f);
-  _acceleration.setConstant(0.0f);
+  _effortD.setZero();
+  _effortM.setZero();
+  _effortMNEG.setZero();
+  _positionD.setZero();
+  _positionCtrlOut.setZero();
+  _speedCtrlOut.setZero();
+  _forceSensorCtrlOut.setZero();
+  _forceSensorD.setZero();
+  _positionD_filtered.setZero();
+  _position.setZero();
+  _positionPrev.setZero();
+  _positionOffsets.setZero();
+  _softLimitsMin.setZero();
+  _softLimitsMax.setZero();
+  _speed.setZero();
+  _speedD.setZero();
+  _speedPrev.setZero();
+  _acceleration.setZero();
 
   _flagCalculateSinCos = true;
   _c_theta = 0.0f;
@@ -43,22 +44,17 @@ Platform::Platform()
   _s_phi = 0.0f;
   _s_psi = 0.0f;
 
-
-  _cosDiffRCMCtrl= 0.0f;
-  _rcmCtrlOut = 0.0f;
-  _rcmAngleD = 0.0f;
-  _platform_kpRCM = 0.0f;
-  _platform_kiRCM = 0.0f;
-  _platform_kdRCM = 0.0f;
-  _platform_posRCM = Eigen::Map<const Eigen::VectorXf>(RCM_POS_DEFAULT,NB_CART_AXIS,1);
-    _maxCtrlEfforts = Eigen::Map<const Eigen::MatrixXf>(SAFETY_MAX_EFFORTS,NB_AXIS,1);
-    _rcmMaxCtrlEfforts<< 0.0f, 0.0f, 2.0f, 2.0f, 2.0f;
+  _maxCtrlEfforts = Eigen::Map<const Eigen::MatrixXf>(SAFETY_MAX_EFFORTS,NB_AXIS,1);
 
 for (int k = 0; k < NB_AXIS; k++) {
     positionCtrlClear(k);
     _platform_kpPosition(k) = 0.0f;
     _platform_kiPosition(k) = 0.0f;
     _platform_kdPosition(k) = 0.0f;
+
+    _platform_kpSoftLimits(k) = 0.0f;
+    _platform_kiSoftLimits(k) = 0.0f;
+    _platform_kdSoftLimits(k) = 0.0f;
 
     _platform_kpFS(k) = 0.0f;
     _platform_kiFS(k) = 0.0f;
@@ -78,22 +74,18 @@ for (int k = 0; k < NB_AXIS; k++) {
 
     
 
-    _ros_position[k]=0.0f;
-    _ros_speed[k]=0.0f;
-    _ros_effort[k] = 0.0f;
-    _ros_filterAxisFS[k]=1.0f;
     _platform_filterAxisFS(k)=1.0f;
 
     _pidPosition[k] = new PID(&_innerTimer, &_position(k), &_positionCtrlOut(k), &_positionD_filtered(k), _platform_kpPosition(k), _platform_kiPosition(k), _platform_kdPosition(k), DIRECT, POS_PID_FILTER_GAINS[k]);
     _pidPosition[k]->setMode(AUTOMATIC);
+    _pidSoftLimits[k] = new PID(&_innerTimer, &_position(k), &_softLimitsCtrlOut(k), &_softLimitsD(k), _platform_kpSoftLimits(k), _platform_kiSoftLimits(k), _platform_kdSoftLimits(k), DIRECT, POS_PID_FILTER_GAINS[k]);
+    _pidSoftLimits[k]->setMode(AUTOMATIC);
     _pidSpeed[k] = new PID(&_innerTimer, &_speed(k), &_speedCtrlOut(k), &_speedD(k), _platform_kpSpeed(k), _platform_kiSpeed(k), _platform_kdSpeed(k),DIRECT, VEL_PID_FILTER_GAINS[k]);
     _pidSpeed[k]->setMode(AUTOMATIC);
     _pidForceSensor[k] = new PID(&_innerTimer, &_effortMNEG(k), &_forceSensorCtrlOut(k), &_forceSensorD(k), _platform_kpFS(k), _platform_kiFS(k), _platform_kdFS(k), DIRECT, FS_PID_FILTER_GAINS[k]);
     _pidForceSensor[k]->setMode(AUTOMATIC);
     _flagInWsConstrains[k] = false;
   }
-  _pidRCM = new PID(&_innerTimer, &_cosDiffRCMCtrl, &_rcmCtrlOut, &_rcmAngleD, _platform_kpRCM, _platform_kiRCM, _platform_kdRCM, DIRECT, ALPHA_RCM_PID_FILTER);
-  _pidRCM->setMode(AUTOMATIC);
 
   for (int c=0; c<NB_AXIS_WRENCH; c++)
 {
@@ -114,36 +106,25 @@ for (int k = 0; k < NB_AXIS; k++) {
 
   _innerCounterADC=0;
 
-  _ros_controlledAxis = -1; //! all of them
-  _platform_controlledAxis = _ros_controlledAxis;
-  _ros_controllerType=TORQUE_CTRL;
-  _platform_controllerType=_ros_controllerType;
-  _flagClearLastState=false;
+  _platform_controlledAxis = -1;//! all of them
+  _platform_controllerType=TORQUE_CTRL;
   _flagControllerTypeChanged=false;
   _flagDefaultCtrlNew = false;
-  _flagCtrlGainsNew = false;
 
   _flagLoadParams=false;
 
-  _ros_flagDefaultControl=true;
   _platform_flagDefaultControl = true;
 
-  for(int c = 0; c<NB_FI_CATEGORY; c++)
-  {
-    _flagInputReceived[c] = false; //! To be used specially for the telemanipulation state
-  }
 
-  for (uint j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
-  {
-    if (j<=1){ _ros_effortComp[j]=1;}
-    else{_ros_effortComp[j]=0;}
 
-    _platform_effortComp[j] = _ros_effortComp[j];
+  for (size_t j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}
+  {
+    if (j==NORMAL){ _platform_effortComp[j]=1;}
+    else{_platform_effortComp[j]=0;}
   }
 
   _tic=false;
-  _ros_state = EMERGENCY;
-  _platform_state=_ros_state;
+  _platform_state=EMERGENCY;
   
     
   // Reset the flags that acknowledge when the state is entered for the first time 
@@ -218,24 +199,24 @@ for (int k = 0; k < NB_AXIS; k++) {
   _allEsconOk = 1;
 
 
-  _compensationEffort.setConstant(0.0f);
+  _compensationEffort.setZero();
 
   for (int sign_=0; sign_<NB_SIGN_COMP; sign_++)
   {
-    _dryFrictionEffortSign[sign_].setConstant(0.0f);
-    _predictors[sign_].setConstant(0.0f);
+    _dryFrictionEffortSign[sign_].setZero();
+    _predictors[sign_].setZero();
   }
 
 
 
   for (int lim_=L_MIN; lim_<NB_LIMS; lim_++)
   {
-    _compTorqueLims[lim_].setConstant(0.0f);
+    _compTorqueLims[lim_].setZero();
     _compTorqueLims[lim_].col(COMP_GRAVITY) = Eigen::Map<const Eigen::MatrixXf>(GRAVITY_EFFORT_LIMS[lim_],NB_AXIS,1);
     _compTorqueLims[lim_].col(COMP_VISC_FRICTION) = Eigen::Map<const Eigen::MatrixXf>(VISC_EFFORT_LIMS[lim_],NB_AXIS,1);
     _compTorqueLims[lim_].col(COMP_INERTIA) = Eigen::Map<const Eigen::MatrixXf>(INERTIA_EFFORT_LIMS[lim_],NB_AXIS,1);
     _compTorqueLims[lim_].col(COMP_CORIOLIS) = Eigen::Map<const Eigen::MatrixXf>(CORIOLIS_EFFORT_LIMS[lim_],NB_AXIS,1);
-    _compTorqueLims[lim_].col(COMP_FORCE_SENSOR) = Eigen::Map<const Eigen::MatrixXf>(FS_EFFORT_LIMS[lim_],NB_AXIS,1);;
+    _compTorqueLims[lim_].col(COMP_FORCE_SENSOR) = Eigen::Map<const Eigen::MatrixXf>(FS_EFFORT_LIMS[lim_],NB_AXIS,1);
 
   }
 
@@ -249,19 +230,19 @@ for (int k = 0; k < NB_AXIS; k++) {
   for (int link = 0; link < NB_LINKS; link++) {
     _momentInertiaLinks[link] = Eigen::Map<const Eigen::Matrix<float,3,3,Eigen::RowMajor>>(LINKS_MOMENT_OF_INERTIAS[link]);
 
-    _linkCOMGeomJacobian[link].setConstant(0.0f);
-    _linkCOMGeometricJ_prev[link].setConstant(0.0f);
-    _rotationMatrixCOM[link].setConstant(0.0f);
-    _rotationMatrixCOM_prev[link].setConstant(0.0f);
-    _devLinkCOMGeomJacobian[link].setConstant(0.0f);
-    _devRotationMatrixCOM[link].setConstant(0.0f);
+    _linkCOMGeomJacobian[link].setZero();
+    _linkCOMGeometricJ_prev[link].setZero();
+    _rotationMatrixCOM[link].setZero();
+    _rotationMatrixCOM_prev[link].setZero();
+    _devLinkCOMGeomJacobian[link].setZero();
+    _devRotationMatrixCOM[link].setZero();
   }
 
     _flagSpeedSampledForCoriolis = false;
 
     _flagContact=false;
     _flagVibration=false;
-    _feedForwardTorque.setConstant(0.0f);
+    _feedForwardTorque.setZero();
     _flagOutofCompensation=false;
-    _flagOutofRCMControl=false;
+    _flagOutofSoftLimitsControl=false;
 }

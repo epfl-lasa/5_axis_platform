@@ -29,8 +29,7 @@ mixedPlatformStatePublisher::mixedPlatformStatePublisher(
     _stop = false;
     _currentToolID=RIGHT_TOOL_ID;
     _currentToolIT=RIGHT_TOOL_IT;
-    _prevEnabledToolIT = RIGHT_TOOL_IT;
-
+    _prevEnabledToolID=RIGHT_TOOL_ID;
     for (size_t i = 0; i < NB_PLATFORMS; i++)
     {
       _platformEffort[i].setZero();
@@ -42,39 +41,11 @@ mixedPlatformStatePublisher::mixedPlatformStatePublisher(
       _platformPositionOffset[i].setZero();
     }
     
-    _flagWarningCenterMainPlatform=false;
-    _flagPrevToolSaved=true;  
+
+    _flagPrevToolSaved=false;  
     _flagOffsetCalculated = false;
     _mixedPlatformState = BOTH_TOOLS_DISABLED;
-    _nextMixedPlatformState = BOTH_TOOLS_DISABLED;
     
-    for (size_t p = 0; p < NB_PLATFORMS; p++)
-    {
-      std::vector<double> deadZoneValuesPlatformMin;
-      deadZoneValuesPlatformMin.resize(NB_PLATFORM_AXIS);
-      if (!_n.getParam("/"+std::string(Platform_Names[p+1])+"_tool/"+"deadZoneValuesPlatformMin", deadZoneValuesPlatformMin))
-      { 
-          ROS_ERROR(" [mixed platform]: No %s deadZoneValuesPlatformMin  param", Platform_Names[p+1]); 
-      }
-        for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
-        {
-          _deadZoneValues[p](i,L_MIN)=deadZoneValuesPlatformMin[i];
-        }
-      
-      std::vector<double> deadZoneValuesPlatformMax;
-      deadZoneValuesPlatformMax.resize(NB_PLATFORM_AXIS);
-      if (!_n.getParam("/"+std::string(Platform_Names[p+1])+"_tool/"+"deadZoneValuesPlatformMax", deadZoneValuesPlatformMax))
-      { 
-          ROS_ERROR(" [mixed platform]: No %s deadZoneValuesPlatformMax  param", Platform_Names[p+1]); 
-      }
-        for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
-        {
-          _deadZoneValues[p](i,L_MAX)=deadZoneValuesPlatformMax[i];
-        }
-    }
-    
-    
-
     std::string leftToolType, rightToolType;
     if (!_n.getParam("/left_tool/toolType", leftToolType))
     { 
@@ -122,7 +93,11 @@ mixedPlatformStatePublisher::mixedPlatformStatePublisher(
 
     for (size_t i = 0; i < NB_AUX_ACTIONS_CHECK; i++)
     {
-        _requestAuxAction[i]=false;
+      for (size_t j = 0; j < NB_A_AUX_STATES; j++)
+      {
+        _requestAuxAction[i][j]=false;
+      }
+        _isCenteredAuxAction[i]=false;
     }
     
 
@@ -292,84 +267,216 @@ void mixedPlatformStatePublisher::run() {
 
 }
 
+
 void mixedPlatformStatePublisher::checkAuxPlatformsInput(){
 
 
   if ( _platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[CLUTCH]) > 
     0.5*_auxPlatformWSLims(_auxPlatformAxisToAction[CLUTCH],L_MAX) )
   {
-    if (!_requestAuxAction[CLUTCH])
+    
+    if (!_requestAuxAction[CLUTCH][A_AUX_ON])
     {
-      ROS_INFO("[mixed platform]: Clutch on");
-      _requestAuxAction[CLUTCH]=true;
+      ROS_INFO("[mixed platform]: Clutch requested");
+      _requestAuxAction[CLUTCH][A_AUX_ON]=true;
     }
   }
 
-  if (_platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[CLUTCH]) < 
-    0.3*_auxPlatformWSLims(_auxPlatformAxisToAction[CLUTCH],L_MAX))
-  {
-    if (_requestAuxAction[CLUTCH])
+  if (_mixedPlatformState==STANDBY)
+  {   
+    if (_platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[CLUTCH]) < 
+    0.5*_auxPlatformWSLims(_auxPlatformAxisToAction[CLUTCH],L_MIN))
     {
-      ROS_INFO("[mixed platform]: Clutch off");
-      _requestAuxAction[CLUTCH]=false;
+      if (!_requestAuxAction[CLUTCH][A_AUX_OFF])
+      {
+        ROS_INFO("[mixed platform]: Clutch released");
+        _requestAuxAction[CLUTCH][A_AUX_OFF]=true;
+      }
+      
+    }  
+
+    if ( _platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[SWITCH]) < 
+      0.5*_auxPlatformWSLims(_auxPlatformAxisToAction[SWITCH],L_MIN))
+    {
+      if (!_requestAuxAction[SWITCH][A_AUX_ON])
+      {
+        ROS_INFO("[mixed platform]: Switching tools requested");
+      }
+      _requestAuxAction[SWITCH][A_AUX_ON]=true;
+    }
+
+    if ( _platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[SWITCH]) > 
+        0.3*_auxPlatformWSLims(_auxPlatformAxisToAction[SWITCH],L_MAX))
+    {
+      if (!_requestAuxAction[SWITCH][A_AUX_OFF])
+      {
+        ROS_INFO("[mixed platform]: Switching tools enabled");
+      }
+      _requestAuxAction[SWITCH][A_AUX_OFF]=true;
     }
   }  
 
-  if ( _platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[SWITCH]) > 
-      0.5*_auxPlatformWSLims(_auxPlatformAxisToAction[SWITCH],L_MAX))
-    {
-      if (!_requestAuxAction[SWITCH])
-      {
-        ROS_INFO("[mixed platform]: Switching tools requested");
-        _requestAuxAction[SWITCH]=true;
-      }
-    }
+  if ( fabs(_platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[SWITCH])) < 
+        0.05*_auxPlatformWSLims(_auxPlatformAxisToAction[SWITCH],L_MAX))
+  {
+    ROS_INFO_ONCE("[mixed platform]: axis for switching centered");
+    _isCenteredAuxAction[SWITCH]=true;
+  }else
+  {
+    _isCenteredAuxAction[SWITCH]=false;
+  }
 
-    if ( _platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[SWITCH]) < 
-        0.3*_auxPlatformWSLims(_auxPlatformAxisToAction[SWITCH],L_MAX))
-    {
-      if (_requestAuxAction[SWITCH])
-      {
-        ROS_INFO("[mixed platform]: Switching tools enabled");
-        _requestAuxAction[SWITCH]=false;
-      }
-    }
+  if ( fabs(_platformPosition[_auxPlatformIT](_auxPlatformAxisToAction[CLUTCH])) < 
+        0.05*_auxPlatformWSLims(_auxPlatformAxisToAction[CLUTCH],L_MAX))
+  {
+    ROS_INFO_ONCE("[mixed platform]: axis for clutching centered");
+    _isCenteredAuxAction[CLUTCH]=true;
+  }else
+  {
+    _isCenteredAuxAction[CLUTCH]=false;
+  }
 
- 
+  if(_requestAuxAction[CLUTCH][A_AUX_ON]) 
+  {    
+    if(!_flagPrevToolSaved)
+    {
+      _prevEnabledToolID = _currentToolID;
+      _prevEnabledToolIT = _currentToolIT;
+      _mixedPlatformState= BOTH_TOOLS_DISABLED;
+      _flagPrevToolSaved=true; 
+    }  
+  }else if (_requestAuxAction[SWITCH][A_AUX_ON])
+  {
+    if(!_flagPrevToolSaved)
+    {
+      cout<<"previous tool: "<<Platform_Names_2[_currentToolID]<<endl;
+      _prevEnabledToolID = _currentToolID == (uint8_t) RIGHT_TOOL_ID ? LEFT_TOOL_ID : RIGHT_TOOL_ID;
+      _prevEnabledToolIT = _currentToolIT == (uint8_t) RIGHT_TOOL_IT ? LEFT_TOOL_IT : RIGHT_TOOL_IT;
+      _mixedPlatformState= BOTH_TOOLS_DISABLED; 
+      cout<<"next tool: "<<Platform_Names_2[_prevEnabledToolID]<<endl;
+      _flagPrevToolSaved=true;
+    }
+  }
+
+  if ( (_requestAuxAction[CLUTCH][A_AUX_OFF] && !_requestAuxAction[CLUTCH][A_AUX_ON]) ||
+    (_requestAuxAction[SWITCH][A_AUX_OFF] && !_requestAuxAction[SWITCH][A_AUX_ON])) 
+  {
+    switch (_prevEnabledToolID)
+      {
+      case RIGHT_TOOL_ID:
+      {
+        _mixedPlatformState=RIGHT_TOOL_ENABLED;
+          break;
+      }
+      case LEFT_TOOL_ID:
+      {
+        _mixedPlatformState=LEFT_TOOL_ENABLED;
+        break;
+      }
+      default:
+      {  
+        _mixedPlatformState=RIGHT_TOOL_ENABLED;
+        break;
+      }
+      }
+  } 
   
 }
 
 
 void mixedPlatformStatePublisher::mixPlatformsActions() {
  
-  switch (_mixedPlatformState)
-
-  {
-    case BOTH_TOOLS_DISABLED:
+  
+  
+   switch (_mixedPlatformState)
     {
-      _currentToolID=NO_TOOL_ID; 
-      if(_requestAuxAction[CLUTCH]) 
-      {    
-        if(!_flagPrevToolSaved)
-        {
-          _prevEnabledToolIT = _currentToolIT;
-          _flagPrevToolSaved=true; 
-        }
-          _nextMixedPlatformState= TOOL_ENABLED;
-      } else if (_nextMixedPlatformState==TOOL_ENABLED)
+      case BOTH_TOOLS_DISABLED:
       {
-          _currentToolIT=_prevEnabledToolIT;
+        _currentToolID=NO_TOOL_ID;
+       if(_requestAuxAction[CLUTCH][A_AUX_ON] && _isCenteredAuxAction[CLUTCH]) 
+        {    
+          _mixedPlatformState=STANDBY;
+          _requestAuxAction[CLUTCH][A_AUX_ON]=false;
           _flagPrevToolSaved=false;
-          _flagOffsetCalculated=false;
-          _flagWarningCenterMainPlatform=false;
-          _mixedPlatformState = _nextMixedPlatformState;
-      } 
-      break; 
-    }
-
-    case TOOL_ENABLED:
-    { 
-      if (_toolControls[_currentToolIT]==TOOL_POSITION_CTRL)
+        } else  if(_requestAuxAction[SWITCH][A_AUX_ON] && _isCenteredAuxAction[SWITCH]) 
+        {    
+          _mixedPlatformState=STANDBY;
+          _requestAuxAction[SWITCH][A_AUX_ON]=false;
+          _flagPrevToolSaved=false;
+        }
+        break;
+      }
+      case STANDBY:
+      {
+        //Do nothing
+        break;
+      }
+      case RIGHT_TOOL_ENABLED:
+      {
+          _currentToolID=RIGHT_TOOL_ID;
+          _currentToolIT=RIGHT_TOOL_IT;
+        if(_requestAuxAction[CLUTCH][A_AUX_OFF] && _isCenteredAuxAction[CLUTCH]) 
+        { 
+          _requestAuxAction[CLUTCH][A_AUX_OFF]=false;
+        }
+        if(_requestAuxAction[SWITCH][A_AUX_OFF] && _isCenteredAuxAction[SWITCH]) 
+        { 
+          _requestAuxAction[SWITCH][A_AUX_OFF]=false;
+        } 
+        if ( !_requestAuxAction[CLUTCH][A_AUX_OFF] &&  !_requestAuxAction[SWITCH][A_AUX_OFF])
+        {
+          if (_toolControls[RIGHT_TOOL_IT]==TOOL_POSITION_CTRL)
+          {
+            _mixedPlatformState=CALCULATE_OFFSET_MIXED_PLATFORM;
+          }else{ 
+            if (_platformPosition[_mainPlatformIT].norm()<0.02)
+            {
+              if (_platformPosition[_auxPlatformIT].norm()<0.02)
+              {
+                _mixedPlatformState=STANDBY;
+              }
+            } else {
+              ROS_WARN_ONCE("[mixed platform]: please center your main foot");
+            }
+          }
+        }
+        
+        break;
+      }
+      case LEFT_TOOL_ENABLED:
+      {
+          _currentToolID=LEFT_TOOL_ID;
+          _currentToolIT=LEFT_TOOL_IT;
+        if(_requestAuxAction[CLUTCH][A_AUX_OFF] && _isCenteredAuxAction[CLUTCH]) 
+        { 
+          _requestAuxAction[CLUTCH][A_AUX_OFF]=false;
+        } 
+        if(_requestAuxAction[SWITCH][A_AUX_OFF] && _isCenteredAuxAction[SWITCH]) 
+        { 
+          _requestAuxAction[SWITCH][A_AUX_OFF]=false;
+        } 
+        if ( !_requestAuxAction[CLUTCH][A_AUX_OFF] &&  !_requestAuxAction[SWITCH][A_AUX_OFF])
+        {
+          if (_toolControls[LEFT_TOOL_IT]==TOOL_POSITION_CTRL)
+          {
+            _mixedPlatformState=CALCULATE_OFFSET_MIXED_PLATFORM;
+          }else{ 
+            if (_platformPosition[_mainPlatformIT].norm()<0.02)
+            {
+              if (_platformPosition[_auxPlatformIT].norm()<0.02)
+              {
+                _mixedPlatformState=STANDBY;
+              }
+            } else {
+              ROS_WARN_ONCE("[mixed platform]: please center your main foot");
+            }
+          }
+        }
+        
+        break;
+      }
+      case CALCULATE_OFFSET_MIXED_PLATFORM:
+      
       {
         if (!_flagOffsetCalculated)
         {
@@ -379,78 +486,22 @@ void mixedPlatformStatePublisher::mixPlatformsActions() {
           }
           _flagOffsetCalculated=true;
         }
-      }else {
-        // if ( ((_deadZoneValues[_currentToolIT].col(L_MAX) - _platformPosition[_mainPlatformIT]).array() > FLT_EPSILON ).all()
-        //   && ((-_deadZoneValues[_currentToolIT].col(L_MIN) + _platformPosition[_mainPlatformIT]).array() > FLT_EPSILON ).all() )
-        if ( ((_deadZoneValues[_currentToolIT].col(L_MAX) - _platformPosition[_mainPlatformIT]).segment(0,p_roll+1).array() > FLT_EPSILON ).all()
-          && ((-_deadZoneValues[_currentToolIT].col(L_MIN) + _platformPosition[_mainPlatformIT]).segment(0,p_roll+1).array() > FLT_EPSILON ).all() )
-        { 
-          if(!_flagOffsetCalculated)
-          {
-            
-            ROS_INFO("[mixed platform]: main platform centered!");
-            _flagOffsetCalculated=true;
-          }
-        }else
+        if (_platformPosition[_auxPlatformIT].norm()<0.03)
         {
-          if(!_flagWarningCenterMainPlatform)
-          {
-            ROS_WARN("[mixed platform]: please center your main platform");
-            _flagWarningCenterMainPlatform=true;
-          }
-        }
-      }
-      _currentToolID = NO_TOOL_ID;
-      if (_flagOffsetCalculated)
-      {
-        _currentToolID=(Tool_ID) ((uint8_t)_currentToolIT+1);
-      }
-      //! Transition
-      if(_requestAuxAction[CLUTCH]) 
-      {    
-        _nextMixedPlatformState= BOTH_TOOLS_DISABLED;
-      } 
-      else if (_nextMixedPlatformState==BOTH_TOOLS_DISABLED)
-      {
-        _mixedPlatformState = _nextMixedPlatformState;
-      }
-
-      if(_requestAuxAction[SWITCH]) 
-      {    
-        _nextMixedPlatformState= TOOL_SWITCH;
-      }
-      else if( _nextMixedPlatformState==TOOL_SWITCH)
-      {
-       _mixedPlatformState = _nextMixedPlatformState;
-      }
-      break;
-    }
-     case TOOL_SWITCH:
-    { 
-        _currentToolID = NO_TOOL_ID;
-        if (_nextMixedPlatformState==TOOL_ENABLED)
-        {
-          _flagWarningCenterMainPlatform=false;
-          _mixedPlatformState = _nextMixedPlatformState;
-        }else
-        {
-          if(!_flagPrevToolSaved)
-          {
-          _prevEnabledToolIT = _currentToolIT;
-          _flagPrevToolSaved=true; 
-          }
-          _currentToolIT=_prevEnabledToolIT == RIGHT_TOOL_IT ? LEFT_TOOL_IT : RIGHT_TOOL_IT;
           _flagOffsetCalculated=false;
-          _flagPrevToolSaved=false;
-          _nextMixedPlatformState = TOOL_ENABLED;
-        }
+          _mixedPlatformState=STANDBY;
+        } 
         break;
+      }   
     }
-  }
+
+      
+
 }
 
 void mixedPlatformStatePublisher::publishMixedPlatformJointStates() {
   //! Keep send the same valuest that the platform is broadcasting
+  //_mutex.lock();
   _msgMixedPlatformState.currentControlMode = _toolControls[_currentToolIT];
   _msgMixedPlatformState.mixedPlatformStateMachine=_mixedPlatformState;
   _msgMixedPlatformState.currentTool=_currentToolID;
@@ -463,19 +514,17 @@ void mixedPlatformStatePublisher::publishMixedPlatformJointStates() {
   _msgMixedPlatformState.mixedPlatformJointState.velocity.resize(NB_PLATFORM_AXIS);
   _msgMixedPlatformState.mixedPlatformJointState.effort.resize(NB_PLATFORM_AXIS);
 
-
   for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
     _msgMixedPlatformState.mixedPlatformJointState.name[k] =  "mixed_" +  std::string(Platform_Axis_Names[k]);
-      _msgMixedPlatformState.mixedPlatformJointState.position[k] = *(_mixedPlatformPosition[k]);
-      _msgMixedPlatformState.mixedPlatformJointState.velocity[k] = *(_mixedPlatformVelocity[k]);
-      _msgMixedPlatformState.mixedPlatformJointState.effort[k] = *(_mixedPlatformEffort[k]);
-      if(_toolControls[_currentToolIT]==TOOL_POSITION_CTRL)
-      {
-        _msgMixedPlatformState.mixedPlatformOffset[k] = -_platformPositionOffset[_currentToolIT](k);
-      }
-   }
+    _msgMixedPlatformState.mixedPlatformJointState.position[k] = *(_mixedPlatformPosition[k]);
+    _msgMixedPlatformState.mixedPlatformJointState.velocity[k] = *(_mixedPlatformVelocity[k]);
+    _msgMixedPlatformState.mixedPlatformJointState.effort[k] = *(_mixedPlatformEffort[k]);
+    _msgMixedPlatformState.mixedPlatformOffset[k] = -_platformPositionOffset[_currentToolIT](k);
+  }
+  
 
   _pubMixedPlatformJointStates.publish(_msgMixedPlatformState);
+  //_mutex.unlock();
 }
 
 void mixedPlatformStatePublisher::readPlatformsJointState(const sensor_msgs::JointState::ConstPtr &msg, unsigned int n_) {  

@@ -6,10 +6,10 @@
 #include "nav_msgs/Path.h"
 #include "ros/ros.h"
 #include <boost/shared_ptr.hpp>
-#include <custom_msgs/FootInputMsg_v5.h>
-#include <custom_msgs/FootOutputMsg_v3.h>
+#include <custom_msgs/FootInputMsg.h>
+#include <custom_msgs/FootOutputMsg.h>
 #include <custom_msgs/setControllerSrv.h>
-#include <custom_msgs/setStateSrv_v2.h>
+#include <custom_msgs/setStateSrv.h>
 #include "../../../5_axis_platform/lib/platform/src/definitions_main.h"
 #include "../../../5_axis_platform/lib/platform/src/definitions_pid.h"
 #include "../../../5_axis_platform/lib/platform/src/definitions_ros.h"
@@ -49,7 +49,7 @@ private:
 
   // ros variables
 
-  custom_msgs::FootOutputMsg_v3 _msgVirtualOutput;
+  custom_msgs::FootOutputMsg _msgVirtualOutput;
   sensor_msgs::JointState _msgPlatformJointStates;
 
 
@@ -65,9 +65,9 @@ private:
   // Subscribers declarations
  
   // Publisher declaration
-  ros::Publisher _pubVirtualFootOutput; // FootOutputMsg_v3
+  ros::Publisher _pubVirtualFootOutput; // FootOutputMsg
   ros::Publisher _pubPlatformJointStates; // sensor_msgs::JointState
-  ros::Subscriber _subVirtualFootInput; // FootInputMsg_v5
+  ros::Subscriber _subVirtualFootInput; // FootInputMsg
   ros::Subscriber _subPlatformJointStates; //sensor_msgs::JointState
   //! boolean variables
   bool _flagPlatformConnected;
@@ -97,7 +97,7 @@ private:
   void publishVirtualFootOutput();
   void publishPlatformJointStates();
   void readPlatformJointStates(const sensor_msgs::JointState::ConstPtr &msg);
-  void readVirtualFootInput(const custom_msgs::FootInputMsg_v5::ConstPtr &msg);
+  void readVirtualFootInput(const custom_msgs::FootInputMsg::ConstPtr &msg);
 
   //! OTHER METHODS
   static void stopNode(int sig);

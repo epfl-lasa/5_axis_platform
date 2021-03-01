@@ -37,7 +37,7 @@ bool footStatePublisher::init() //! Initialization of the node. Its datatype
   _pubFootJointStates = _n.advertise<sensor_msgs::JointState>("joint_states", 1);
 
   if (_platform_id == LEFT) {
-    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
+    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_LEFT, 1,
         boost::bind(&footStatePublisher::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
@@ -45,7 +45,7 @@ bool footStatePublisher::init() //! Initialization of the node. Its datatype
   }
   if (_platform_id == RIGHT) {
 
-    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg_v3>(
+    _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_RIGHT, 1,
         boost::bind(&footStatePublisher::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
@@ -109,7 +109,6 @@ void footStatePublisher::publishFootJointStates() {
   _pubFootJointStates.publish(_msgJointStates);
   //_mutex.unlock();
 }
-
 
 void footStatePublisher::readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg) {  
   me->_ros_platform_id = msg->platform_id;

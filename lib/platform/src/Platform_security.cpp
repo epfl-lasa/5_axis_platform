@@ -4,7 +4,7 @@ void Platform::workspaceCheck(int axis_){
   
   if (axis_==-1)
   {
-    for (uint k=0; k<NB_AXIS; k++)
+    for (size_t k=0; k<NB_AXIS; k++)
     {
       workspaceCheck(k);
     }

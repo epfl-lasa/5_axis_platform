@@ -16,7 +16,7 @@ float const VIB_EFFORT_LIMS[NB_AXIS] = {5.0f, 5.0f , 1.0 , 1.0 , 1.0};
 
 void Platform::feedForwardControl()
 {   
-    _feedForwardTorque.setConstant(0.0f);
+    _feedForwardTorque.setZero();
     eventVibration(FRAME_PEDAL);
     _effortD_ADD.col(FEEDFORWARD) = _feedForwardTorque.rowwise().sum();
 }
@@ -31,11 +31,11 @@ void Platform::eventVibration(frame_chain frame_)
         Eigen::Matrix<float, NB_AXIS, 1> vibTorques, limTorques;
         Eigen::Matrix<float, 6, 1> vibTau, vibTauTemp;
         Eigen::Matrix<float, 6, NB_AXIS> jacobianPedalFrame;
-        vibTorques.setConstant(0.0f);
+        vibTorques.setZero();
         limTorques<<VIB_EFFORT_LIMS[X], VIB_EFFORT_LIMS[Y], VIB_EFFORT_LIMS[PITCH],VIB_EFFORT_LIMS[ROLL],VIB_EFFORT_LIMS[YAW];
-        vibTau.setConstant(0.0f);
-        vibTauTemp.setConstant(0.0f);
-        jacobianPedalFrame.setConstant(0.0f);
+        vibTau.setZero();
+        vibTauTemp.setZero();
+        jacobianPedalFrame.setZero();
 
         jacobianPedalFrame = geometricJacobian(FRAME_PEDAL);
 

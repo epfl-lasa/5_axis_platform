@@ -38,11 +38,11 @@ bool footPlatformVirtual::init() //! Initialization of the node. Its datatype
                                  //! (bool) reflect the success in
                                  //! initialization
 {
-    _pubVirtualFootOutput = _n.advertise<custom_msgs::FootOutputMsg_v3>("/FI_Output/"+std::string(Platform_Names_2[_platform_id]), 0);
+    _pubVirtualFootOutput = _n.advertise<custom_msgs::FootOutputMsg>("/FI_Output/"+std::string(Platform_Names_2[_platform_id]), 0);
     
     _pubPlatformJointStates = _n.advertise<sensor_msgs::JointState>("/"+std::string(Platform_Names[_platform_id])+"_platform/platform_joint_publisher/joint_states", 0);
     
-    _subVirtualFootInput = _n.subscribe<custom_msgs::FootInputMsg_v5>("/FI_Input/"+std::string(Platform_Names_2[_platform_id])
+    _subVirtualFootInput = _n.subscribe<custom_msgs::FootInputMsg>("/FI_Input/"+std::string(Platform_Names_2[_platform_id])
     , 1, boost::bind(&footPlatformVirtual::readVirtualFootInput, this, _1),
     ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
     
@@ -115,7 +115,7 @@ void footPlatformVirtual::readPlatformJointStates(const sensor_msgs::JointState:
 }
 
 
-void footPlatformVirtual::readVirtualFootInput(const custom_msgs::FootInputMsg_v5::ConstPtr &msg)
+void footPlatformVirtual::readVirtualFootInput(const custom_msgs::FootInputMsg::ConstPtr &msg)
 {
 
 }

@@ -5,7 +5,7 @@
 void Platform::setEfforts()
 { 
   Eigen::Matrix<float, NB_AXIS,1> tempEffortD;
-  tempEffortD.setConstant(0.0f);
+  tempEffortD.setZero();
   for(int j = 0; j < NB_EFFORT_COMPONENTS; j++)
   {
     if (_platform_effortComp[j]==1) {

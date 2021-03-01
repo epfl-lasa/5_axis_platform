@@ -19,7 +19,8 @@
         "memory": "cpp",
         "future": "cpp",
         "optional": "cpp",
-        "dense": "cpp"
+        "dense": "cpp",
+        "geometry": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3"
 }

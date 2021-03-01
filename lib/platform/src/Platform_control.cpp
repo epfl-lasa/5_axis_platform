@@ -1,67 +1,70 @@
 #include "Platform.h"
 
-//! 1
-void Platform::positionAllControl(EffortComp Component)
-{
-  //Compute the PID
-
-  for (uint i = 0; i < NB_AXIS; i++)
-  { 
-    positionAxisControl(Component,i);
+void Platform::positionAxisControl(EffortComp Component, int axis) {
+  if (axis==-1)
+  {
+    for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+    {
+      positionAxisControl(Component,i);
+    }
+  } else {
+    if ((_platform_controllerType == POSITION_CTRL)) {
+        if (_platform_state==ROBOT_STATE_CONTROL)
+        {
+            posInterpolator(axis);
+        }
+        else
+        {
+          _positionD_filtered(axis) = _positionD(axis);
+        }
+          _pidPosition[axis]->compute();
+          _effortD_ADD(axis, Component) = _positionCtrlOut(axis);
+      }
   }
  
 }
 
-//! 2
-void Platform::positionAxisControl(EffortComp Component, int axis) {
-  if ((_platform_controllerType == POSITION_CTRL)) {
-    if (_platform_state==ROBOT_STATE_CONTROL)
-    {
-        posInterpolator(axis);
-    }
-    else
-    {
-        _positionD_filtered(axis) = _positionD(axis);
-    }
-      _pidPosition[axis]->compute();
-      _effortD_ADD(axis, Component) = _positionCtrlOut(axis);
-  }
-}
-
 //! 3
-void Platform::speedAxisControl(EffortComp Component, int axis) {
-  if ((_platform_controllerType == SPEED_CTRL)) {
-    _pidSpeed[axis]->compute();
-    _effortD_ADD(axis, Component) = _speedCtrlOut[axis];
-  }
-}
-
-//! 4
-void Platform::speedAllControl(EffortComp Component)
-{
-  for (uint i = 0; i < NB_AXIS; i++)
-  {  
-    speedAxisControl(Component,i);
+void Platform::speedAxisControl(EffortComp Component, int axis_) {
+  if (axis_==-1)
+  {
+    for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+    {
+      speedAxisControl(Component,i);
+    }
+  }else{
+    if ((_platform_controllerType == SPEED_CTRL)) {
+      _pidSpeed[axis_]->compute();
+      _effortD_ADD(axis_, Component) = _speedCtrlOut(axis_);
+    }
   }
 }
 
 //! 5
-void Platform::gotoPointAxis(int axis_, float point)
-{
-  _positionD(axis_)=point;
-  positionAxisControl(NORMAL,axis_);
-}
+// void Platform::gotoPointAxis(int axis_, Effor)
+// { 
+//   if (axis_==-1)
+//   {
+//     for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+//     {
+//       gotoPointAxis(i);
+//     }
+//   }else
+//   {
+//     positionAxisControl(NORMAL,axis_);
+//   }
+// }
 
 //! 6
-void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW)
-{
-  _positionD(X)=pointX;
-  _positionD(Y)=pointY;
-  _positionD(PITCH)=pointPITCH;
-  _positionD(ROLL)=pointROLL;
-  _positionD(YAW)=pointYAW;
-  positionAllControl(NORMAL);
-}
+// void Platform::gotoPointAll(float pointX, float pointY, float pointPITCH, float pointROLL, float pointYAW)
+// {
+//   _positionD(X)=pointX;
+//   _positionD(Y)=pointY;
+//   _positionD(PITCH)=pointPITCH;
+//   _positionD(ROLL)=pointROLL;
+//   _positionD(YAW)=pointYAW;
+//   positionAllControl(NORMAL);
+// }
 
 //! 7
 void Platform::gotoPointGainsDefault()
@@ -104,6 +107,17 @@ void Platform::posCtrlLimitsSet() {
   }
 }
 
+void Platform::softLimitsCtrlLimitsSet() {
+      
+  for (int k=0; k<NB_AXIS; k++)
+  {
+    if(_platform_state==TELEOPERATION)
+    {
+      _pidSoftLimits[k]->setOutputLimits(-SAFETY_MAX_INIT[k],SAFETY_MAX_INIT[k]);
+    }
+  }
+}
+
 void Platform::forceSensorCtrlLimitsSet() {
 
   for (int k = 0; k < NB_AXIS; k++) {
@@ -112,10 +126,6 @@ void Platform::forceSensorCtrlLimitsSet() {
   }
 }
 
-void Platform::rcmCtrlLimitsSet() {
-
-  _pidRCM->setOutputLimits(-_rcmMaxCtrlEfforts.norm(), _rcmMaxCtrlEfforts.norm());
-}
 
 void Platform::speedCtrlLimitsSet() {
   for (int k=0; k<NB_AXIS; k++)
@@ -166,14 +176,7 @@ void Platform::posInterpolator(int axis){
 
 void Platform::loadDefaultPIDGains()
 {
-  if (_platform_state==TELEOPERATION)
-  {
-    wsConstrainsGainsDefault();
-  }      
-  else
-  {
-    gotoPointGainsDefault();
-  }
+  gotoPointGainsDefault();
   forceSensorPIDGainsDefault();
   speedPIDGainsDefault();
   setPIDGains();
@@ -183,7 +186,7 @@ void Platform::loadParamPIDGains() {
   retrieveParams(PID_POS_C); // load pid gains for position;
   retrieveParams(PID_VEL_C);
   retrieveParams(PID_FS_C);
-  retrieveParams(PID_RCM_C);
+  retrieveParams(PID_SOFT_LIMITS_C);
   float scale = 0.0f;
   for (int k = 0; k < NB_AXIS; k++) {
     if (k < PITCH) {
@@ -191,9 +194,14 @@ void Platform::loadParamPIDGains() {
     } else {
       scale = SCALE_GAINS_ANGULAR_POSITION;
     }
+
     _platform_kpPosition(k) = _rosParam_kpPosition[k] * scale;
     _platform_kiPosition(k) = _rosParam_kiPosition[k] * scale;
     _platform_kdPosition(k) = _rosParam_kdPosition[k] * scale;
+
+    _platform_kpSoftLimits(k) = _rosParam_kpSoftLimits[k] * scale;
+    _platform_kiSoftLimits(k) = _rosParam_kiSoftLimits[k] * scale;
+    _platform_kdSoftLimits(k) = _rosParam_kdSoftLimits[k] * scale;
 
     if (k < PITCH) {
       scale = SCALE_GAINS_LINEAR_SPEED;
@@ -208,14 +216,13 @@ void Platform::loadParamPIDGains() {
     _platform_kpFS(k) = _rosParam_kpFS[k];
     _platform_kiFS(k) = _rosParam_kiFS[k];
     _platform_kdFS(k) = _rosParam_kdFS[k];
+
+    _softLimitsMin(k) = _rosParam_pointSoftLimitsMin[k];
+    _softLimitsMax(k) = _rosParam_pointSoftLimitsMax[k];
   }
-    _platform_kpRCM = _rosParam_kpRCM;
-    _platform_kiRCM = _rosParam_kiRCM;
-    _platform_kdRCM = _rosParam_kdRCM;
-    for (int a=0;a<NB_CART_AXIS; a++ )
-    {
-      _platform_posRCM(a) = _rosParam_posRCM[a];
-    }
+
+  
+    
   setPIDGains();
 }
 
@@ -226,21 +233,6 @@ void Platform::loadParamCompensation() {
   }
 }
 
-void Platform::loadROSPIDGains()
-{
-  for (int k=0; k<NB_AXIS; k++)
-  {
-    _platform_kpPosition(k)=_ros_kpPosition[k];
-    _platform_kiPosition(k) = _ros_kiPosition[k];
-    _platform_kdPosition(k) = _ros_kdPosition[k];
-    _platform_kpSpeed(k) = _ros_kpSpeed[k];
-    _platform_kiSpeed(k) = _ros_kiSpeed[k];
-    _platform_kdSpeed(k) = _ros_kdSpeed[k];
-    if (_platform_state==TELEOPERATION)
-    { _platform_kiPosition[k]=0.0f;} // only SPRING-DAMPER: PD
-  }
-  setPIDGains();
-}
 
 void Platform::setPIDGains()
 {
@@ -249,7 +241,9 @@ void Platform::setPIDGains()
     _pidPosition[axis]->setTunings(_platform_kpPosition(axis),
                                   _platform_kiPosition(axis),
                                   _platform_kdPosition(axis));
-
+    _pidSoftLimits[axis]->setTunings(_platform_kpSoftLimits(axis),
+                                  _platform_kiSoftLimits(axis),
+                                  _platform_kdSoftLimits(axis));
     _pidSpeed[axis]->setTunings(_platform_kpSpeed(axis),
                                _platform_kiSpeed(axis),
                                _platform_kdSpeed(axis));
@@ -257,6 +251,4 @@ void Platform::setPIDGains()
                                     _platform_kiFS(axis),
                                     _platform_kdFS(axis));                                    
   }
-  _pidRCM->setTunings(_platform_kpRCM, _platform_kiRCM,
-                                    _platform_kdRCM);
 }

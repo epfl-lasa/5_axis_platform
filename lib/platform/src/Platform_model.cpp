@@ -9,7 +9,7 @@ Eigen::Vector3f Platform::positionFrame(frame_chain frame)
 {
     
   Eigen::Vector3f positionFrame_;
-  positionFrame_.setConstant(0.0f);
+  positionFrame_.setZero();
 
 
 
@@ -17,13 +17,13 @@ Eigen::Vector3f Platform::positionFrame(frame_chain frame)
     {
         case FRAME_BASE:
         {
-            positionFrame_.setConstant(0.0f);
+            positionFrame_.setZero();
             break;   
         }
 
         case FRAME_Y:
         {
-            positionFrame_.setConstant(0.0f);
+            positionFrame_.setZero();
             break;   
         }
 
@@ -178,13 +178,13 @@ Eigen::Matrix<float,6,NB_AXIS> Platform::geometricJacobian(frame_chain frame)
 {
 
     Eigen::Matrix<float, 6, NB_AXIS> J;
-    J.setConstant(0.0f);
+    J.setZero();
 
     switch (frame)
     {
         case FRAME_BASE ... FRAME_Y:
         {
-            J.setConstant(0.0f);
+            J.setZero();
             break;   
         }
 
@@ -336,7 +336,7 @@ Eigen::Matrix<float,6,NB_AXIS> Platform::geometricJacobian(frame_chain frame)
 Eigen::Vector3f Platform::comLinkWRTBase(link_chain link) {
 
   Eigen::Vector3f positionCOMLink_;
-  positionCOMLink_.setConstant(0.0f);
+  positionCOMLink_.setZero();
 
   float _c_theta = cos(_position(PITCH));
   float _c_phi = cos(_position(ROLL));
@@ -520,13 +520,13 @@ Eigen::Matrix3f Platform::comRotationMatrix(link_chain link){
 Eigen::Matrix<float, 6, NB_AXIS> Platform::comGeometricJacobian(link_chain link){
 
     Eigen::Matrix<float, 6, NB_AXIS> comJ;
-    comJ.setConstant(0.0f);
+    comJ.setZero();
 
     switch (link)
     {
         case LINK_BASE:
         {
-            comJ.setConstant(0.0f);
+            comJ.setZero();
             break;   
         }
 
@@ -659,7 +659,7 @@ Eigen::Matrix<float, 6, NB_AXIS> Platform::comGeometricJacobian(link_chain link)
 
             comJ(3,4) = _s_phi;
             comJ(4,4) = -_c_phi*_s_theta;
-            comJ(5,4) = _c_phi*_c_theta;;                                            
+            comJ(5,4) = _c_phi*_c_theta;                                            
             // comJ<< 0.0f, 1.0f,                                                                                                                                                                                         0.0f, _c_theta*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) + _s_theta*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)), _c_phi*_c_theta*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _c_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),
             //        1.0f, 0.0f,   _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) - LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi),                                                                                                                                                                                                                                                                                                _s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),                                                                                                 _c_phi*_c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _s_phi*(LINKS_COM[LINK_YAW][2]*_c_phi*_c_theta - _s_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + _c_theta*_s_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),
             //        0.0f, 0.0f, - _c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) - LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta - _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi),                                                                                                                                                                                                                                                                                               -_c_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),                                                                                                 _c_phi*_s_theta*(LINKS_COM[LINK_YAW][2]*_s_phi - _c_phi*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)) - _s_phi*(_c_theta*(LINKS_COM[LINK_YAW][1]*_c_psi + LINKS_COM[LINK_YAW][0]*_s_psi) + LINKS_COM[LINK_YAW][2]*_c_phi*_s_theta + _s_phi*_s_theta*(LINKS_COM[LINK_YAW][0]*_c_psi - LINKS_COM[LINK_YAW][1]*_s_psi)),
@@ -785,13 +785,13 @@ Eigen::Matrix4f Platform::dhTransform(float r,float d,float alpha,float beta)
 Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> Platform::devQComGeomJacobian(link_chain link)
 {
     Eigen::Matrix<float, 6, NB_AXIS * NB_AXIS> devComJ;
-    devComJ.setConstant(0.0f);
+    devComJ.setZero();
 
     switch (link)
     {
         case LINK_BASE ... LINK_X:
         {
-            devComJ.setConstant(0.0f); //-> already zero before the switchCase
+            devComJ.setZero(); //-> already zero before the switchCase
             break;   
         }
 

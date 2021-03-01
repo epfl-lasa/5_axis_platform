@@ -29,7 +29,7 @@
 			</node>
 		</group>
 
-		<node name="platform_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+		<node name="platform_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
 			<param name="publish_frequency" type="double" value="1000.0"/>
 			<remap from="joint_states" to="platform_joint_publisher/joint_states" />
 		</node>

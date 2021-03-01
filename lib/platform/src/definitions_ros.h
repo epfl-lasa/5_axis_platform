@@ -11,7 +11,7 @@ const int rosAxis[] = {X, Y, PITCH, ROLL, YAW}; //! This is because the first
 
 enum FootInput_Category { MSG_POSITION, MSG_SPEED, MSG_TORQUE};
 
-enum Param_Category {PID_POS_C, PID_VEL_C, PID_FS_C, PID_RCM_C, COMPENSATION_C, ALL};
+enum Param_Category {PID_POS_C, PID_VEL_C, PID_FS_C, PID_SOFT_LIMITS_C, COMPENSATION_C, ALL};
 
 #define NB_FI_CATEGORY 3 //! Category of the information of the foot input message
 
@@ -25,6 +25,8 @@ enum Param_Category {PID_POS_C, PID_VEL_C, PID_FS_C, PID_RCM_C, COMPENSATION_C, 
     #define PARAM_P_POS_LEFT "/left/p_pos"
     #define PARAM_I_POS_LEFT "/left/i_pos"
     #define PARAM_D_POS_LEFT "/left/d_pos"
+    #define PARAM_WALL_POINT_LEFT_MIN "/left/v_wall/point_min"
+    #define PARAM_WALL_POINT_LEFT_MAX "/left/v_wall/point_max"
     #define PARAM_P_WALL_LEFT "/left/v_wall/p_pos"
     #define PARAM_I_WALL_LEFT "/left/v_wall/i_pos"
     #define PARAM_D_WALL_LEFT "/left/v_wall/d_pos"
@@ -48,6 +50,8 @@ enum Param_Category {PID_POS_C, PID_VEL_C, PID_FS_C, PID_RCM_C, COMPENSATION_C, 
     #define PARAM_P_POS_RIGHT "/right/p_pos"
     #define PARAM_I_POS_RIGHT "/right/i_pos"
     #define PARAM_D_POS_RIGHT "/right/d_pos"
+    #define PARAM_WALL_POINT_RIGHT_MIN "/right/v_wall/point_min"
+    #define PARAM_WALL_POINT_RIGHT_MAX "/right/v_wall/point_max"
     #define PARAM_P_WALL_RIGHT "/right/v_wall/p_pos"
     #define PARAM_I_WALL_RIGHT "/right/v_wall/i_pos"
     #define PARAM_D_WALL_RIGHT "/right/v_wall/d_pos"
@@ -73,6 +77,8 @@ enum Param_Category {PID_POS_C, PID_VEL_C, PID_FS_C, PID_RCM_C, COMPENSATION_C, 
         #define PARAM_P_POS_NAME PARAM_P_POS_LEFT
         #define PARAM_I_POS_NAME PARAM_I_POS_LEFT
         #define PARAM_D_POS_NAME PARAM_D_POS_LEFT
+        #define PARAM_WALL_POINT_MIN PARAM_WALL_POINT_LEFT_MIN
+        #define PARAM_WALL_POINT_MAX PARAM_WALL_POINT_LEFT_MAX
         #define PARAM_P_WALL_NAME PARAM_P_WALL_LEFT
         #define PARAM_I_WALL_NAME PARAM_I_WALL_LEFT
         #define PARAM_D_WALL_NAME PARAM_D_WALL_LEFT
@@ -98,6 +104,8 @@ enum Param_Category {PID_POS_C, PID_VEL_C, PID_FS_C, PID_RCM_C, COMPENSATION_C, 
         #define PARAM_P_POS_NAME PARAM_P_POS_RIGHT
         #define PARAM_I_POS_NAME PARAM_I_POS_RIGHT
         #define PARAM_D_POS_NAME PARAM_D_POS_RIGHT
+        #define PARAM_WALL_POINT_MIN PARAM_WALL_POINT_RIGHT_MIN
+        #define PARAM_WALL_POINT_MAX PARAM_WALL_POINT_RIGHT_MAX
         #define PARAM_P_WALL_NAME PARAM_P_WALL_RIGHT
         #define PARAM_I_WALL_NAME PARAM_I_WALL_RIGHT
         #define PARAM_D_WALL_NAME PARAM_D_WALL_RIGHT
