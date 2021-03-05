@@ -1,13 +1,13 @@
 point_min: # has to be positive values
 - -0.09
 - -0.0975
-- -22.0
+- -10.0
 - -30.0
 - -30.0
 point_max: # has to be positive values
 - 0.04
 - 0.04
-- 22.0
+- 10.0
 - 30.0
 - 30.0
 p_pos:

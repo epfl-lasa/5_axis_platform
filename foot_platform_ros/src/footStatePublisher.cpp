@@ -23,8 +23,8 @@ footStatePublisher::footStatePublisher(
   _ros_state_position.setZero();
   _ros_state_velocity.setZero();
   _ros_state_effort.setZero();
+  _ros_platform_id=RIGHT_PLATFORM_ID;
   _flagPlatformConnected=false;
-  _ros_platform_id=1;
 
 }
 
@@ -70,7 +70,7 @@ void footStatePublisher::stopNode(int sig) { me->_stop = true; }
 void footStatePublisher::run() {
   while (!_stop) {
     if (_flagPlatformConnected) {
-      if ((uint8_t) _platform_id != _ros_platform_id) 
+      if ((_platform_id != (Platform_Name)_ros_platform_id)) 
       {
         ROS_ERROR("[%s platform j.pub.]: This node is acting on the wrong platform",Platform_Names[_platform_id]);
         ros::spinOnce();
@@ -111,15 +111,14 @@ void footStatePublisher::publishFootJointStates() {
 }
 
 void footStatePublisher::readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg) {  
-  me->_ros_platform_id = msg->platform_id;
-
+  _ros_platform_id = msg->platform_id;
   for (int k = 0; k < NB_PLATFORM_AXIS; k++) {
-    me->_ros_state_position(k) = msg->platform_position[rosAxis[k]] * conversion_factor[rosAxis[k]];
-    me->_ros_state_velocity(k) = msg->platform_speed[rosAxis[k]] * conversion_factor[rosAxis[k]];
-    me->_ros_state_effort(k) = msg->platform_effortD[rosAxis[k]];
+    _ros_state_position(k) = msg->platform_position[rosAxis[k]] * conversion_factor[rosAxis[k]];
+    _ros_state_velocity(k) = msg->platform_speed[rosAxis[k]] * conversion_factor[rosAxis[k]];
+    _ros_state_effort(k) = msg->platform_effortD[rosAxis[k]];
   }
   if (!_flagPlatformConnected) {
-    me->_flagPlatformConnected = true;
+    _flagPlatformConnected = true;
   }
 }
 

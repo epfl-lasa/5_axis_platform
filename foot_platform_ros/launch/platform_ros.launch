@@ -9,7 +9,6 @@
     <arg name="offset_x"           default="-0.25" if="$(eval arg('id')=='left')"/>
     <arg name="offset_y"           default="0.47046"/>
     <arg name="offset_z"           default="0.0"/>
-    <arg name="port"           default="$(arg id)_platform"/>
     
 	<arg name="rvizconfig" default="$(find foot_platform_ros)/rviz/$(arg id)/platform_alone.rviz" /> 
 
@@ -22,7 +21,7 @@
     <group unless="$(arg virtual_platform)">
         <include file="$(find foot_platform_ros)/launch/platform_hw.launch">
             <arg name="baud" value="$(arg baud)"/>
-            <arg name="port" value="$(arg port)"/>
+            <arg name="port" value="/dev/$(arg id)_platform"/>
             <arg name="id" value="$(arg id)"/>
         </include>
     </group>
