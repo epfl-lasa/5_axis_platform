@@ -2,6 +2,7 @@
 
 const float conversion_factor[] = {1.0, 1.0, DEG_TO_RAD, DEG_TO_RAD, DEG_TO_RAD};
 
+const int Axis_Ros[] = {1,0,2,3,4};
 #define ListofPlatformAxes(enumeration, names) names,
 char const *Platform_Axis_Names[]{
   PLATFORM_AXES};
@@ -464,13 +465,14 @@ void footForceMeasModifier::publishTorquesModified(){
     if(!_stop)
     {
       _torquesModified = _myFootBaseJacobian.data.transpose() * _forceInFootRest;
+      //std::cout<<_myFootBaseJacobian.data<<std::endl;
       // _torquesModified(p_pitch)*=-1;
       // _torquesModified(p_pitch)*=-1;
 
 
       for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
       {
-        _msgTorquesModified.platform_effortM[i]=_torquesModified(i);
+        _msgTorquesModified.platform_effortM[Axis_Ros[i]]=_torquesModified(i);
       }
     }else
     {

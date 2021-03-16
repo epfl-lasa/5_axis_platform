@@ -77,11 +77,11 @@ void Platform::getPosition()
       }
     _spi->unlock();
     // Adapt roll and yaw angles due to differential mechanism
-      _position(Y) = encoders_out[Y] + _positionOffsets (Y);
-      _position(X) = encoders_out[X] + _positionOffsets(X);
-      _position(PITCH) = encoders_out[PITCH] + _positionOffsets(PITCH);
-      _position(ROLL) = (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f + _positionOffsets (ROLL);
-      _position(YAW) = (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f + _positionOffsets (YAW);
+      _position(Y) =  clip(encoders_out[Y] + _positionOffsets (Y),-1.5f * WS_LIMITS[Y], 1.5f * WS_LIMITS[Y]);
+      _position(X) = clip(encoders_out[X] + _positionOffsets (X),-1.5f * WS_LIMITS[X], 1.5f * WS_LIMITS[X]);
+      _position(PITCH) = clip(encoders_out[PITCH] + _positionOffsets (PITCH),-1.5f * WS_LIMITS[PITCH], 1.5f * WS_LIMITS[PITCH]);
+      _position(ROLL) = clip( (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f + _positionOffsets (ROLL), -1.5f * WS_LIMITS[ROLL], 1.5f * WS_LIMITS[ROLL]) ;
+      _position(YAW) = clip( (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f + _positionOffsets (YAW),  -1.5f * WS_LIMITS[YAW], 1.5f * WS_LIMITS[YAW]);
     _posSamplingStamp = _timestamp;
   }
   //

@@ -84,7 +84,7 @@ void Platform::pubFootOutput()
   
   for (size_t k=0; k<NB_PLATFORM_AXIS; k++)
   {
-    _msgFootOutput.platform_position[rosAxis[k]] = _position(k) * ConversionAxisPlatformToROS[k];
+    _msgFootOutput.platform_position[rosAxis[k]] = _position(k)  * ConversionAxisPlatformToROS[k];
     _msgFootOutput.platform_speed[rosAxis[k]] = _speed(k) * ConversionAxisPlatformToROS[k];
     _msgFootOutput.platform_effortRef[rosAxis[k]] = _forceSensorD(k);
     _msgFootOutput.platform_effortD[rosAxis[k]] =_effortD(k);
@@ -134,10 +134,11 @@ void Platform::loadROSPIDGains()
 
 void Platform::updateFootInputFromRos() {
 
-    for (size_t c=0; c<NB_AXIS_WRENCH; c++)
-    {
-      _ros_forceSensor[c] = _msgFootInput.ros_forceSensor[c]; //! In this one the rosAxis doesn't apply
-    }
+  calculateMeasTorques();
+    // for (size_t c=0; c<NB_AXIS_WRENCH; c++)
+    // {
+    //   _ros_forceSensor[c] = _msgFootInput.ros_forceSensor[c]; //! In this one the rosAxis doesn't apply
+    // }
 
   for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
   {
@@ -168,7 +169,6 @@ void Platform::updateFootInputFromRos() {
 
       loadROSPIDGains();
   } 
-  calculateMeasTorques();
 }
 
 void Platform::calculateMeasTorques() {
@@ -185,13 +185,17 @@ void Platform::calculateMeasTorques() {
 // forceSensorWRTBASE.tail(3) = rotationFS*forceSensorRAW.tail(3);
 //_effortM=geometricJacobian(FRAME_FS).transpose()*forceSensorWRTBASE;
 
-  _effortM(Y) = effortM_Y;
-  _effortM(X) = effortM_X;
-  _effortM(PITCH) = -effortM_PITCH;
-  _effortM(ROLL) = -effortM_ROLL;
-  _effortM(YAW) = effortM_YAW;
-  _effortM = _effortM.cwiseProduct(_platform_filterAxisFS);
-  _effortMNEG=-_effortM;
+  // _effortM(Y) = effortM_Y;
+  // _effortM(X) = effortM_X;
+  // _effortM(PITCH) = -effortM_PITCH;
+  // _effortM(ROLL) = -effortM_ROLL;
+  // _effortM(YAW) = effortM_YAW;
+  for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+  {
+    _effortM(i) = _msgFootInput.ros_effortM[rosAxis[i]];
+  }
+
+  _effortMNEG=-_effortM.cwiseProduct(_platform_filterAxisFS);
 }
 
 void Platform::retrieveParams(Param_Category category_)

@@ -12,8 +12,8 @@ enum Platform_IT {RIGHT_PLATFORM_IT = 0, LEFT_PLATFORM_IT = 1, NB_PLATFORMS};
 
 
 
-#define PLATFORM_ID LEFT_PLATFORM_ID //! 1:Right 2:Left
-//#define PLATFORM_ID RIGHT_PLATFORM_ID
+//#define PLATFORM_ID LEFT_PLATFORM_ID //! 1:Right 2:Left
+#define PLATFORM_ID RIGHT_PLATFORM_ID
 
 //! Indexing
 #define NB_LIMS 2

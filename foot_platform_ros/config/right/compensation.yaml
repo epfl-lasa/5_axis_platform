@@ -2,11 +2,11 @@ comp_:
 #gravity
 - 1
 #viscous
-- 1
+- 0
 #inertia
-- 1
+- 0
 #coriolis 
-- 1
+- 0
 #force_sensor
 - 1
 #dry_friction

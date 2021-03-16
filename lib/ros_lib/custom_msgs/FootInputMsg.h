@@ -15,7 +15,7 @@ namespace custom_msgs
       float ros_position[5];
       float ros_speed[5];
       float ros_effort[5];
-      float ros_forceSensor[6];
+      float ros_effortM[5];
       float ros_filterAxisForce[5];
       float ros_kp[5];
       float ros_kd[5];
@@ -25,7 +25,7 @@ namespace custom_msgs
       ros_position(),
       ros_speed(),
       ros_effort(),
-      ros_forceSensor(),
+      ros_effortM(),
       ros_filterAxisForce(),
       ros_kp(),
       ros_kd(),
@@ -72,17 +72,17 @@ namespace custom_msgs
       *(outbuffer + offset + 3) = (u_ros_efforti.base >> (8 * 3)) & 0xFF;
       offset += sizeof(this->ros_effort[i]);
       }
-      for( uint32_t i = 0; i < 6; i++){
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_ros_forceSensori;
-      u_ros_forceSensori.real = this->ros_forceSensor[i];
-      *(outbuffer + offset + 0) = (u_ros_forceSensori.base >> (8 * 0)) & 0xFF;
-      *(outbuffer + offset + 1) = (u_ros_forceSensori.base >> (8 * 1)) & 0xFF;
-      *(outbuffer + offset + 2) = (u_ros_forceSensori.base >> (8 * 2)) & 0xFF;
-      *(outbuffer + offset + 3) = (u_ros_forceSensori.base >> (8 * 3)) & 0xFF;
-      offset += sizeof(this->ros_forceSensor[i]);
+      } u_ros_effortMi;
+      u_ros_effortMi.real = this->ros_effortM[i];
+      *(outbuffer + offset + 0) = (u_ros_effortMi.base >> (8 * 0)) & 0xFF;
+      *(outbuffer + offset + 1) = (u_ros_effortMi.base >> (8 * 1)) & 0xFF;
+      *(outbuffer + offset + 2) = (u_ros_effortMi.base >> (8 * 2)) & 0xFF;
+      *(outbuffer + offset + 3) = (u_ros_effortMi.base >> (8 * 3)) & 0xFF;
+      offset += sizeof(this->ros_effortM[i]);
       }
       for( uint32_t i = 0; i < 5; i++){
       union {
@@ -177,18 +177,18 @@ namespace custom_msgs
       this->ros_effort[i] = u_ros_efforti.real;
       offset += sizeof(this->ros_effort[i]);
       }
-      for( uint32_t i = 0; i < 6; i++){
+      for( uint32_t i = 0; i < 5; i++){
       union {
         float real;
         uint32_t base;
-      } u_ros_forceSensori;
-      u_ros_forceSensori.base = 0;
-      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
-      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
-      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
-      u_ros_forceSensori.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
-      this->ros_forceSensor[i] = u_ros_forceSensori.real;
-      offset += sizeof(this->ros_forceSensor[i]);
+      } u_ros_effortMi;
+      u_ros_effortMi.base = 0;
+      u_ros_effortMi.base |= ((uint32_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      u_ros_effortMi.base |= ((uint32_t) (*(inbuffer + offset + 1))) << (8 * 1);
+      u_ros_effortMi.base |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
+      u_ros_effortMi.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
+      this->ros_effortM[i] = u_ros_effortMi.real;
+      offset += sizeof(this->ros_effortM[i]);
       }
       for( uint32_t i = 0; i < 5; i++){
       union {
@@ -246,7 +246,7 @@ namespace custom_msgs
     }
 
     const char * getType(){ return "custom_msgs/FootInputMsg"; };
-    const char * getMD5(){ return "bed0fc9cdae72a8ec465791c708cb046"; };
+    const char * getMD5(){ return "728ace458772abb6fc46fc86fef9a7b6"; };
 
   };
 

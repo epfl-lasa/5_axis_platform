@@ -55,7 +55,7 @@ const float ADC_EFFORT_SCALE[NB_AXIS] = {1.0f, 1.0f, 1.0f, 2.12571428571f, 2.260
 
 const float X_RANGE = 0.195F;                 //! [m] 
 const float Y_RANGE = 0.180F;                 //! [m]  
-const float PITCH_RANGE  = 50.0F * DEG_TO_RAD; //! [deg] 
+const float PITCH_RANGE  = 55.0F * DEG_TO_RAD; //! [deg] 
 const float ROLL_RANGE = 75.0F * DEG_TO_RAD;  //! [deg] 
 const float YAW_RANGE = 100.0F * DEG_TO_RAD;   //! [deg] 
 
@@ -101,7 +101,7 @@ const float ADC_EFFORT_SCALE[NB_AXIS] = {1.04135423273f,2.03291821668, 1.0f, 1.8
 
 const float X_RANGE = 0.195F;                 //! [m]
 const float Y_RANGE = 0.180F;                 //! [m] 
-const float PITCH_RANGE  = 50.0F * DEG_TO_RAD; //! [deg]
+const float PITCH_RANGE  = 55.0F * DEG_TO_RAD; //! [deg]
 const float ROLL_RANGE = 75.0F * DEG_TO_RAD;  //! [deg]
 const float YAW_RANGE = 100.0F * DEG_TO_RAD;   //! [deg]
 

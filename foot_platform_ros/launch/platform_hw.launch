@@ -10,7 +10,7 @@
     
     <rosparam command="load" ns="$(arg id)" file="$(find foot_platform_ros)/config/platform_geom_data.yaml"/>
 
-    <node pkg="rosserial_python" type="serial_node.py" name="$(arg id)" respawn="false" output="screen">
+    <node pkg="rosserial_python" type="serial_node.py" name="$(arg id)" respawn="false" output="screen" launch-prefix="nice -n -20">
         <param name="baud" value="$(arg baud)"/>
         <param name="port" value="$(arg port)"/>
     </node>

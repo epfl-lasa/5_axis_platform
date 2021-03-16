@@ -7,7 +7,7 @@ float Platform::map(float x, float in_min, float in_max, float out_min, float ou
   float mapping = 0.0f;
   if (!isnanf(x) && !isinf(x))
   {  
-    mapping = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    mapping = clip((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min,out_min,out_max);
   }
   else
   {
