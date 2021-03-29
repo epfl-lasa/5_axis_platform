@@ -65,6 +65,8 @@ private:
 
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_position;
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_velocity;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_velocityPrev;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_acceleration;
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_effort;
 
 
@@ -95,9 +97,14 @@ private:
   // KDL variables
 
   KDL::JntArray _platformJoints;
+  KDL::JntArray _platformVelocity;
+  KDL::JntArray _platformAcc;
   KDL::JntArray _platformJointsInit;
   KDL::JntArray _platformJointLims[NB_LIMS];
+  KDL::JntArray _coriolisTorques;
+  KDL::JntArray _inertiaTorques;
   KDL::JntArray _gravityTorques;
+  KDL::JntSpaceInertiaMatrix _myJointSpaceInertiaMatrix;
   KDL::ChainJntToJacSolver* _myJacobianSolver;
   KDL::Jacobian _myFootBaseJacobian;
   Eigen::JacobiSVD<MatrixXd> _mySVD;
@@ -109,6 +116,7 @@ private:
   KDL::ChainDynParam* _myChainDyn;
   KDL::Chain _myFootRestChain;
   KDL::Chain _myVirtualAnkleChain;
+
 
   // tf2_ros::Buffer _tfBuffer;
   // tf2_ros::TransformListener* _tfListener;
@@ -126,6 +134,12 @@ private:
   geometry_msgs::WrenchStamped _msgForceModified; //! intented for the node FootVariableSynchronizer
   geometry_msgs::WrenchStamped _msgForceFootRestWorld; //! intented for the node FootVariableSynchronizer
   custom_msgs::FootInputMsg _msgLegGravCompFI; //! intented for the node FootVariableSynchronizer
+  custom_msgs::FootInputMsg _msgInertiaCorilisFI;
+
+  geometry_msgs::WrenchStamped _msgForceSensorRead;
+  geometry_msgs::WrenchStamped _msgLegGravityCompRead;
+  geometry_msgs::PointStamped _msgLegCoGRead;
+  custom_msgs::FootOutputMsg _msgFootOutputRead;
 
   // ros variables
   urdf::Model _myModel;
@@ -145,6 +159,7 @@ private:
   ros::Publisher _pubForceSensorCoG;
   ros::Publisher _pubForceFootRestWorld;
   ros::Publisher _pubLegCompFootInput; 
+  ros::Publisher _pubInertiaCoriolisFootInput; 
   ros::Publisher _pubManipEllipsoidRot;
 
   ros::Publisher _pubManipEllipsoidLin;
@@ -155,11 +170,11 @@ private:
   ros::Subscriber _subForceSensor;  // geometry_msgs/WrenchStamped.h
 
   //! boolean variables
-  bool _flagPlatformConnected;
-  bool _flagLegGravityCompWrenchRead;
-  bool _flagFootOutputRead;
+  volatile bool _flagLegGravityCompWrenchRead;
+  volatile bool _flagPlatformOutputRead;
+  volatile bool _flagLegCoGRead;
   bool _stop;
-  bool _flagForceConnected;
+  bool _flagForceSensorRead;
   bool _flagForceCalibrated;
   // bool _flagTFConnected;
 
@@ -183,14 +198,20 @@ private:
   //! ROS METHODS
 
   // bool allSubscribersOK();
+  void processForceSensor();
   void readForceSensor(const geometry_msgs::WrenchStamped::ConstPtr &msg);
   void calibrateForce(); void filterForce();
   void modifyForce();
+  void processLegGravityComp();
   void readLegGravityComp(const geometry_msgs::WrenchStampedConstPtr &msg);
+  void processLegCoG();
   void readLegCoG(const geometry_msgs::PointStampedConstPtr &msg);
+  void processPlatformOutput();
   void readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg);
   void updateTreeFKState();
-  void computeGravityTorque(); //! effort in each leg joint
+  void computeGravityTorque(); 
+  void computeInertiaTorque(); 
+  void computeCoriolisTorque(); 
   void computePedalBias();
   void computeWrenchFromPedalMeasBias();
   void computeLegGravityCompTorque(); //using the jacobian of the platform
@@ -198,6 +219,7 @@ private:
   void publishTorquesModified(); // to be read by the foot variables synchronizer
   void publishPedalBias();
   void publishLegCompFootInput(); // to be read by the foot variables synchronizer
+  void publishInertiaCoriolisFootInput();// to be read by the foot variables synchronizer
   // KDL::Frame readTF(std::string frame_origin_, std::string frame_destination_);
   void publishForceFootRestWorld();
   void computeFootManipulability(); //Foot Platform

@@ -13,7 +13,7 @@ void Platform::getMotion()
 #if (EFFORT_M == ADC)
 
 //! #2
-void Platform::readActualEffort() //! ADC
+void Platform::readActualEffort() //! ADC This requires to change the connections in the UC, there is a problem on the fact that the ref of tha ADC, e.g. AGNG is not connected to the ref pin in the Escon.
 {
   if ((_timestamp - _analogReadStamp) > ANALOG_SAMPLING_TIME)
   {
@@ -77,11 +77,11 @@ void Platform::getPosition()
       }
     _spi->unlock();
     // Adapt roll and yaw angles due to differential mechanism
-      _position(Y) =  clip(encoders_out[Y] + _positionOffsets (Y),-1.5f * WS_LIMITS[Y], 1.5f * WS_LIMITS[Y]);
-      _position(X) = clip(encoders_out[X] + _positionOffsets (X),-1.5f * WS_LIMITS[X], 1.5f * WS_LIMITS[X]);
-      _position(PITCH) = clip(encoders_out[PITCH] + _positionOffsets (PITCH),-1.5f * WS_LIMITS[PITCH], 1.5f * WS_LIMITS[PITCH]);
-      _position(ROLL) = clip( (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f + _positionOffsets (ROLL), -1.5f * WS_LIMITS[ROLL], 1.5f * WS_LIMITS[ROLL]) ;
-      _position(YAW) = clip( (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f + _positionOffsets (YAW),  -1.5f * WS_LIMITS[YAW], 1.5f * WS_LIMITS[YAW]);
+      _position(Y) =  clip(encoders_out[Y] + _positionOffsets (Y),WS_LIMITS[Y][L_MIN],WS_LIMITS[Y][L_MAX]);
+      _position(X) = clip(encoders_out[X] + _positionOffsets (X),WS_LIMITS[X][L_MIN],WS_LIMITS[X][L_MAX]);
+      _position(PITCH) = clip(encoders_out[PITCH] + _positionOffsets (PITCH),WS_LIMITS[PITCH][L_MIN],WS_LIMITS[PITCH][L_MAX]);
+      _position(ROLL) = clip( (encoders_out[ROLL] - encoders_out[YAW]) / 2.0f + _positionOffsets (ROLL), WS_LIMITS[ROLL][L_MIN],WS_LIMITS[ROLL][L_MAX]);
+      _position(YAW) = clip( (encoders_out[ROLL] + encoders_out[YAW]) / 2.0f + _positionOffsets (YAW),  WS_LIMITS[YAW][L_MIN],WS_LIMITS[YAW][L_MAX]);
     _posSamplingStamp = _timestamp;
   }
   //

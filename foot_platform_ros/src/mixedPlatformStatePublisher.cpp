@@ -48,6 +48,7 @@ mixedPlatformStatePublisher::mixedPlatformStatePublisher(
     _mixedPlatformState = BOTH_TOOLS_DISABLED;
     _nextMixedPlatformState = BOTH_TOOLS_DISABLED;
     
+    _n.setParam("/useOneFootForTwoTools",true);
     for (size_t p = 0; p < NB_PLATFORMS; p++)
     {
       std::vector<double> deadZoneValuesPlatformMin;
@@ -284,6 +285,7 @@ void mixedPlatformStatePublisher::run() {
     ros::spinOnce();
     _loopRate.sleep();
   }
+  _n.setParam("/useOneFootForTwoTools",false);
   ROS_INFO("[mixed platform]: Platform state variables stopped");
   
   ros::spinOnce();

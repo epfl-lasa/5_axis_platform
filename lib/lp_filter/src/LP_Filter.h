@@ -8,7 +8,7 @@ class LP_Filter
 		LP_Filter(float alpha);
 		float update(float raw_input);
 		void setAlpha(float alpha);		
-		void reset();
+		void reset(float raw_input);
 		void setBias(float bias_);
 	private:
 		float _bias;

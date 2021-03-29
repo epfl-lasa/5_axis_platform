@@ -4,9 +4,9 @@ comp_:
 #viscous
 - 0
 #inertia
-- 0
+- 1
 #coriolis 
-- 0
+- 1
 #force_sensor
 - 1
 #dry_friction

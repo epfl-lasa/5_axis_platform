@@ -12,7 +12,7 @@ void Platform::workspaceCheck(int axis_){
 
   else
   {
-    if (_position(axis_) > WS_LIMITS[axis_] || _position(axis_) < -WS_LIMITS[axis_])
+    if (_position(axis_) > WS_LIMITS[axis_][L_MAX] || _position(axis_) < WS_LIMITS[axis_][L_MIN])
     {
       _workspaceLimitReached[axis_]=true;
     }

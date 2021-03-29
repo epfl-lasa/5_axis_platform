@@ -7,6 +7,18 @@ void Platform::communicateToRos()
     _nh.spinOnce();
 }
 
+void Platform::initROS()
+{ 
+  _nh.initNode();
+  rtos::ThisThread::sleep_for(10);
+  _nh.advertise(*_pubFootOutput);
+  _nh.advertiseService(*_servChangeState);
+  _nh.advertiseService(*_servChangeCtrl);
+  _nh.subscribe(*_subFootInput);
+  _nh.negotiateTopics();
+  rtos::ThisThread::sleep_for(10);
+}
+
 
 //*****************ROS-MESSAGE-SUBSCRIBER- CALLBACK**********
 //! 1

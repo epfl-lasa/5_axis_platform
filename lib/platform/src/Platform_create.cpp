@@ -11,6 +11,7 @@ Platform *Platform::me = NULL;
 
 Platform::Platform()
 {
+  
   me = this;
   _stop=false;
   _innerTimer.start(); // Start Running the Timer -> I moved it to the constructor
@@ -20,18 +21,23 @@ Platform::Platform()
   _effortD.setZero();
   _effortM.setZero();
   _effortMNEG.setZero();
+  
   _positionD.setZero();
   _positionCtrlOut.setZero();
   _speedCtrlOut.setZero();
+  
   _forceSensorCtrlOut.setZero();
   _forceSensorD.setZero();
   _positionD_filtered.setZero();
   _position.setZero();
   _positionPrev.setZero();
+  
   _positionOffsets.setZero();
   _softLimitsMin.setZero();
   _softLimitsMax.setZero();
+  
   _speed.setZero();
+  
   _speedD.setZero();
   _speedPrev.setZero();
   _acceleration.setZero();
@@ -114,7 +120,7 @@ for (int k = 0; k < NB_AXIS; k++) {
   _flagLoadParams=false;
 
   _platform_flagDefaultControl = true;
-
+  _innerCounterSoftReset = 0;
 
 
   for (size_t j=0; j<NB_EFFORT_COMPONENTS; j++) // {NORMAL*, CONSTRAINS*, COMPENSATION, FEEDFORWARD}

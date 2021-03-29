@@ -93,6 +93,20 @@ void Platform::clearLastState()
     }
 }
 
+void Platform::clearFlagsOtherStates()
+{
+  for (size_t i = 0; i < NB_MACHINE_STATES; i++)
+  {
+    if ( (State) i != _platform_state )
+    {
+      if (_enterStateOnceFlag[i])
+      {
+        _enterStateOnceFlag[i]=false;
+      }
+    }
+  }
+  
+}
 
 
 void Platform::resetControllers(Controller controllerType)
@@ -107,7 +121,7 @@ void Platform::resetControllers(Controller controllerType)
       {
         for (size_t k=0; k<NB_AXIS; k++)
         {
-           _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
+           _pidPosition[k]->reset();  _posDesiredFilters[k].reset(_position[k]);   
         }
         break;
       }
@@ -163,7 +177,6 @@ void Platform::speedCtrlClear(int axis_)
   {
     _speedD(axis_)=_speed(axis_);
     _speedCtrlOut(axis_)=0.0f;
-    
   }
   
 }

@@ -4,8 +4,9 @@
 
 void Platform::step()
 {
-  if ((_platform_state == RESET_UC) || (_allEsconOk && _recoveringFromError))
+  if ((_platform_state == RESET_UC)) // || (_allEsconOk && _recoveringFromError))
   {
+    _enableMotors->write(0);
     NVIC_SystemReset();
     _stop = true;
     rtos::ThisThread::sleep_for(5000);
@@ -14,14 +15,25 @@ void Platform::step()
 
   getMotion(); //! SPI
   
-  _allEsconOk=1;
-  for (size_t k=0; k<NB_AXIS; k++) { _allEsconOk=  _esconEnabled[k]->read() * _allEsconOk;}
+  
+  unsigned int esconCheck = 1;
+  
+  for (size_t k=0; k<NB_AXIS; k++) { 
+    esconCheck=  _esconEnabled[k]->read() * esconCheck;
+    }
+  
+  if ((_allEsconOk==1) && (esconCheck==0))
+  {
+    _recoveringFromError=true;
+  }
+  _allEsconOk=esconCheck;
 
   if (_allEsconOk==0 || _flagEmergencyCalled)
   {
+    clearLastState();
     _platform_state = EMERGENCY;
-    _recoveringFromError=true;
   }
+
   if(!_flagRosConnected)
   {
     clearLastState();
@@ -33,7 +45,7 @@ void Platform::step()
 
   case STANDBY:{ 
         if (!_enterStateOnceFlag[STANDBY]){
-          _enableMotors->write(0);
+          resetEscons();
           _enterStateOnceFlag[STANDBY]=true;
         }
         totalEffortDClear(-1);
@@ -44,19 +56,20 @@ void Platform::step()
         {
           // Init
           if(!_enterStateOnceFlag[HOMING])
-          {           
+          { 
+            _enableMotors->write(0);          
             _platform_controllerType = SPEED_CTRL;
             resetControllers(SPEED_CTRL);
             _platform_effortComp[NORMAL]=1;
             loadDefaultPIDGains();
             speedCtrlLimitsSet();
-            _enableMotors->write(1);
             limitSwitchesClear();
             _enterStateOnceFlag[HOMING]=true;
 
             _speedD[X] = SPEED_D_HOMING_X;         // m/s
             _speedD[Y] = SPEED_D_HOMING_Y;         // m/s
             _speedD[PITCH] = SPEED_D_HOMING_PITCH; // °/s
+            _enableMotors->write(1);
           }
 
           compEffortClear(-1, NORMAL);
@@ -92,15 +105,14 @@ void Platform::step()
           // Init State
           if (!_enterStateOnceFlag[CENTERING])
           {
+            _enableMotors->write(0);
             _platform_controllerType = POSITION_CTRL;
-            for (size_t k = 0; k < NB_AXIS; k++) {
-              _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
-            }
+            resetControllers(POSITION_CTRL);
             _platform_effortComp[NORMAL] = 1;
             loadDefaultPIDGains();
             posCtrlLimitsSet();
-            _enableMotors->write(1);
             _enterStateOnceFlag[CENTERING]=true;
+            _enableMotors->write(1);
           }
           // Main State
 
@@ -132,7 +144,7 @@ void Platform::step()
           // Init State
         if (!_enterStateOnceFlag[TELEOPERATION])
         {
-          //
+          _enableMotors->write(0);
           _platform_controllerType = TORQUE_CTRL;
           resetControllers(SPEED_CTRL);
           resetControllers(SOFT_LIMITS_CTRL);
@@ -143,9 +155,9 @@ void Platform::step()
           forceSensorCtrlLimitsSet();
           softLimitsCtrlLimitsSet();
           _enterStateOnceFlag[TELEOPERATION]=true;
-          _enableMotors->write(1);
           _flagOutofCompensation=true;
           _flagOutofSoftLimitsControl = true;
+          _enableMotors->write(1);
         }
 
         //! Clear the vector of efforts
@@ -196,18 +208,18 @@ void Platform::step()
     case ROBOT_STATE_CONTROL: //There is a bug here, please fix
     {
           // Init State
-        
         if (!_enterStateOnceFlag[ROBOT_STATE_CONTROL])
         {
-          _platform_controllerType=POSITION_CTRL;
+         _enableMotors->write(0);
+         _platform_controllerType=POSITION_CTRL;
          resetControllers(POSITION_CTRL);
          resetControllers(SPEED_CTRL);
          loadParamPIDGains();
          posCtrlLimitsSet(); // for constrains
          speedCtrlLimitsSet(); // for constrains
-          _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
-          _enableMotors->write(1);
-          _flagOutofCompensation=true;
+         _enterStateOnceFlag[ROBOT_STATE_CONTROL] = true;
+         _flagOutofCompensation=true;
+         _enableMotors->write(1);
         }
 
         // Main state
@@ -219,22 +231,19 @@ void Platform::step()
         
     case EMERGENCY:
     {
-          _enableMotors->write(0);
           if(!_enterStateOnceFlag[EMERGENCY]){
-            for (size_t k = 0; k < NB_AXIS; k++) {
-              _pidPosition[k]->reset();  _posDesiredFilters[k].reset();   
-              _pidSpeed[k]->reset();
-            }
             _enterStateOnceFlag[EMERGENCY]=true;
           }
-            releasePlatform();
-            break;
-    }
-        case RESET_UC:
-        {
-          //defined upstairs
+          clearFlagsOtherStates();
+          releasePlatform();
           break;
-        }
+    }
+    case RESET_UC:
+    {
+        
+      //defined upstairs
+      break;
+    }
   }
 
   workspaceCheck(_platform_controlledAxis);

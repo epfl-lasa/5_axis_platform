@@ -36,11 +36,13 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS})
 
 add_executable(footStatePublisher src/footStatePublisher.cpp src/footStatePublisher_node.cpp)
+add_executable(footHapticController src/footHapticController.cpp src/footHapticController_node.cpp)
 add_executable(footPlatformVirtual src/footPlatformVirtual.cpp src/footPlatformVirtual_node.cpp)
 add_executable(footForceMeasModifier src/footForceMeasModifier.cpp src/footForceMeasModifier_node.cpp)
 add_executable(mixedPlatformStatePublisher src/mixedPlatformStatePublisher.cpp src/mixedPlatformStatePublisher_node.cpp)
 
 target_link_libraries(footStatePublisher ${catkin_LIBRARIES})
+target_link_libraries(footHapticController ${catkin_LIBRARIES})
 target_link_libraries(footPlatformVirtual ${catkin_LIBRARIES})
 target_link_libraries(footForceMeasModifier ${catkin_LIBRARIES})
 target_link_libraries(mixedPlatformStatePublisher ${catkin_LIBRARIES})

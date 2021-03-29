@@ -5,6 +5,12 @@
 #define W_LAST_LINK_CORRECTION 1
 #define LAST_LINK_FS W_LAST_LINK_CORRECTION
 
+
+
+// THERE IS AN ISSUE IN THESE EXPLICIT EQUATIONS WITH THE MEASUREMENT IN PITCH... 
+// SO I DECIDED TO INSTEAD OF SENDING THE 6D WRENCH FROM THE F/T SENSOR, 
+// I CONVERT J^T * TAU IN THE FOOT_FORCE_MEAS NODE IN FOOT_PLATFORM_ROS
+
 #if (LAST_LINK_FS)
 #define effortM_Y                                                              \
   (_ros_forceSensor[FY] -                                                                        \

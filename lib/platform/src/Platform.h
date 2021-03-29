@@ -48,9 +48,10 @@ class Platform
     uint32_t _vibGenStamp;
     Timer _innerTimer; //! micros()
     uint64_t _innerCounterADC;
-
   public:
     Mutex _platformMutex;
+    uint64_t _innerCounterSoftReset;
+    
 
   public:
 
@@ -71,7 +72,7 @@ class Platform
         volatile bool _flagLoadParams;
         volatile bool _flagControllerRequest;
         volatile bool _flagStateRequest;
-
+        
         // State variables
         State _platform_state;
         int8_t _platform_controlledAxis;
@@ -184,6 +185,7 @@ class Platform
         Platform();  //! 1
         ~Platform(); //! 2
         void init(); //! 3
+        void initROS();
         void step(); //! 4
       private:
         //! GPIO Interruptions
@@ -197,6 +199,7 @@ class Platform
         //! Platform_reset.cpp
       private:
         void resetEscons(); //! 1
+      public:
         void softReset();   //! 2
 
         //! Platform_ros.cpp
@@ -330,6 +333,7 @@ class Platform
       void totalEffortDClear(int axis_);
       void compEffortClear(int axis_, EffortComp comp_);
       void clearLastState();
+      void clearFlagsOtherStates();
       void resetControllers(Controller controllerType);
 
     //! Platform_model.cpp

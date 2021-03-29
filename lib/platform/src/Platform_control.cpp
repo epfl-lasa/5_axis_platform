@@ -147,7 +147,7 @@ void Platform::posInterpolator(int axis){
     if (fabs(_positionD(axis)-_position(axis))>0.005*DEG_TO_RAD) //! Only interpolate if greater than 5 millimiters / millidegrees
     {
       _positionD_filtered(axis) = _posDesiredFilters[axis].update(_positionD(axis));
-      _positionD_filtered(axis) = clip(_positionD_filtered(axis), -WS_LIMITS[axis], WS_LIMITS[axis]);
+      _positionD_filtered(axis) = clip(_positionD_filtered(axis), WS_LIMITS[axis][L_MIN], WS_LIMITS[axis][L_MAX]);
     }
     else
     {

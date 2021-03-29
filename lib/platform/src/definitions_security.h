@@ -7,9 +7,20 @@
 
 //! Security Variables
 
-const float WS_LIMITS[NB_AXIS] = {Y_RANGE / 2.0f, X_RANGE / 2.0f,
-                                  PITCH_RANGE / 2.0f, ROLL_RANGE / 2.0f,
-                                  YAW_RANGE / 2.0f};
+#if(PLATFORM_ID==RIGHT_PLATFORM_ID)
+const float WS_LIMITS[NB_AXIS][NB_LIMS] = {{-Y_RANGE / 2.0f, Y_RANGE / 2.0f},
+                                            {-X_RANGE / 2.0f, X_RANGE / 2.0f},
+                                            {-30.0f * DEG_TO_RAD, 30.0f * DEG_TO_RAD},
+                                            {-95.0f * DEG_TO_RAD, 70.0f * DEG_TO_RAD},
+                                            {-180.0f * DEG_TO_RAD, 180.0f * DEG_TO_RAD}};
+#else
+const float WS_LIMITS[NB_AXIS][NB_LIMS] = {{-Y_RANGE / 2.0f, Y_RANGE / 2.0f},
+                                            {-X_RANGE / 2.0f, X_RANGE / 2.0f},
+                                            {-30.0f * DEG_TO_RAD, 30.0f * DEG_TO_RAD},
+                                            {-70.0f * DEG_TO_RAD, 95.0f * DEG_TO_RAD},
+                                            {-180.0f * DEG_TO_RAD, 180.0f * DEG_TO_RAD}};
+
+#endif
 
 const float WS_RANGE[NB_AXIS] = {Y_RANGE, X_RANGE, PITCH_RANGE, ROLL_RANGE,
                                  YAW_RANGE};

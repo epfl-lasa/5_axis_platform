@@ -28,10 +28,10 @@ void LP_Filter::setBias(float bias_)
   _bias=bias_;
 }
 
-void LP_Filter::reset()
+void LP_Filter::reset(float raw_input)
 {
-  _output=0.0f;
-  _old_output=0.0f;
+  _output= raw_input;
+  _old_output= _output;
 }
 
 void LP_Filter::setAlpha(float alpha)

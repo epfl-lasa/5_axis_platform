@@ -1,128 +1,185 @@
-#include "footForceMeasModifier.h"
+#include <footHapticController.h>
 
 const float conversion_factor[] = {1.0, 1.0, DEG_TO_RAD, DEG_TO_RAD, DEG_TO_RAD};
 
 const float AccFilter = 0.99f;
 const int Axis_Ros[] = {1,0,2,3,4};
+
 #define ListofPlatformAxes(enumeration, names) names,
 char const *Platform_Axis_Names[]{
   PLATFORM_AXES};
 #undef ListofPlatformAxes
 
-char const *Platform_Names[]{"none", "right", "left"};
+#define ListofLegAxes(enumeration, names) names,
+char const *Leg_Axis_Names[]{LEG_AXES};
+#undef ListofLegAxes
 
-footForceMeasModifier *footForceMeasModifier::me = NULL;
+char const *Feet_Names[]{"none","right", "left"};
 
-footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double frequency,
-    footForceMeasModifier::Platform_Name platform_id, urdf::Model model_)
-    : _n(n_1), _platform_id(platform_id), _loopRate(frequency),
-      _dt(1.0f / frequency), _myModel(model_), _grav_vector(0.0, 0.0, (double)GRAVITY){
+footHapticController *footHapticController::me = NULL;
+
+footHapticController::footHapticController ( ros::NodeHandle &n_1, double frequency,
+    std::vector<FEET_ID> feetID)
+    : _n(n_1), _loopRate(frequency),
+      _dt(1.0f / frequency), _grav_vector(0.0, 0.0, (double)GRAVITY), _feetID(feetID){
    me = this;
   _stop = false;
-  _ros_platform_id = 0;
-  _ros_platform_machineState = 0;
-  _forcePedalBias.setZero();
-  _forcePedalBiasInit.setZero();
-  _platform_position.setZero();
-  _platform_velocity.setZero();
-  _platform_acceleration.setZero();
-  _platform_velocityPrev.setZero();
-  _platform_effort.setZero();
-  _legCogWrtPlatfomBase.setZero();
-  _legWrenchGravityComp.setZero();
-  _legTorquesGravityComp.setZero();
-  _legTorquesGravityComp_prev.setZero();
-  _platformJoints.resize(NB_PLATFORM_AXIS);
-  _platformJoints.data.setZero();
-  _platformVelocity.resize(NB_PLATFORM_AXIS);
-  _platformVelocity.data.setZero();
-  _platformAcc.resize(NB_PLATFORM_AXIS);
-  _platformAcc.data.setZero();
-  _gravityTorques.resize(NB_PLATFORM_AXIS);
-  _gravityTorques.data.setZero();
-  _inertiaTorques.resize(NB_PLATFORM_AXIS);
-  _inertiaTorques.data.setZero();
-  _coriolisTorques.resize(NB_PLATFORM_AXIS);
-  _coriolisTorques.data.setZero();
-  _platformJointsInit.resize(NB_PLATFORM_AXIS);
-  _platformJointLims[L_MIN].resize(NB_PLATFORM_AXIS);
-  _platformJointLims[L_MAX].resize(NB_PLATFORM_AXIS);
-  _myFootBaseJacobian.resize(NB_PLATFORM_AXIS);
-  _flagLegGravityCompWrenchRead = false;
-  _flagPlatformOutputRead = false;
-  _flagLegCoGRead=false;
-  _forceMeasurements.setZero();
-  _myJointSpaceInertiaMatrix.resize(NB_PLATFORM_AXIS);
+
+  _nFoot = _feetID.size(); 
+
+  _platform_position.resize(_nFoot);
+  _platform_velocity.resize(_nFoot);
+  _platform_effort.resize(_nFoot); 
+  _leg_position.resize(_nFoot);
+  _leg_velocity.resize(_nFoot);
+  _leg_effort.resize(_nFoot);
+  _estimatedGuidanceWrench.resize(_nFoot);
+  _desiredGuidanceEfforts.resize(_nFoot);
+
+  _platformJoints.resize(_nFoot);
+  _platformJointLims[L_MIN].resize(_nFoot);
+  _platformJointLims[L_MAX].resize(_nFoot);
   
-  _forceFiltered.setZero(); _forceFiltered_prev.setZero();
+
+  _legJoints.resize(_nFoot);
+  _legJointLims[L_MIN].resize(_nFoot);
+  _legJointLims[L_MAX].resize(_nFoot);
+
+  _platformFootBaseJacobian.resize(_nFoot);
+  _legFootBaseJacobian.resize(_nFoot);
   
-  _forceInFootRest.setZero();
-  _torquesModified.setZero();
-  _forceModified.setZero();
-  _rotationfSensor.setIdentity();
-  _force_filt_alpha=0.5;
-  _flagForceSensorRead = false;
-  _force_filt_alphas.setConstant(_force_filt_alpha);
+  _flagLegJointStateRead.resize(_nFoot);
+  _flagPlatformJointStateRead.resize(_nFoot);
+
+  _svdFootJacobian.resize(_nFoot);
+  _platformJacobianSolver.resize(_nFoot);
+  _platformFootBaseJacobian.resize(_nFoot);
+  _platformTree.resize(_nFoot);
+  _platformSegments.resize(_nFoot);
+  _platformFrames.resize(_nFoot); 
+  _platformChainDyn.resize(_nFoot);
+  _platformFootRestChain.resize(_nFoot);
+  _platformFKSolver.resize(_nFoot);
   
-  _calibrationCount=0;
-  _flagForceCalibrated=false;
-  _undesiredForceBias.setZero();
-  _forceSensorCoG.setZero();
+  _svdlegJacobian.resize(_nFoot);
+  _legJacobianSolver.resize(_nFoot);
+  _legFootBaseJacobian.resize(_nFoot);
+  _legTree.resize(_nFoot);
+  _legSegments.resize(_nFoot);
+  _legFrames.resize(_nFoot); 
+  _legChainDyn.resize(_nFoot);
+  _legFootBaseChain.resize(_nFoot);
+  _legFKSolver.resize(_nFoot);
+
+  _inMsgLegJoints.resize(_nFoot);
+  _inMsgFootJointState.resize(_nFoot);
+  _inMsgDesiredGuidanceEfforts.resize(_nFoot);
+  _outMsgHapticEfforts.resize(_nFoot);
+
+  // ros variables
+  _platformModel.resize(_nFoot);
+  _legModel.resize(_nFoot);
+
+
   
-  // _flagTFConnected = false;
+  for (size_t i = 0; i < _nFoot; i++)
+  {
+    _platform_position[i].setZero();
+    _platform_velocity[i].setZero();
+    _platform_effort[i].setZero();
 
-  // _fSensorBaseTransform.M.Identity();
-  // _fSensorBaseTransform.p.Zero();
+    _leg_position[i].setZero();
+    _leg_velocity[i].setZero();
+    _leg_effort[i].setZero();
+    _estimatedGuidanceWrench[i].setZero();
+    _desiredGuidanceEfforts[i].setZero();
 
+    
+    _platformJoints[i].resize(NB_PLATFORM_AXIS);
+    _platformJoints[i].data.setZero();
+    _platformJointLims[i][L_MIN].resize(NB_PLATFORM_AXIS);
+    _platformJointLims[i][L_MAX].resize(NB_PLATFORM_AXIS);
+    
 
-  // _footRestBaseTransform.M.Identity(); 
-  // _footRestBaseTransform.p.Zero(); 
+    _legJoints[i].resize(NB_PLATFORM_AXIS);
+    _legJoints[i].data.setZero();
+    _legJointLims[i][L_MIN].resize(NB_PLATFORM_AXIS);
+    _legJointLims[i][L_MAX].resize(NB_PLATFORM_AXIS);
 
-
-
-  //  _tfListener = new tf2_ros::TransformListener(_tfBuffer);
-
-  if (!kdl_parser::treeFromUrdfModel(_myModel, _myTree)) {
-    ROS_ERROR("[%s force sensor]: Failed to construct kdl tree",Platform_Names[_platform_id]);
+    _platformFootBaseJacobian[i].resize(NB_PLATFORM_AXIS);
+    _legFootBaseJacobian[i].resize(NB_LEG_AXIS);
+    
+    _flagLegJointStateRead[i] = false;
+    _flagPlatformJointStateRead[i] = false;
+  
+  
+    urdf::Model platformModelLoad;
+    if (!platformModelLoad.initParam("/"+std::string(Feet_Names[_feetID[i]])+"_platform/robot_description")) 
+    {
+      ROS_ERROR("Failed to parse platform urdf file");
+      _stop=true;
+    }
+    _platformModel.push_back(platformModelLoad);
+    urdf::Model legModelLoad;
+    if (!legModelLoad.initParam("/"+std::string(Feet_Names[_feetID[i]])+"_leg/robot_description")) {
+      ROS_ERROR("[footHapticController: ] Failed to parse  one of the leg urdf file, please check");
+      _stop=true;
+    }
+    _legModel.push_back(legModelLoad);
+    ROS_INFO("[footHapticController: ] Successfully parsed %s leg+platform urdf files", std::string(Feet_Names[_feetID[i]]));
+    
+    KDL::Tree platformTreeLoad;
+     if (!kdl_parser::treeFromUrdfModel(platformModelLoad, platformTreeLoad)) {
+    ROS_ERROR("[%s force sensor]: Failed to construct kdl tree",Feet_Names[_feetID[i]]);
     _stop=true;
   }
+  _platformTree.push_back(platformTreeLoad);
+  _platformTree[i].getChain(std::string(Feet_Names[_feetID[i]]) + "_platform_base_link", std::string(Feet_Names[_feetID[i]]) + "_platform_foot_rest", _platformFootRestChain[i]);
+  _legTree[i].getChain(std::string(Feet_Names[_feetID[i]]) + "_leg_hip_base_link", std::string(Feet_Names[_feetID[i]]) + "_leg_foot_base", _legFootBaseChain[i]);
 
-  _myTree.getChain(std::string(Platform_Names[_platform_id]) + "_platform_base_link", std::string(Platform_Names[_platform_id]) + "_platform_foot_rest", _myFootRestChain);
+  _platformChainDyn[i] = new KDL::ChainDynParam(_platformFootRestChain[i], _grav_vector);
+  _legChainDyn[i] = new KDL::ChainDynParam(_legFootBaseChain[i], _grav_vector);
+  
+  
+  _platformFKSolver[i] = new KDL::ChainFkSolverPos_recursive(_platformFootRestChain[i]);
+  _legFKSolver[i] = new KDL::ChainFkSolverPos_recursive(_legFootBaseChain[i]);
 
+  _platformJacobianSolver[i] = new KDL::ChainJntToJacSolver(_platformFootRestChain[i]);
+  _legJacobianSolver[i] = new KDL::ChainJntToJacSolver(_legFootBaseChain[i]);
 
-  _myTree.getChain(std::string(Platform_Names[_platform_id]) + "_platform_base_link", std::string(Platform_Names[_platform_id]) + "_platform_virtual_ankle", _myVirtualAnkleChain);
-
-  _myChainDyn = new KDL::ChainDynParam(_myFootRestChain, _grav_vector);
-
-  _myFKSolver = new KDL::ChainFkSolverPos_recursive(_myFootRestChain);
-
-  _myJacobianSolver = new KDL::ChainJntToJacSolver(_myFootRestChain);
-
-  _mySegments = _myFootRestChain.segments;
+  _platformSegments[i] = _platformFootRestChain[i].segments;
+  _legSegments[i] = _legFootBaseChain[i].segments;
   
 
   for (int joint_=0; joint_<NB_PLATFORM_AXIS; joint_++ )
    {
-     _platformJointLims[L_MIN].data(joint_) = _myModel.getJoint(std::string(Platform_Names[_platform_id]) + "_" + std::string(Platform_Axis_Names[joint_]))->limits->lower;
-     _platformJointLims[L_MAX].data(joint_) = _myModel.getJoint(std::string(Platform_Names[_platform_id]) + "_" + std::string(Platform_Axis_Names[joint_]))->limits->upper;
+     _platformJointLims[i][L_MIN].data(joint_) = _platformModel[i].getJoint(std::string(Feet_Names[_feetID[i]]) + "_" + std::string(Platform_Axis_Names[joint_]))->limits->lower;
+     _platformJointLims[i][L_MAX].data(joint_) = _platformModel[i].getJoint(std::string(Feet_Names[_feetID[i]]) + "_" + std::string(Platform_Axis_Names[joint_]))->limits->upper;
    }
 
+  for (int joint_=0; joint_<NB_LEG_AXIS; joint_++ )
+  {
+    _legJointLims[i][L_MIN].data(joint_) = _legModel[i].getJoint(std::string(Feet_Names[_feetID[i]]) + "_leg_" + std::string(Leg_Axis_Names[joint_]))->limits->lower;
+    _legJointLims[i][L_MAX].data(joint_) = _legModel[i].getJoint(std::string(Feet_Names[_feetID[i]]) + "_leg_" + std::string(Leg_Axis_Names[joint_]))->limits->upper;
+  }
+  
+  }
 }
 
-footForceMeasModifier::~footForceMeasModifier() { me->_n.shutdown(); }
+footHapticController::~footHapticController() { me->_n.shutdown(); }
 
-bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
+bool footHapticController::init() //! Initialization of the node. Its datatype
                                  //! (bool) reflect the success in
                                  //! initialization
 {
   _pubForceModified = _n.advertise<geometry_msgs::WrenchStamped>("force_modified", 1);
   _pubPedalBias = _n.advertise<geometry_msgs::WrenchStamped>("pedal_bias_force", 1);
   _pubTorquesModified = _n.advertise<custom_msgs::FootOutputMsg>("torques_modified", 1);
-  _pubForceSensorCoG = _n.advertise<geometry_msgs::PointStamped>("/" + std::string(Platform_Names[_platform_id]) +"/force_sensor_cog" , 1);
+  _pubForceSensorCoG = _n.advertise<geometry_msgs::PointStamped>("/" + std::string(Feet_Names[_platform_id]) +"/force_sensor_cog" , 1);
   _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg>("leg_comp_platform_effort", 1);
   _pubInertiaCoriolisFootInput = _n.advertise<custom_msgs::FootInputMsg>("foot_comp_inertia_coriolis", 1);
   _subForceSensor = _n.subscribe<geometry_msgs::WrenchStamped>(
-					    	"/ft_"+std::string(Platform_Names[_platform_id])+"/rokubimini/ft_"+std::string(Platform_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
+					    	"/ft_"+std::string(Feet_Names[_platform_id])+"/rokubimini/ft_"+std::string(Feet_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footHapticController::readForceSensor, this, _1),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
   _pubForceFootRestWorld = _n.advertise<geometry_msgs::WrenchStamped>("force_foot_rest_world", 1);
   _pubManipEllipsoidRot = _n.advertise<visualization_msgs::Marker>("foot_manipulability_rot", 0);
@@ -130,24 +187,24 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 
   if (_platform_id == LEFT) {
 
-    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/left_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
-    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/left_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/left_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footHapticController::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/left_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footHapticController::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
     _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_LEFT, 1,
-        boost::bind(&footForceMeasModifier::readPlatformOutput, this, _1),
+        boost::bind(&footHapticController::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
     
 
   }
   if (_platform_id == RIGHT) {
 
-    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/right_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footForceMeasModifier::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
-    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/right_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footForceMeasModifier::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegCoG = _n.subscribe<geometry_msgs::PointStamped>("/right_leg/leg_joint_publisher/leg_cog", 1, boost::bind(&footHapticController::readLegCoG, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    _subLegGravityComp = _n.subscribe<geometry_msgs::WrenchStamped>("/right_leg/leg_joint_publisher/leg_foot_base_wrench", 1,boost::bind(&footHapticController::readLegGravityComp, this, _1),ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
     _subPlatformOutput = _n.subscribe<custom_msgs::FootOutputMsg>(
         PLATFORM_PUBLISHER_NAME_RIGHT, 1,
-        boost::bind(&footForceMeasModifier::readPlatformOutput, this, _1),
+        boost::bind(&footHapticController::readPlatformOutput, this, _1),
         ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
   }
 
@@ -166,28 +223,28 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 
 	if (!_n.getParam("force_alpha", _force_filt_alpha))
 		{ 
-      ROS_ERROR("[%s force sensor]: No force filter gain found",Platform_Names[_platform_id]);
+      ROS_ERROR("[%s force sensor]: No force filter gain found",Feet_Names[_platform_id]);
     }
 	
   _force_filt_alphas.setConstant(_force_filt_alpha);
 
   // Subscriber definitions
-  signal(SIGINT, footForceMeasModifier::stopNode);
+  signal(SIGINT, footHapticController::stopNode);
 
   if (_n.ok()) {
     ros::spinOnce();
-    ROS_INFO("[%s force sensor]: The platform joint state publisher is about to start ",Platform_Names[_platform_id]);
+    ROS_INFO("[%s force sensor]: The platform joint state publisher is about to start ",Feet_Names[_platform_id]);
     return true;
   } 
   else {
-    ROS_ERROR("[%s force sensor]: The ros node has a problem.",Platform_Names[_platform_id]);
+    ROS_ERROR("[%s force sensor]: The ros node has a problem.",Feet_Names[_platform_id]);
     return false;
   }
 }
 
-void footForceMeasModifier::stopNode(int sig) { me->_stop = true; me->publishForceModified(); me->publishForceFootRestWorld();me->publishTorquesModified();me->publishPedalBias(); me->publishLegCompFootInput(); me->publishInertiaCoriolisFootInput();}
+void footHapticController::stopNode(int sig) { me->_stop = true; me->publishForceModified(); me->publishForceFootRestWorld();me->publishTorquesModified();me->publishPedalBias(); me->publishLegCompFootInput(); me->publishInertiaCoriolisFootInput();}
 
-void footForceMeasModifier::run() {
+void footHapticController::run() {
   while (!_stop) {
 
     if(_subLegCoG.getNumPublishers()>0)
@@ -242,7 +299,7 @@ void footForceMeasModifier::run() {
 					  }
         
         } else{
-            ROS_INFO_ONCE("[%s force sensor]: Please put the platform in state TELEOPERATION.",Platform_Names[_platform_id]);
+            ROS_INFO_ONCE("[%s force sensor]: Please put the platform in state TELEOPERATION.",Feet_Names[_platform_id]);
           }
 				}else
         {
@@ -250,18 +307,18 @@ void footForceMeasModifier::run() {
         }
     }else {
 
-      ROS_INFO_ONCE("[%s force sensor]: The platform is not connected yet",Platform_Names[_platform_id]);
+      ROS_INFO_ONCE("[%s force sensor]: The platform is not connected yet",Feet_Names[_platform_id]);
     }  
     ros::spinOnce();
     _loopRate.sleep();
   }
-  ROS_INFO("[%s force sensor]: The force sensor modifier stopped",Platform_Names[_platform_id]);
+  ROS_INFO("[%s force sensor]: The force sensor modifier stopped",Feet_Names[_platform_id]);
   ros::spinOnce();
   _loopRate.sleep();
   ros::shutdown();
 }
 
-void footForceMeasModifier::processPlatformOutput()
+void footHapticController::processPlatformOutput()
 {
   _ros_platform_machineState =_msgFootOutputRead.platform_machineState;
   _ros_platform_id = _msgFootOutputRead.platform_id;
@@ -275,22 +332,22 @@ void footForceMeasModifier::processPlatformOutput()
   _platformVelocity.data = _platform_velocity;
   _platformAcc.data = AccFilter * _platform_acceleration + (1.0f - AccFilter) * ((_platform_velocity - _platform_velocityPrev)/_dt);
 }
-void footForceMeasModifier::readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg) {  
+void footHapticController::readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg) {  
  
   if (!me->_flagPlatformOutputRead)
   {
-    ROS_INFO_ONCE("[%s force sensor]: Platform Connected",Platform_Names[_platform_id]);
+    ROS_INFO_ONCE("[%s force sensor]: Platform Connected",Feet_Names[_platform_id]);
     me->_flagPlatformOutputRead = true;
     me->_msgFootOutputRead = *msg;
   }
 }
 
-void footForceMeasModifier::computeGravityTorque() {
+void footHapticController::computeGravityTorque() {
   _myChainDyn->JntToGravity(_platformJoints, _gravityTorques);
   // cout<<_gravityTorques.data.transpose()<<endl;
 }
 
-void footForceMeasModifier::updateTreeFKState() {
+void footHapticController::updateTreeFKState() {
   
   KDL::Frame frame_;
   _myFrames.clear(); 
@@ -306,7 +363,7 @@ void footForceMeasModifier::updateTreeFKState() {
    publishManipulabilityEllipsoidLin();
 }
 
-void footForceMeasModifier::computeWrenchFromPedalMeasBias()
+void footHapticController::computeWrenchFromPedalMeasBias()
 {
   Eigen::Vector3d cogPedal_wrt_FS, weightPedal_wrt_FS;
   cogPedal_wrt_FS.setZero();
@@ -320,11 +377,11 @@ void footForceMeasModifier::computeWrenchFromPedalMeasBias()
   _forcePedalBias.segment(0,3) = weightPedal_wrt_FS;
   _forcePedalBias.segment(3,3) = cogPedal_wrt_FS.cross(weightPedal_wrt_FS);
 }
-void footForceMeasModifier::processLegCoG()
+void footHapticController::processLegCoG()
 {
   tf::pointMsgToEigen(_msgLegCoGRead.point, _legCogWrtPlatfomBase);
 }
-void footForceMeasModifier::readLegCoG(const geometry_msgs::PointStampedConstPtr &msg) {
+void footHapticController::readLegCoG(const geometry_msgs::PointStampedConstPtr &msg) {
   if(!me->_flagLegCoGRead)
   {
     me->_msgLegCoGRead = *msg;
@@ -332,12 +389,12 @@ void footForceMeasModifier::readLegCoG(const geometry_msgs::PointStampedConstPtr
   }
 }
 
-void footForceMeasModifier::processLegGravityComp()
+void footHapticController::processLegGravityComp()
 {
   tf::wrenchMsgToEigen(_msgLegGravityCompRead.wrench, _legWrenchGravityComp);
 }
 
-void footForceMeasModifier::readLegGravityComp(const geometry_msgs::WrenchStampedConstPtr &msg) {
+void footHapticController::readLegGravityComp(const geometry_msgs::WrenchStampedConstPtr &msg) {
   if(!me->_flagLegGravityCompWrenchRead)
   {
     me->_msgLegGravityCompRead = *msg;
@@ -346,7 +403,7 @@ void footForceMeasModifier::readLegGravityComp(const geometry_msgs::WrenchStampe
 }
 
 
-void footForceMeasModifier::computeLegGravityCompTorque() {
+void footHapticController::computeLegGravityCompTorque() {
   //cout<<_myFootBaseJacobian.data<<endl;
   _legTorquesGravityComp_prev = _legTorquesGravityComp;
   _legTorquesGravityComp =  (1-ALPHA_LEG_COMP)*(_myFootBaseJacobian.data.transpose() * _legWrenchGravityComp) + ALPHA_LEG_COMP*_legTorquesGravityComp_prev;
@@ -354,7 +411,7 @@ void footForceMeasModifier::computeLegGravityCompTorque() {
 }
 
 
-void footForceMeasModifier::publishForceModified() {
+void footHapticController::publishForceModified() {
   
   _msgForceModified.header.stamp = ros::Time::now();
   _msgForceModified.header.frame_id = _platform_id ==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor";
@@ -370,7 +427,7 @@ void footForceMeasModifier::publishForceModified() {
     _pubForceModified.publish(_msgForceModified);
 }
 
-void footForceMeasModifier::publishPedalBias(){
+void footHapticController::publishPedalBias(){
   _msgPedalBias.header.stamp = ros::Time::now();
   _msgPedalBias.header.frame_id = _platform_id ==RIGHT ? "/right_platform_fSensor" : "/left_platform_fSensor";
   if(!_stop)
@@ -384,7 +441,7 @@ void footForceMeasModifier::publishPedalBias(){
 }
 
 
-void footForceMeasModifier::publishLegCompFootInput()
+void footHapticController::publishLegCompFootInput()
 {
   // cout<<"boo"<<endl;
   if(!_stop)
@@ -401,7 +458,7 @@ void footForceMeasModifier::publishLegCompFootInput()
 }
 
 
-void footForceMeasModifier::publishInertiaCoriolisFootInput()
+void footHapticController::publishInertiaCoriolisFootInput()
 {
   if(!_stop)
   {
@@ -417,7 +474,7 @@ void footForceMeasModifier::publishInertiaCoriolisFootInput()
 }
 
 
-void footForceMeasModifier::processForceSensor()
+void footHapticController::processForceSensor()
 { 
   _forceMeasurements(0) = _msgForceSensorRead.wrench.force.x;
 	_forceMeasurements(1) = _msgForceSensorRead.wrench.force.y;
@@ -427,22 +484,22 @@ void footForceMeasModifier::processForceSensor()
 	_forceMeasurements(5) = _msgForceSensorRead.wrench.torque.z;
   _forceMeasurements = _rotationfSensor * _forceMeasurements;
 }
-void footForceMeasModifier::readForceSensor(const geometry_msgs::WrenchStamped::ConstPtr &msg) {
+void footHapticController::readForceSensor(const geometry_msgs::WrenchStamped::ConstPtr &msg) {
   if (!me->_flagForceSensorRead)
 	 {
-		ROS_INFO_ONCE("[%s force sensor]: Force Sensor Connected",Platform_Names[_platform_id]);
+		ROS_INFO_ONCE("[%s force sensor]: Force Sensor Connected",Feet_Names[_platform_id]);
     me->_msgForceSensorRead = *msg;
     me->_flagForceSensorRead = true;
 	 }
 }
 
-void footForceMeasModifier::filterForce()
+void footHapticController::filterForce()
 {
   _forceFiltered = _forceFiltered_prev.cwiseProduct(_force_filt_alphas) + (_forceMeasurements.array().cwiseProduct(1.0f - _force_filt_alphas.array())).matrix();
   _forceFiltered_prev = _forceFiltered;
 }
 
-void footForceMeasModifier::calibrateForce()
+void footHapticController::calibrateForce()
 {
 	if (!_flagForceCalibrated)
 	{
@@ -452,7 +509,7 @@ void footForceMeasModifier::calibrateForce()
 	if (_calibrationCount==NB_CALIBRATION_COUNT)
 	{
           _undesiredForceBias = (_undesiredForceBias.array()/NB_CALIBRATION_COUNT).matrix();
-		  ROS_INFO("[%s force sensor]: Sensor Calibrated!",Platform_Names[_platform_id]);
+		  ROS_INFO("[%s force sensor]: Sensor Calibrated!",Feet_Names[_platform_id]);
 		  cout<<"Undesired force bias: "<<_undesiredForceBias.transpose()<<endl;
       _flagForceCalibrated = true;
       _forcePedalBiasInit = _forcePedalBias;
@@ -462,16 +519,16 @@ void footForceMeasModifier::calibrateForce()
 
 
 
-void footForceMeasModifier::computeInertiaTorque(){
+void footHapticController::computeInertiaTorque(){
   
   _myChainDyn->JntToMass(_platformJoints, _myJointSpaceInertiaMatrix);
   Multiply(_myJointSpaceInertiaMatrix,_platformAcc,_inertiaTorques);
 }
 
-void footForceMeasModifier::computeCoriolisTorque(){
+void footHapticController::computeCoriolisTorque(){
   _myChainDyn->JntToCoriolis(_platformJoints,_platformVelocity,_coriolisTorques);
 }
-// KDL::Frame footForceMeasModifier::readTF(std::string frame_origin_, std::string frame_destination_)
+// KDL::Frame footHapticController::readTF(std::string frame_origin_, std::string frame_destination_)
 // {
 //   static int count = 0;
   
@@ -501,7 +558,7 @@ void footForceMeasModifier::computeCoriolisTorque(){
     
 //   } catch (tf2::TransformException ex) {
 //     if (count>2)
-//     { ROS_ERROR("[%s force sensor]: %s", ex.what(),Platform_Names[_platform_id]);
+//     { ROS_ERROR("[%s force sensor]: %s", ex.what(),Feet_Names[_platform_id]);
 //       count = 0;
 //     }
 //     else
@@ -513,7 +570,7 @@ void footForceMeasModifier::computeCoriolisTorque(){
 //   return kdlPoseTransform_;
 // }
 
-void footForceMeasModifier::publishForceFootRestWorld(){
+void footHapticController::publishForceFootRestWorld(){
   if (_flagForceCalibrated)
   {	
     _msgForceFootRestWorld.header.stamp = ros::Time::now();
@@ -561,7 +618,7 @@ void footForceMeasModifier::publishForceFootRestWorld(){
   }
 }
 
-void footForceMeasModifier::publishTorquesModified(){
+void footHapticController::publishTorquesModified(){
   
   if (_flagForceCalibrated)
   {
@@ -589,7 +646,7 @@ void footForceMeasModifier::publishTorquesModified(){
 
 }
 
-void footForceMeasModifier::publishForceSensorStaticCoG(){
+void footHapticController::publishForceSensorStaticCoG(){
 	if (_flagForceCalibrated)
 	{	
 		Eigen::Matrix<double,3,1> force_, moment_;
@@ -613,13 +670,13 @@ void footForceMeasModifier::publishForceSensorStaticCoG(){
 	}
 }
 
-void footForceMeasModifier::modifyForce() {
+void footHapticController::modifyForce() {
     _forceModified = _forceFiltered - (_undesiredForceBias-_forcePedalBiasInit);
     //cout<<_forcePedalBiasInit<<endl;
 }
 
 
-void footForceMeasModifier::computeFootManipulability()
+void footHapticController::computeFootManipulability()
 {
   Eigen::Matrix<double, NB_AXIS_WRENCH, NB_PLATFORM_AXIS> jacobian_ = _myFootBaseJacobian.data;
   _mySVD.compute(jacobian_, ComputeThinU | ComputeThinV);
@@ -630,7 +687,7 @@ void footForceMeasModifier::computeFootManipulability()
 }
 
 
-void footForceMeasModifier::publishManipulabilityEllipsoidRot() {
+void footHapticController::publishManipulabilityEllipsoidRot() {
   // _mutex.lock();
   VectorXd svdValues = _mySVD.singularValues();
   Matrix<double, 3,3> leftSVDVectors = _mySVD.matrixU().block(3,2,3,3);
@@ -665,7 +722,7 @@ void footForceMeasModifier::publishManipulabilityEllipsoidRot() {
   // _mutex.unlock();
 }
 
-void footForceMeasModifier::publishManipulabilityEllipsoidLin() {
+void footHapticController::publishManipulabilityEllipsoidLin() {
    // _mutex.lock();
   VectorXd svdValues = _mySVD.singularValues();
   Matrix<double, 3,3> leftSVDVectors = _mySVD.matrixU().block(0,0,3,3);
@@ -700,4 +757,15 @@ void footForceMeasModifier::publishManipulabilityEllipsoidLin() {
   // _mutex.unlock();
 }
 
-
+void footHapticController::loadModels(int whichFoot)
+{
+  if (whichFoot==BOTH_FEET)
+  {
+    for (size_t i = 0; i < _nFoot; i++)
+    {
+      loadModels(i);
+    }    
+  }else{
+  
+  }
+}

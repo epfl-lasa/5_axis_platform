@@ -36,13 +36,7 @@ void Platform::init()
 
 
   //_nh.getHardware()->setBaud(BAUDRATE);
-  _nh.initNode();
-   rtos::ThisThread::sleep_for(10);
-  _nh.advertise(*_pubFootOutput);
-  _nh.advertiseService(*_servChangeState);
-  _nh.advertiseService(*_servChangeCtrl);
-  _nh.subscribe(*_subFootInput);
-   rtos::ThisThread::sleep_for(10);
+  initROS();
    _timestamp = _innerTimer.read_us();
    _timestep = CTRL_LOOP;
   //_timestamp = _innerTimer.read_us();
