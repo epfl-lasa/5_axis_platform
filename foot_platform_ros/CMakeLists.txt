@@ -6,6 +6,7 @@ add_definitions(-std=c++11 -O3)
 
 # Find required packages
 find_package(catkin REQUIRED COMPONENTS
+  leg_as_robot
   roscpp
   tf2
   tf2_eigen
@@ -30,7 +31,7 @@ pkg_search_module(Eigen3 REQUIRED eigen3)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS roscpp rospy std_msgs tf2 tf2_ros tf2_eigen tf2_kdl custom_msgs dynamic_reconfigure  utils_math custom_msgs urdf kdl_parser eigen_conversions
+    CATKIN_DEPENDS roscpp rospy std_msgs tf2 tf2_ros tf2_eigen tf2_kdl custom_msgs dynamic_reconfigure  utils_math custom_msgs urdf kdl_parser eigen_conversions leg_as_robot
  )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS})

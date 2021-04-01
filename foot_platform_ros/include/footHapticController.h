@@ -48,6 +48,9 @@
 #include <visualization_msgs/Marker.h>
 #include <legRobot.h>
 #include <vector>
+#include <torque2TaskSpace_wdls.h>
+#include <Utils_math.h>
+
 
 using namespace std;
 using namespace Eigen;
@@ -56,58 +59,74 @@ class footHapticController {
 
 public:
   enum FEET_ID{NO_FOOT_ID=0, RIGHT_FOOT_ID=1, LEFT_FOOT_ID=2};
-  std::vector<FEET_ID> _feetID;
-  #define NB_FEET_MAX 2
+  FEET_ID _feetID[NB_PLATFORM_AXIS];
 private:
   unsigned int _nFoot;
 
-  std::vector<Eigen::Matrix<double, NB_PLATFORM_AXIS, 1>> _platform_position;
-  std::vector<Eigen::Matrix<double, NB_PLATFORM_AXIS, 1>> _platform_velocity;
-  std::vector<Eigen::Matrix<double, NB_PLATFORM_AXIS, 1>> _platform_effort;
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_position[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_velocity[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_effort[NB_PLATFORMS];
+
   
-  std::vector<Eigen::Matrix<double, NB_LEG_AXIS, 1>> _leg_position;
-  std::vector<Eigen::Matrix<double, NB_LEG_AXIS, 1>> _leg_velocity;
-  std::vector<Eigen::Matrix<double, NB_LEG_AXIS, 1>> _leg_effort;
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_position[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_velocity[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_effort[NB_PLATFORMS];
 
-  std::vector<Eigen::Matrix<double, NB_AXIS_WRENCH, 1>> _estimatedGuidanceWrench;
-  std::vector<Eigen::Matrix<double, NB_PLATFORM_AXIS, 1>> _desiredGuidanceEfforts;
+  Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _inPlatformHapticWrench[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _outPlatformHapticWrenchMax[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _outPlatformHapticWrenchMin[NB_PLATFORMS];
+  KDL::JntArray _inPlatformHapticEfforts[NB_PLATFORMS];
+  KDL::JntArray _outPlatformHapticEffortsMax[NB_PLATFORMS];
+  KDL::JntArray _outPlatformHapticEffortsMin[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _inPlatformToLegHapticEfforts[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _outPlatformToLegHapticEffortsMax[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _outPlatformToLegHapticEffortsMin[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _outPlatformHapticEfforts[NB_PLATFORMS];
 
-  std::vector<KDL::JntArray> _platformJoints;
-  std::vector<KDL::JntArray> _platformJointLims[NB_LIMS];
-  std::vector<KDL::JntArray> _legJoints;
-  std::vector<KDL::JntArray> _legJointLims[NB_LIMS];
+  Eigen::Matrix<double, NB_AXIS_WRENCH, NB_AXIS_WRENCH> _rotationfSensor[NB_PLATFORMS];
+
+  KDL::JntArray _platformJoints[NB_PLATFORMS];
+  KDL::JntArray _platformJointLims[NB_LIMS][NB_PLATFORMS];
+  
+  KDL::JntArray _legJoints[NB_PLATFORMS];
+  KDL::JntArray _legJointLims[NB_LIMS][NB_PLATFORMS];
+
+  KDL::JntArray _legGravityTorques[NB_PLATFORMS];
 
   KDL::Vector _grav_vector;
 
-  std::vector<Eigen::JacobiSVD<MatrixXd>> _svdFootJacobian;
-  std::vector<KDL::ChainJntToJacSolver*> _platformJacobianSolver;
-  std::vector<KDL::Jacobian> _platformFootBaseJacobian;
-  std::vector<KDL::Tree> _platformTree;
-  std::vector<std::vector<KDL::Segment>> _platformSegments;
-  std::vector<std::vector<KDL::Frame>> _platformFrames; //!
-  std::vector<KDL::ChainDynParam*> _platformChainDyn;
-  std::vector<KDL::Chain> _platformFootRestChain;
-  std::vector<KDL::ChainFkSolverPos_recursive*> _platformFKSolver;
+  Eigen::JacobiSVD<MatrixXd> _svdFootJacobian[NB_PLATFORMS];
+  KDL::ChainJntToJacSolver* _platformJacobianSolver[NB_PLATFORMS];
+  KDL::Jacobian _platformFootRestJacobian[NB_PLATFORMS];
+  KDL::Tree _platformTree[NB_PLATFORMS];
+  std::vector<KDL::Segment> _platformSegments[NB_PLATFORMS];
+  std::vector<KDL::Frame> _platformFrames[NB_PLATFORMS]; 
+  KDL::Frame _platformFootRestFrame[NB_PLATFORMS];
+  KDL::ChainDynParam* _platformChainDyn[NB_PLATFORMS];
+  KDL::Chain _platformFootRestChain[NB_PLATFORMS];
+  KDL::ChainFkSolverPos_recursive* _platformFKSolver[NB_PLATFORMS];
+  KDL::Torque2TaskSpace_wdls* _platformFDSolver[NB_PLATFORMS];
   
-  std::vector<Eigen::JacobiSVD<MatrixXd>> _svdlegJacobian;
-  std::vector<KDL::ChainJntToJacSolver*> _legJacobianSolver;
-  std::vector<KDL::Jacobian> _legFootBaseJacobian;
-  std::vector<KDL::Tree> _legTree;
-  std::vector<std::vector<KDL::Segment>> _legSegments;
-  std::vector<std::vector<KDL::Frame>> _legFrames; //!
-  std::vector<KDL::ChainDynParam*> _legChainDyn;
-  std::vector<KDL::Chain> _legFootBaseChain;
-  std::vector<KDL::ChainFkSolverPos_recursive*> _legFKSolver;
+  Eigen::JacobiSVD<MatrixXd> _svdlegJacobian[NB_PLATFORMS];
+  KDL::ChainJntToJacSolver* _legJacobianSolver[NB_PLATFORMS];
+  KDL::Jacobian _legFootBaseJacobian[NB_PLATFORMS];
+  KDL::Tree _legTree[NB_PLATFORMS];
+  std::vector<KDL::Segment> _legSegments[NB_PLATFORMS];
+  std::vector<KDL::Frame> _legFrames[NB_PLATFORMS];
+  KDL::Frame _legFootBaseFrame[NB_PLATFORMS];
+  KDL::ChainDynParam* _legChainDyn[NB_PLATFORMS];
+  KDL::Chain _legFootBaseChain[NB_PLATFORMS];
+  KDL::ChainFkSolverPos_recursive* _legFKSolver[NB_PLATFORMS];
 
   // ros variables
-  std::vector<sensor_msgs::JointState> _inMsgLegJoints;
-  std::vector<sensor_msgs::JointState> _inMsgFootJointState;
-  std::vector<custom_msgs::FootInputMsg> _inMsgDesiredGuidanceEfforts;
-  std::vector<custom_msgs::FootOutputMsg> _outMsgHapticEfforts;
+  sensor_msgs::JointState _inMsgLegJointState[NB_PLATFORMS];
+  sensor_msgs::JointState _inMsgPlatformJointState[NB_PLATFORMS];
+  custom_msgs::FootInputMsg _inMsgDesiredHapticEfforts[NB_PLATFORMS];
+  custom_msgs::FootInputMsg _outMsgHapticEfforts[NB_PLATFORMS];
 
   // ros variables
-  std::vector<urdf::Model> _platformModel;
-  std::vector<urdf::Model> _legModel;
+  urdf::Model _platformModel[NB_PLATFORMS];
+  urdf::Model _legModel[NB_PLATFORMS];
   ros::NodeHandle _n;
   ros::Rate _loopRate;
 
@@ -117,17 +136,19 @@ private:
   // Subscribers declarations
 
   // Publisher declaration
-  std::vector<ros::Publisher> _pubHapticEfforts;
+  ros::Publisher _pubHapticEfforts[NB_PLATFORMS];
 
-  std::vector<ros::Subscriber> _subPlatformJointState; // sensor_msgs/JointState
-  std::vector<ros::Subscriber> _subLegJointState; //Reads the wrench needed for gravity compensation of the leg (in the foot base frame) to torques for the joints of the platform.
+  ros::Subscriber _subPlatformJointState[NB_PLATFORMS];
+  ros::Subscriber _subLegJointState[NB_PLATFORMS];
   
-  std::vector<ros::Subscriber> _subDesiredGuidance;  // geometry_msgs/WrenchStamped.h
+  ros::Subscriber _subDesiredHapticEfforts[NB_PLATFORMS];
   //! boolean variables
 
-  std::vector<volatile bool> _flagLegJointStateRead;
-  std::vector<volatile bool> _flagPlatformJointStateRead;
-  
+  bool _flagLegJointStateRead[NB_PLATFORMS];
+  bool _flagPlatformJointStateRead[NB_PLATFORMS];
+  bool _flagDesiredHapticRead[NB_PLATFORMS];
+
+
 
   bool _stop;
   std::mutex _mutex;
@@ -137,7 +158,7 @@ private:
 
   // METHODS
 public:
-  footHapticController(ros::NodeHandle &n_1, double frequency, std::vector<FEET_ID> feet_id);
+  footHapticController(const ros::NodeHandle &n_1, const float &frequency, FEET_ID* feet_id);
   ~footHapticController();
 
   bool init();
@@ -149,18 +170,20 @@ private:
   
   void loadModels(int whichFoot);
   void processLegJoints(int whichFoot);
-  void readLegJoints(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot);
+  void readLegJointState(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot);
   void updateLegTreeFKState(int whichFoot);
   
   void processPlatformJoints(int whichFoot);
-  void readPlatformJoints(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot);
+  void readPlatformJointState(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot);
   void updatePlatformTreeFKState(int whichFoot);
 
+  void computeLegGravityTorques(int whichFoot);
+  void processDesiredHapticEfforts(int whichFoot); 
+  void readDesiredHapticEfforts(const custom_msgs::FootInputMsg::ConstPtr &msg, int whichFoot);
+  
+  
   void publishHapticEfforts(int whichFoot); 
-  void publishForceFootRestWorld(int whichFoot);
-  void computeFootManipulability(int whichFoot); 
-  void computeLegManipulability(int whichFoot); 
-
+  void doHapticControl();
   
   //! OTHER METHODS
   static void stopNode(int sig);
