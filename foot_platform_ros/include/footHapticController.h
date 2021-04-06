@@ -50,7 +50,7 @@
 #include <vector>
 #include <torque2TaskSpace_wdls.h>
 #include <Utils_math.h>
-
+#include "LP_Filterd.h"
 
 using namespace std;
 using namespace Eigen;
@@ -59,28 +59,39 @@ class footHapticController {
 
 public:
   enum FEET_ID{NO_FOOT_ID=0, RIGHT_FOOT_ID=1, LEFT_FOOT_ID=2};
-  FEET_ID _feetID[NB_PLATFORM_AXIS];
+  FEET_ID _feetID[NB_PLATFORMS];
 private:
+  
   unsigned int _nFoot;
+  // float _minGainFoot[NB_PLATFORMS];
+  // float _minGainLeg[NB_PLATFORMS];
+  // LP_Filterd _minGainLegFilter[NB_PLATFORMS];
+
+  double _effortGain[NB_PLATFORMS];
+
+  Eigen::Matrix<double, NB_AXIS_WRENCH,1> _legToPlatformGravityWrench[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_AXIS_WRENCH,1> _platformToLegGravityWrench[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS,1> _legToPlatformGravityEfforts[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _maxPossibleGains[NB_PLATFORMS]; 
 
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_position[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_velocity[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_effort[NB_PLATFORMS];
-
   
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _platformToLegGravityTorques[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_position[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_velocity[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_effort[NB_PLATFORMS];
 
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _inPlatformHapticWrench[NB_PLATFORMS];
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _outPlatformHapticWrenchMax[NB_PLATFORMS];
-  Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _outPlatformHapticWrenchMin[NB_PLATFORMS];
   KDL::JntArray _inPlatformHapticEfforts[NB_PLATFORMS];
   KDL::JntArray _outPlatformHapticEffortsMax[NB_PLATFORMS];
-  KDL::JntArray _outPlatformHapticEffortsMin[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _inPlatformToLegHapticEfforts[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _normalizedEffortCoeffsInLeg[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _jointLimitGaussianFilterCoeff[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _weberGravityFilterCoeff[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _outPlatformToLegHapticEffortsMax[NB_PLATFORMS];
-  Eigen::Matrix<double, NB_LEG_AXIS, 1> _outPlatformToLegHapticEffortsMin[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _outPlatformHapticEfforts[NB_PLATFORMS];
 
   Eigen::Matrix<double, NB_AXIS_WRENCH, NB_AXIS_WRENCH> _rotationfSensor[NB_PLATFORMS];
@@ -117,6 +128,7 @@ private:
   KDL::ChainDynParam* _legChainDyn[NB_PLATFORMS];
   KDL::Chain _legFootBaseChain[NB_PLATFORMS];
   KDL::ChainFkSolverPos_recursive* _legFKSolver[NB_PLATFORMS];
+  KDL::Torque2TaskSpace_wdls* _legFDSolver[NB_PLATFORMS];
 
   // ros variables
   sensor_msgs::JointState _inMsgLegJointState[NB_PLATFORMS];

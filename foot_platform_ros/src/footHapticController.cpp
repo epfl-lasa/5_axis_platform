@@ -2,7 +2,7 @@
 
 const float conversion_factor[] = {1.0, 1.0, DEG_TO_RAD, DEG_TO_RAD, DEG_TO_RAD};
 
-const float AccFilter = 0.99f;
+const float MaxGain = 10.0f;
 const int AxisRos[] = {1,0,2,3,4};
 
 #define ListofPlatformAxes(enumeration, names) names,
@@ -16,8 +16,6 @@ char const *Leg_Axis_Names[]{LEG_AXES};
 
 char const *Feet_Names[]{"none","right", "left"};
 
-
-
 footHapticController *footHapticController::me = NULL;
 
 footHapticController::footHapticController (const ros::NodeHandle &n_1, const float &frequency,
@@ -29,11 +27,25 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
   _stop = false;
   _nFoot = 0;
   
-  for (size_t i = 0; i < NB_PLATFORMS; i++)
+    for (size_t i = 0; i < NB_PLATFORMS; i++)
+    {
+      _feetID[i] = NO_FOOT_ID;
+      _feetID[i] = *(feet_id + i);
+      _nFoot = _nFoot + ((_feetID[i] > NO_FOOT_ID) ? 1 : 0);
+    }
+   
+  for (size_t i = 0; i < _nFoot; i++)
   {
-    _feetID[i] = *(feet_id + i);
-    _nFoot = _nFoot + (_feetID[i] > NO_FOOT_ID) ? 1 : 0;
     
+    // _minGainFoot[i] = 0.0f;
+    // _minGainLeg[i] = 0.0f;
+    // _minGainLegFilter[i].setAlpha(0.9f);
+
+    _legToPlatformGravityWrench[i].setZero();
+    _platformToLegGravityWrench[i].setZero();
+    _legToPlatformGravityEfforts[i].setZero();
+    _maxPossibleGains[i].setConstant(MaxGain);
+
     _platform_position[i].setZero();
     _platform_velocity[i].setZero();
     _platform_effort[i].setZero();
@@ -43,9 +55,8 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     _leg_effort[i].setZero();
     _inPlatformHapticWrench[i].setZero();
     _outPlatformHapticWrenchMax[i].setZero();
-    _outPlatformHapticWrenchMin[i].setZero();
     
-
+    _effortGain[i]=0.0f;
     
     
     urdf::Model platformModelLoad;
@@ -92,6 +103,7 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     _platformJacobianSolver[i] =  new KDL::ChainJntToJacSolver(_platformFootRestChain[i]);
     _legJacobianSolver[i] =  new KDL::ChainJntToJacSolver(_legFootBaseChain[i]);
     _platformFDSolver[i] =  new KDL::Torque2TaskSpace_wdls(_platformFootRestChain[i]);
+    _legFDSolver[i] =  new KDL::Torque2TaskSpace_wdls(_legFootBaseChain[i]);
     
     _platformSegments[i] = _platformFootRestChain[i].segments;
     _legSegments[i] = _legFootBaseChain[i].segments;
@@ -118,12 +130,12 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     
     _outPlatformHapticEffortsMax[i].resize(NB_PLATFORM_AXIS);
     _outPlatformHapticEffortsMax[i].data.setZero();
-    _outPlatformHapticEffortsMin[i].resize(NB_PLATFORM_AXIS);
-    _outPlatformHapticEffortsMin[i].data.setZero();
 
     _inPlatformToLegHapticEfforts[i].setZero();
+    _normalizedEffortCoeffsInLeg[i].setZero();
+    _jointLimitGaussianFilterCoeff[i].setZero();
+    _weberGravityFilterCoeff[i].setZero();
     _outPlatformToLegHapticEffortsMax[i].setZero();
-    _outPlatformToLegHapticEffortsMin[i].setZero();
     _outPlatformHapticEfforts[i].setZero();
 
 
@@ -151,6 +163,7 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     
     _legGravityTorques[i].resize(NB_LEG_AXIS);
     _legGravityTorques[i].data.setZero();
+    _platformToLegGravityTorques[i].setZero();
 
 
     _platformFootRestFrame[i] = KDL::Frame::Identity();
@@ -213,10 +226,6 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
     for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
     {
       _outPlatformHapticEffortsMax[i].data(j) = maxEffortPlatform[j];
-    }
-    for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
-    {
-      _outPlatformHapticEffortsMin[i].data(j) = -maxEffortPlatform[j];
     }
     
     _pubHapticEfforts[i] = _n.advertise<custom_msgs::FootInputMsg>("/"+std::string(Feet_Names[_feetID[i]])+"/foot_haptic_efforts", 1);
@@ -287,6 +296,7 @@ void footHapticController::run() {
         }
 
         doHapticControl();
+        publishHapticEfforts(i);
       }else
 
       {
@@ -392,74 +402,219 @@ void footHapticController::updateLegTreeFKState(int whichFoot) {
 
 void footHapticController::doHapticControl()
 {
-  float maxGain_j = 10.0f; 
-  for (size_t i = 0; i < _nFoot; i++)  {
+  float minMaxGain = MaxGain;
+  KDL::JntArray legToPlatformGravJntEfforts(NB_PLATFORM_AXIS);
+  KDL::JntArray weberGravityLegCoeff(NB_LEG_AXIS);
+  Eigen::Matrix<double, NB_AXIS_WRENCH,1> weberGravityLegCoeff6D;
+  Eigen::Marix<double, NB_PLATFORM_AXIS,1> weberGravityLegToPlatform;
+  for (size_t i = 0; i < _nFoot; i++)
+  {
+    _legToPlatformGravityWrench[i].setZero();
+    _platformToLegGravityWrench[i].setZero();
+    _legToPlatformGravityEfforts[i].setZero();
+    _maxPossibleGains[i].setConstant(MaxGain);
+    legToPlatformGravJntEfforts.data.setZero();
+    _weberGravityFilterCoeff[i].setConstant(1.0f);
+    weberGravityLegCoeff6D.setZero();
+    weberGravityLegCoeff.data.setZero();
+    weberGravityLegToPlatform.setZero();
 
-    _platformFDSolver[i]->JntToCart(_platformJoints[i], _outPlatformHapticEffortsMax[i],
-                               _outPlatformHapticWrenchMax[i]);
-                               
-    _platformFDSolver[i]->JntToCart(_platformJoints[i], _outPlatformHapticEffortsMin[i],
-                               _outPlatformHapticWrenchMin[i]);
+
+    // Calculate maximum 
+    _legFDSolver[i]->JntToCart(_legJoints[i],_legGravityTorques[i],_legToPlatformGravityWrench[i]);
+    _legToPlatformGravityEfforts[i] = _platformFootRestJacobian[i].data.transpose() * _legToPlatformGravityWrench[i];
+     legToPlatformGravJntEfforts.data = _legToPlatformGravityEfforts[i];
+    _platformFDSolver[i]->JntToCart(_platformJoints[i], legToPlatformGravJntEfforts,
+                                  _platformToLegGravityWrench[i]);
     
-    _outPlatformToLegHapticEffortsMax[i] = _legFootBaseJacobian[i].data.transpose() * _outPlatformHapticWrenchMax[i];  
-    _outPlatformToLegHapticEffortsMin[i] = _legFootBaseJacobian[i].data.transpose() * _outPlatformHapticWrenchMin[i];  
+    _platformToLegGravityTorques[i] = _legFootBaseJacobian[i].data.transpose() * _platformToLegGravityWrench[i];
 
-    // //Convert the desired haptic torques in a desired haptic wrench in the platform-foot-rest  frame (collocated with leg-foot-base) frame
-    // cout<<"_inPlatformHapticEfforts "<<     _inPlatformHapticEfforts[i].data.transpose()<<endl;  
-     _platformFDSolver[i]->JntToCart(_platformJoints[i], _inPlatformHapticEfforts[i],
+    _maxPossibleGains[i] = ( _inPlatformHapticEfforts[i].data.array().cwiseAbs() > __FLT_EPSILON__ ).select (
+                          ((_inPlatformHapticEfforts[i].data.array() < 0.0f).select(
+                              -_outPlatformHapticEffortsMax[i].data,_outPlatformHapticEffortsMax[i].data) -
+                               _legToPlatformGravityEfforts[i]).cwiseAbs().cwiseQuotient(_inPlatformHapticEfforts[i].data), MaxGain); 
+    
+    
+    minMaxGain = Utils_math<float>::bound(_maxPossibleGains[i].minCoeff(),1.0f,MaxGain);
+
+    
+    cout<<"_legToPlatformGravityTorques "<<_legToPlatformGravityEfforts[i].transpose()<<endl;
+
+    cout<<"_legGravityWrench "<<_legToPlatformGravityWrench[i].transpose()<<endl;
+
+    cout<<"_legGravityWrenchBack "<<_platformToLegGravityWrench[i].transpose()<<endl;
+
+    
+    
+    cout<<"_legGravityTorques "<<_legGravityTorques[i].data.transpose()<<endl;
+
+    cout<<"_legGravityTorquesBack "<<_platformToLegGravityTorques[i].transpose()<<endl;
+
+    cout<<"_maxPossibleGains "<<_maxPossibleGains[i].transpose()<<endl;
+    
+    _platformFDSolver[i]->JntToCart(_platformJoints[i], _inPlatformHapticEfforts[i],
                                   _inPlatformHapticWrench[i]);
-    // cout<<"_inPlatformHapticWrench "<<     _inPlatformHapticWrench[i].transpose()<<endl;  
-    // //Convert the wrench felt in the leg-foot-base frame to efforts in the joints of the leg
-     _inPlatformToLegHapticEfforts[i] = _legFootBaseJacobian[i].data.transpose() * _inPlatformHapticWrench[i]; 
+    
+    _inPlatformToLegHapticEfforts[i] = _legFootBaseJacobian[i].data.transpose() * _inPlatformHapticWrench[i]; 
+    cout<<"projected efforts in leg "<< _inPlatformToLegHapticEfforts[i].transpose() << endl;
 
-    // //Finding the possible gains for amplification of the efforts  
+    _normalizedEffortCoeffsInLeg[i] = _inPlatformToLegHapticEfforts[i].cwiseAbs().normalized();
 
-    Eigen::Array<float, NB_LEG_AXIS,1> gainsFirstStep_i;
-    // gainFirstStep is an array of the possible gains that each joint can have 
-    // lambdaFirstStep is the array of effort-deltas to avoid singular solutions in the gains
-    // nFirstStep is the array of signs of the desired efforts in the axis
-    gainsFirstStep_i.setConstant(1.0f);
-    float lambdaFirstStep_j = 0.0f;
-    float nFirstStep_j = 1.0;
-    float minGain_j = maxGain_j;
-    float legTorque_j = 0.0f;
-    float deltaToEffort_j = 0.0f;
-    float remainingEffort_j = 0.0f;
-    float effortMax = 0.0f;
-    for (size_t j = 0; j < NB_LEG_AXIS; j++)
+    cout<<"normalized efforts in leg "<< _normalizedEffortCoeffsInLeg[i].transpose() << endl;
+
+    _jointLimitGaussianFilterCoeff[i] = ( (1.0f+sin(M_PI*(_legJoints[i].data.array()-_legJointLims[L_MIN][i].data.array())/(0.0f-_legJointLims[L_MIN][i].data.array())-M_PI/2.0f))/2.0f *
+                                        (1.0f - ((1.0f+sin(M_PI*(_legJoints[i].data.array()-0.0f)/(_legJointLims[L_MAX][i].data.array()-0.0f)-M_PI/2.0f))/2.0f)) ).matrix();
+
+    //_jointLimitGaussianFilterCoeff[i].normalize();
+    cout<<"_jointLimitGaussianFilterCoeff "<< _jointLimitGaussianFilterCoeff[i].transpose() << endl;
+    // cout<<"_legJoints "<< _legJoints[i].data.transpose()<<endl;
+    // cout<<"_legJointsMin "<< _legJointLims[L_MIN][i].data.transpose()<<endl;
+    // cout<<"_legJointsMax "<< _legJointLims[L_MAX][i].data.transpose()<<endl;
+    cout<<"_minMaxPossibleGain "<< minMaxGain << endl;
+
+    _weberGravityFilterCoeff[i] = ( _legGravityTorques[i].data.array().abs() > _inPlatformToLegHapticEfforts[i].array().abs() ).select
+                                  ( ( ( _legGravityTorques[i].data.array().abs() > __FLT_EPSILON__ ).select (
+                                    (1.0f - (1.0f+sin(M_PI*(_inPlatformToLegHapticEfforts[i].array().abs()-0.0f)/
+                                    (_legGravityTorques[i].data.array().abs()-0.0f)-M_PI/2.0f))/2.0f),
+                                    1.0f)) , 0.0f);
+
+    cout<<"_weberGravityFilterCoeff "<< _weberGravityFilterCoeff[i].transpose() <<endl;
+    
+    weberGravityLegCoeff.data = _weberGravityFilterCoeff[i];
+    _legFDSolver[i]->JntToCart(_legJoints[i],weberGravityLegCoeff[i],weberGravityLegCoeff6D);
+    weberGravityLegToPlatform = _platformFootRestJacobian[i].data.transpose() * weberGravityLegCoeff6D;
+
+    weberGravityLegToPlatform = ( weberGravityLegToPlatform.array().abs() > __FLT_EPSILON__ ).select(
+                                weberGravityLegToPlatform.cwiseInverse(),1.0f);
+    
+
+    if(_normalizedEffortCoeffsInLeg[i].cwiseAbs().sum()>__FLT_EPSILON__)
     {
-      if (fabs(_inPlatformToLegHapticEfforts[i](j)) > FLT_EPSILON)
-      {
-        legTorque_j = Utils_math<float>::bound(_legGravityTorques[i].data(j),_outPlatformToLegHapticEffortsMin[i](j), _outPlatformToLegHapticEffortsMax[i](j));
-        nFirstStep_j = _inPlatformToLegHapticEfforts[i](j)<0.0 ? -1.0 : 1.0;
-        effortMax = nFirstStep_j < 0.0 ? _outPlatformToLegHapticEffortsMin[i](j) : _outPlatformToLegHapticEffortsMax[i](j);
-        lambdaFirstStep_j = fabs((maxGain_j * 0.01f) * ( effortMax - _inPlatformToLegHapticEfforts[i](j)));
-        deltaToEffort_j = fabs(_inPlatformToLegHapticEfforts[i](j) + nFirstStep_j * lambdaFirstStep_j); 
-        remainingEffort_j = ( fabs( effortMax - legTorque_j) -  deltaToEffort_j );
-        if (remainingEffort_j>0.0)
-        {
-          gainsFirstStep_i(j) = ( remainingEffort_j /  deltaToEffort_j ) + 1.0f;
-        }else{
+      _effortGain[i] = _normalizedEffortCoeffsInLeg[i].dot(
+                        _jointLimitGaussianFilterCoeff[i])/_normalizedEffortCoeffsInLeg[i].sum() * 
+                        (minMaxGain - 1.0) + 1.0;
 
-          gainsFirstStep_i(j)=1.0f;
-        }
-        minGain_j = gainsFirstStep_i(j) < minGain_j ? gainsFirstStep_i(j) : minGain_j;
-
-        // cout<<"inTorqueToLeg "<<_inPlatformToLegHapticEfforts[i](j)<<endl;
-        // cout<<"legTorque "<<legTorque_j<<endl;
-        // cout<<"nFirstStep_j "<<nFirstStep_j<<endl;
-        // cout<<"lambdaFirstStep_j "<<lambdaFirstStep_j<<endl;
-       // cout<<"deltaToEffort_j "<<deltaToEffort_j<<endl;
-        // cout<<"gainsFirstStep_j "<<gainsFirstStep_j<<endl;
-        // cout<<"minGain_j "<<minGain_j<<endl;
-      } 
     }
-    std::cout<<minGain_j<<std::endl;
-    minGain_j = Utils_math<float>::bound(minGain_j,1.0f,maxGain_j);
-    std::cout<<gainsFirstStep_i.transpose()<<endl;
+
+
+    cout<<"_minMaxPossibleGain "<< _effortGain[i] << endl;   
+    _outPlatformHapticEfforts[i] = _effortGain[i] * _inPlatformHapticEfforts[i].data;                                                        
   }
   
+
+
+  // float maxGain_j = 10.0f; 
+  // float lambdaFirstStep_j;
+  // float nFirstStep_j;
+  // float minGain_j;
+  // float legTorque_j;
+  // float deltaToEffort_j;
+  // float remainingEffort_j;
+  // float effortMax;
+  // float effort_j;
+
+  // for (size_t i = 0; i < _nFoot; i++)  {
+  //   Eigen::Matrix<double, NB_AXIS_WRENCH,1> wrenchJ, wrenchJScaled;
+  //   KDL::JntArray individualEfforts(NB_PLATFORM_AXIS);
+  //   _outPlatformHapticWrenchMax[i].setZero();
+  //   for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
+  //   {
+  //     wrenchJ.setZero();
+  //     individualEfforts.data.setZero();
+  //     individualEfforts.data(j) = _outPlatformHapticEffortsMax[i](j);
+  //     _platformFDSolver[i]->JntToCart(_platformJoints[i], individualEfforts,
+  //                              wrenchJ);
+  //     _outPlatformHapticWrenchMax[i]+=wrenchJ.cwiseAbs();
+  //   }
+    
+  //   _outPlatformToLegHapticEffortsMax[i] = _legFootBaseJacobian[i].data.transpose() * _outPlatformHapticWrenchMax[i];  
+
+  //   // //Convert the desired haptic torques in a desired haptic wrench in the platform-foot-rest  frame (collocated with leg-foot-base) frame
+    
+  //   cout<<"_outPlatformHapticWrenchMax "<<_outPlatformHapticWrenchMax[i].transpose()<<endl;  
+  //   cout<<"_outPlatformToLegHapticEffortsMax "<<_outPlatformToLegHapticEffortsMax[i].transpose()<<endl;  
+    
+  //    _platformFDSolver[i]->JntToCart(_platformJoints[i], _inPlatformHapticEfforts[i],
+  //                                 _inPlatformHapticWrench[i]);
+  //   // //Convert the wrench felt in the leg-foot-base frame to efforts in the joints of the leg
+  //    _inPlatformToLegHapticEfforts[i] = _legFootBaseJacobian[i].data.transpose() * _inPlatformHapticWrench[i]; 
+  //    cout<<"_inPlatformHapticWrench "<< _inPlatformHapticWrench[i].transpose()<<endl; 
+  //    cout<<"_inPlatformToLegHapticEfforts "<< _inPlatformToLegHapticEfforts[i].transpose()<<endl;  
+  //    cout<<"_legGravityTorques: "<< _legGravityTorques[i].data.transpose()<<endl;
+  //   // //Finding the possible gains for amplification of the efforts  
+
+  //   Eigen::Array<float, NB_LEG_AXIS,1> gainsFirstStep_i;
+  //   // gainFirstStep is an array of the possible gains that each joint can have 
+  //   // lambdaFirstStep is the array of effort-deltas to avoid singular solutions in the gains
+  //   // nFirstStep is the array of signs of the desired efforts in the axis
+  //   gainsFirstStep_i.setConstant(0.0f);
+  //   lambdaFirstStep_j = 0.0f;
+  //   nFirstStep_j = 1.0;
+  //   minGain_j = maxGain_j;
+  //   legTorque_j = 0.0f;
+  //   deltaToEffort_j = 0.0f;
+  //   remainingEffort_j = 0.0f;
+  //   effortMax = 0.0f;
+  //   effort_j=0.0f;
+
+  //   for (size_t j = 0; j < NB_LEG_AXIS; j++)
+  //   {
+  //     effort_j = _inPlatformToLegHapticEfforts[i](j);
+  //     if (fabs(effort_j) > FLT_EPSILON)
+  //     {
+  //       legTorque_j = Utils_math<float>::bound(_legGravityTorques[i].data(j),-_outPlatformToLegHapticEffortsMax[i](j), _outPlatformToLegHapticEffortsMax[i](j));
+  //       nFirstStep_j = effort_j <0.0 ? -1.0 : 1.0;
+  //       effortMax = nFirstStep_j * _outPlatformToLegHapticEffortsMax[i](j);
+  //       //lambdaFirstStep_j = fabs((maxGain_j * 0.01f) * ( effortMax - effort_j));
+  //       //deltaToEffort_j = fabs(effort_j + nFirstStep_j * lambdaFirstStep_j); 
+  //       remainingEffort_j =  fabs( effortMax - legTorque_j) -  fabs(effort_j)  ;
+  //       if ((remainingEffort_j - fabs(effort_j))>__FLT_EPSILON__)
+  //       {
+  //         gainsFirstStep_i(j) = remainingEffort_j/ fabs(effort_j);
+  //         minGain_j = gainsFirstStep_i(j) < minGain_j ? gainsFirstStep_i(j) : minGain_j;
+  //       }else{
+  //         gainsFirstStep_i(j)=0.0f;
+  //       }
+
+  //       // cout<<"inTorqueToLeg "<<_inPlatformToLegHapticEfforts[i](j)<<endl;
+  //       // cout<<"legTorque "<<legTorque_j<<endl;
+  //       // cout<<"nFirstStep_j "<<nFirstStep_j<<endl;
+  //       // cout<<"lambdaFirstStep_j "<<lambdaFirstStep_j<<endl;
+  //      // cout<<"deltaToEffort_j "<<deltaToEffort_j<<endl;
+  //       // cout<<"gainsFirstStep_j "<<gainsFirstStep_j<<endl;
+  //       // cout<<"minGain_j "<<minGain_j<<endl;
+  //     } 
+  //   }
+  //   minGain_j = Utils_math<float>::bound(minGain_j,0.0f,maxGain_j-1.0f);
+  //   KDL::JntArray effortsLegScaled_i(NB_LEG_AXIS);
+  //   effortsLegScaled_i.data.setZero();
+  //   effortsLegScaled_i.data = minGain_j * _inPlatformToLegHapticEfforts[i];
+  //   //effortsLegScaled_i.data = minGain_j * ( gainsFirstStep_i(j) > 0.0f ).select();
+  //   effortsLegScaled_i.data = effortsLegScaled_i.data.cwiseMax(-_outPlatformToLegHapticEffortsMax[i]).cwiseMin(_outPlatformToLegHapticEffortsMax[i]);
+  //   _legFDSolver[i]->JntToCart(_legJoints[i],effortsLegScaled_i,wrenchJScaled);
+  //   _outPlatformHapticEfforts[i] = _platformFootRestJacobian[i].data.transpose() * wrenchJScaled;
+  //  // _minGainLeg[i] = _minGainLegFilter[i].update(Utils_math<float>::bound(minGain_j,1.0f,maxGain_j));
+  //   std::cout<<gainsFirstStep_i.transpose()<<endl;
+  //   std::cout<<"scaledEfforts: "<<_outPlatformHapticEfforts[i]<<endl;
+  // }
+    
   
+  
+  
+}
+
+
+
+
+void footHapticController::publishHapticEfforts(int whichFoot)
+{
+  _outMsgHapticEfforts[whichFoot].ros_filterAxisForce.fill(1.0f);
+  
+  for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
+  {
+    _outMsgHapticEfforts[whichFoot].ros_effort[AxisRos[j]] = _outPlatformHapticEfforts[whichFoot](j);
+  }
+  _pubHapticEfforts[whichFoot].publish(_outMsgHapticEfforts[whichFoot]);
 }
 
 void footHapticController::computeLegGravityTorques(int whichFoot){
