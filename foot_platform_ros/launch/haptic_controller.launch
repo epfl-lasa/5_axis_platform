@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="id"  default="right" />
+    
+    <rosparam command="load" file="$(find foot_platform_ros)/config/haptic_control_settings.yaml"/>
+    
+    <node name="$(arg id)_haptic_controller" pkg="foot_platform_ros" type="footHapticController" output="screen">
+			<param name="feetID" type="string" value="$(arg id)"/>
+    </node>
+	
+  
+</launch>

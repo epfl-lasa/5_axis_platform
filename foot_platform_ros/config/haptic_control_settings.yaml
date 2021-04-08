@@ -1,4 +1,7 @@
 hapticControl:
-  platformEffortLims: [19.0,19.0,5.0,5.0,5.0] #Y,X,ROLL,PITCH,YAW
-  minJNDGain: 2.0 #% of increase
+  platformEffortLims: [19.0,19.0,10.0,10.0,10.0] #Y,X,ROLL,PITCH,YAW
+  maxGain: 5.0
+  minJNDGain: 0.30 # of increase
+
+
   
