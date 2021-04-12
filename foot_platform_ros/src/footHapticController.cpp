@@ -29,10 +29,14 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
   _stop = false;
   _nFoot = 0;
   _maxGainForAllJoints = MaxGain;
+  _vibrationOn =false;
 
 
-
-  
+  for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
+  {
+    _maxVelocity[j]=0.5f;
+  }
+    
   _minJND = 0.3;
   for (size_t i = 0; i < NB_PLATFORMS; i++)
     {
@@ -46,12 +50,12 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     
 
 
-    for (size_t j = 0; j < NB_PLATFORM_AXIS; i++)
+    for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
     {     
       _vibFreq[i][j] = 0.0;
       _vibFB[i][j] = 0.0; 
-      _vibFBGenerator[i][j] = new smoothSignals<double>(smoothSignals<double>::SINUSOID,&_vibFB[i][j],_vibFreq[i][j]);
-    
+      //_vibFBGenerator[i][j] = new smoothSignals<double>(smoothSignals<double>::SINUSOID,&_vibFB[i][j],_vibFreq[i][j],0.0f);
+      _vibFBGenerator[i][j] = new smoothSignals<double>(smoothSignals<double>::SINUSOID,&_vibFB[i][j],_vibFreq[i][j],-M_PI_2);
     }
 
     _legToPlatformGravityWrench[i].setZero();
@@ -243,6 +247,29 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
     }
   }
 
+    std::vector<double> maxVelocityJoints;
+
+  if(!_n.getParam("/hapticControl/maxVelocityJoints", maxVelocityJoints))
+  {
+    ROS_INFO("[footHapticController: ] maxVelocityJoints was not indicated, default 0.5[m/s rad/s] all ");
+    for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
+    {
+      maxVelocityJoints.push_back(0.5f);
+    }
+  }
+  
+  for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
+  {
+    _maxVelocity[j] = maxVelocityJoints[j];
+  }
+  
+
+  if(!_n.getParam("/hapticControl/vibrationOn", _vibrationOn))
+  {
+    ROS_INFO("[footHapticController: ] _vibrationOn was not indicated, default to false");
+    _vibrationOn = false;
+  }
+ 
 
   if(!_n.getParam("/hapticControl/maxGain", _maxGainForAllJoints))
   {
@@ -277,6 +304,12 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
     _subDesiredHapticEfforts[i] = _n.subscribe<custom_msgs::FootInputMsg>(
 					    	"/"+std::string(Feet_Names[_feetID[i]])+"/surgical_task/foot_input", 1,boost::bind(&footHapticController::readDesiredHapticEfforts, this, _1, (int)i ),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+
+    for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
+    {
+      _vibFBGenerator[i][j]->start();
+    }
+    
   }
 
   // Subscriber definitions
@@ -443,13 +476,14 @@ void footHapticController::updateLegTreeFKState(int whichFoot) {
 void footHapticController::doHapticControl()
 {
   float minMaxGain = _maxGainForAllJoints;
-  float maxVelocity = 1.0f;
   KDL::JntArray legToPlatformGravJntEfforts(NB_PLATFORM_AXIS);
   for (size_t i = 0; i < _nFoot; i++)
   {
     for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
     {
-      _vibFreq[i][j] = Utils_math<double>::map(_platform_velocity[i](j),0.0,maxVelocity,0.0,100.0);
+
+//      _vibFreq[i][j] = Utils_math<double>::map(fabs(_platform_velocity[i](j)),0.0,_maxVelocity[j],0.0,60.0);
+      _vibFreq[i][j] = Utils_math<double>::map(fabs(Utils_math<double>::deadZone(_platform_velocity[i](j),-_maxVelocity[j]/3.0,_maxVelocity[j]/3.0)),0.0,_maxVelocity[j],0.0,60.0);
       _vibFBGenerator[i][j]->changeParams(smoothSignals<double>::SINUSOID,_vibFreq[i][j]);
       _vibFBGenerator[i][j]->run(ros::Time::now());
     }
@@ -562,13 +596,14 @@ void footHapticController::doHapticControl()
      }
     
 
-    bool vibrationOn=true; 
     float frequency = 0.0f;
-    if (vibrationOn)
+    if (_vibrationOn)
     {
       for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
       {
-        _outPlatformHapticEfforts[i](j) = _inPlatformHapticEfforts[i].data(j) + (_effortGain[i](j) - 1.0f) * (Utils_math<double>::map(_vibFB[i][j],-1.0f,1.0f,0.0f,1.0f));                                                        
+       // _outPlatformHapticEfforts[i](j) = _vibFB[i][j];
+        //_outPlatformHapticEfforts[i](j) = _effortGain[i](j) * _inPlatformHapticEfforts[i].data(j) - (_effortGain[i](j) - 1.0f) * (_inPlatformHapticEfforts[i].data(j))* (Utils_math<double>::map(_vibFB[i][j],-1.0f,1.0f,0.0f, Utils_math<double>::map(fabs(_platform_velocity[i](j)),0.0f,_maxVelocity[j],0.0f,1.0f)));                                                        
+        _outPlatformHapticEfforts[i](j) = _inPlatformHapticEfforts[i].data(j) + (_effortGain[i](j) - 1.0f) * (_inPlatformHapticEfforts[i].data(j))* (Utils_math<double>::map(_vibFB[i][j],-1.0f,1.0f,0.0f, 1.0f));                                                        
       }
 
     }else

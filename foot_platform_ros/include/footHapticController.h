@@ -67,12 +67,13 @@ private:
   // float _minGainFoot[NB_PLATFORMS];
   // float _minGainLeg[NB_PLATFORMS];
   // LP_Filterd _minGainLegFilter[NB_PLATFORMS];
-
+  bool _vibrationOn;
   smoothSignals<double>* _vibFBGenerator[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFB[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFreq[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _maxGainForAllJoints;
   double _minJND;
+  double _maxVelocity[NB_PLATFORM_AXIS];
   
   Eigen::Matrix<double, NB_PLATFORM_AXIS,1> _effortGain[NB_PLATFORMS];
 
