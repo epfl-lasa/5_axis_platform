@@ -17,6 +17,7 @@ char const *Leg_Axis_Names[]{LEG_AXES};
 #undef ListofLegAxes
 
 char const *Feet_Names[]{"none","right", "left"};
+char const *Feet_Names_2[]{"None","Right", "Left"};
 
 footHapticController *footHapticController::me = NULL;
 
@@ -29,7 +30,7 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
   _stop = false;
   _nFoot = 0;
   _maxGainForAllJoints = MaxGain;
-  _vibrationOn =false;
+  _vibrationOn =true;
 
 
   for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
@@ -53,13 +54,21 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
     {     
       _vibFreq[i][j] = 0.0;
+      _vibMagnitude[i][j] = 1.0;
+      _vibDecayRate[i][j] = 1.0;
+      _vibImpactVel[i][j] = 0.0;
       _vibFB[i][j] = 0.0; 
+      _velGain[i][j] = 0.0;
       //_vibFBGenerator[i][j] = new smoothSignals<double>(smoothSignals<double>::SINUSOID,&_vibFB[i][j],_vibFreq[i][j],0.0f);
-      _vibFBGenerator[i][j] = new smoothSignals<double>(smoothSignals<double>::SINUSOID,&_vibFB[i][j],_vibFreq[i][j],-M_PI_2);
+      //_vibFBGenerator[i][j] = new smoothSignals<double>(smoothSignals<double>::SINUSOID,&_vibFB[i][j],_vibFreq[i][j],-M_PI_2);
+
+      _vibFBGenerator[i][j] = new vibrator<double>(&_vibFB[i][j],1.0,1.0,30.0);
+
     }
 
     _legToPlatformGravityWrench[i].setZero();
     _platformToLegGravityWrench[i].setZero();
+    _platformToLegImpedanceWrench[i].setZero();
     _legToPlatformGravityEfforts[i].setZero();
     _maxPossibleGains[i].setConstant(MaxGain);
 
@@ -72,7 +81,8 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     _leg_effort[i].setZero();
     _inPlatformHapticWrench[i].setZero();
     _effortGain[i].setZero();
-    
+    _prevInPlatformHapticEfforts[i].setZero();
+    _devInPlatformHapticEfforts[i].setZero();
     
     urdf::Model platformModelLoad;
     if (!platformModelLoad.initParam("/"+std::string(Feet_Names[_feetID[i]])+"_platform/robot_description")) 
@@ -182,6 +192,7 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     _legGravityTorques[i].resize(NB_LEG_AXIS);
     _legGravityTorques[i].data.setZero();
     _platformToLegGravityTorques[i].setZero();
+    _platformToLegImpedanceTorques[i].setZero();
 
 
     _platformFootRestFrame[i] = KDL::Frame::Identity();
@@ -295,9 +306,13 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
     }
     
     _pubHapticEfforts[i] = _n.advertise<custom_msgs::FootInputMsg>("/"+std::string(Feet_Names[_feetID[i]])+"/foot_haptic_efforts", 1);
-    _subPlatformJointState[i] = _n.subscribe<sensor_msgs::JointState>(
-					    	"/"+std::string(Feet_Names[_feetID[i]])+"_platform"+"/platform_joint_publisher/joint_states", 1,boost::bind(&footHapticController::readPlatformJointState, this, _1, (int)i ),
+    // _subPlatformJointState[i] = _n.subscribe<sensor_msgs::JointState>(
+		// 			    	"/"+std::string(Feet_Names[_feetID[i]])+"_platform"+"/platform_joint_publisher/joint_states", 1,boost::bind(&footHapticController::readPlatformJointState, this, _1, (int)i ),
+		// 			    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+        _subPlatformOutput[i] = _n.subscribe<custom_msgs::FootOutputMsg>(
+					    	"/FI_Output/"+std::string(Feet_Names_2[_feetID[i]]), 1,boost::bind(&footHapticController::readPlatformOutput, this, _1, (int)i ),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+    
     _subLegJointState[i] = _n.subscribe<sensor_msgs::JointState>(
 					    	"/"+std::string(Feet_Names[_feetID[i]])+"_leg"+"/leg_joint_publisher/joint_states", 1,boost::bind(&footHapticController::readLegJointState, this, _1, (int)i ),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
@@ -305,10 +320,10 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
 					    	"/"+std::string(Feet_Names[_feetID[i]])+"/surgical_task/foot_input", 1,boost::bind(&footHapticController::readDesiredHapticEfforts, this, _1, (int)i ),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
 
-    for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
-    {
-      _vibFBGenerator[i][j]->start();
-    }
+    // for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
+    // {
+    //   _vibFBGenerator[i][j]->start();
+    // }
     
   }
 
@@ -333,7 +348,7 @@ void footHapticController::run() {
   while (!_stop) {
    for (size_t i = 0; i < _nFoot; i++)
     {
-      if (_subPlatformJointState[i].getNumPublishers()>0 && _subLegJointState[i].getNumPublishers()>0) 
+      if (_subPlatformOutput[i].getNumPublishers()>0 && _subLegJointState[i].getNumPublishers()>0) 
       
       {
         ROS_INFO_ONCE("[footHapticController: ] The %s platform and leg are connected!",Feet_Names[_feetID[i]]);
@@ -386,20 +401,38 @@ void footHapticController::run() {
   ros::shutdown();
 }
 
+// void footHapticController::processPlatformJoints(int whichFoot)
+// {
+//   for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+//   {
+//     _platform_position[whichFoot](i) =  _inMsgPlatformJointState[whichFoot].position[i];
+//     _platform_velocity[whichFoot](i) =  _inMsgPlatformJointState[whichFoot].velocity[i];
+//     _platform_effort[whichFoot](i) =  _inMsgPlatformJointState[whichFoot].effort[i];
+//   }
+//   _platformJoints[whichFoot].data = _platform_position[whichFoot];
+// }
+
 void footHapticController::processPlatformJoints(int whichFoot)
 {
   for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
   {
-    _platform_position[whichFoot](i) =  _inMsgPlatformJointState[whichFoot].position[i];
-    _platform_velocity[whichFoot](i) =  _inMsgPlatformJointState[whichFoot].velocity[i];
-    _platform_effort[whichFoot](i) =  _inMsgPlatformJointState[whichFoot].effort[i];
+    _platform_position[whichFoot](i) =  _inMsgPlatformOutput[whichFoot].platform_position[AxisRos[i]];
+    _platform_velocity[whichFoot](i) =  _inMsgPlatformOutput[whichFoot].platform_speed[AxisRos[i]];
+    _platform_effort[whichFoot](i) =  _inMsgPlatformOutput[whichFoot].platform_effortRef[AxisRos[i]];
   }
   _platformJoints[whichFoot].data = _platform_position[whichFoot];
 }
 
-void footHapticController::readPlatformJointState(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot)
+// void footHapticController::readPlatformJointState(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot)
+// {
+//   me->_inMsgPlatformJointState[whichFoot] = *msg;
+//   me->_flagPlatformJointStateRead[whichFoot]=true;
+// }
+
+
+void footHapticController::readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg, int whichFoot)
 {
-  me->_inMsgPlatformJointState[whichFoot] = *msg;
+  me->_inMsgPlatformOutput[whichFoot] = *msg;
   me->_flagPlatformJointStateRead[whichFoot]=true;
 }
 
@@ -424,10 +457,12 @@ void footHapticController::readLegJointState(const sensor_msgs::JointState::Cons
 
 void footHapticController::processDesiredHapticEfforts(int whichFoot)
 {
-  for (size_t i = 0; i < NB_PLATFORM_AXIS; i++)
+  _prevInPlatformHapticEfforts[whichFoot] = _inPlatformHapticEfforts[whichFoot].data;
+  for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
   {
-    _inPlatformHapticEfforts[whichFoot].data(i) = _inMsgDesiredHapticEfforts[whichFoot].ros_effort[AxisRos[i]];
+    _inPlatformHapticEfforts[whichFoot].data(j) = _inMsgDesiredHapticEfforts[whichFoot].ros_effort[AxisRos[j]];
   }
+  _devInPlatformHapticEfforts[whichFoot] = (_inPlatformHapticEfforts[whichFoot].data - _prevInPlatformHapticEfforts[whichFoot]) * (1.0 / _dt);
 }
 
 void footHapticController::readDesiredHapticEfforts(const custom_msgs::FootInputMsg::ConstPtr &msg, int whichFoot)
@@ -475,25 +510,47 @@ void footHapticController::updateLegTreeFKState(int whichFoot) {
 
 void footHapticController::doHapticControl()
 {
+  float devMinInEfforts = 1.0;
   float minMaxGain = _maxGainForAllJoints;
   KDL::JntArray legToPlatformGravJntEfforts(NB_PLATFORM_AXIS);
+  KDL::JntArray impedanceEffortsPlatform(NB_PLATFORM_AXIS);
   for (size_t i = 0; i < _nFoot; i++)
   {
     for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
     {
+      if (fabs(_inPlatformHapticEfforts[i].data(j)) < FLT_EPSILON  && _vibFBGenerator[i][j]->finished())
+      {
+        _vibFBGenerator[i][j]->reset();
+      }
+      if (fabs(_inPlatformHapticEfforts[i].data(j)) > FLT_EPSILON && fabs(_platform_velocity[i](j)) > FLT_EPSILON)
+      { 
+         if (!_vibFBGenerator[i][j]->run(ros::Time::now()))
+         {
+           _vibImpactVel[i][j] = _platform_velocity[i](j);
+         }
+         _vibFBGenerator[i][j]->start();
+      }
 
-//      _vibFreq[i][j] = Utils_math<double>::map(fabs(_platform_velocity[i](j)),0.0,_maxVelocity[j],0.0,60.0);
-      _vibFreq[i][j] = Utils_math<double>::map(fabs(Utils_math<double>::deadZone(_platform_velocity[i](j),-_maxVelocity[j]/3.0,_maxVelocity[j]/3.0)),0.0,_maxVelocity[j],0.0,60.0);
-      _vibFBGenerator[i][j]->changeParams(smoothSignals<double>::SINUSOID,_vibFreq[i][j]);
+      _velGain[i][j] = (_vibImpactVel[i][j] * _inPlatformHapticEfforts[i].data(j) > FLT_EPSILON ) ? 0.0 : Utils_math<double>::smoothRise(fabs(_vibImpactVel[i][j]),0.0,_maxVelocity[j]);
+
+//     _vibFreq[i][j] = Utils_math<double>::map(fabs(_platform_velocity[i](j)),0.0,_maxVelocity[j],0.0,60.0);
+      //_vibFreq[i][j] = Utils_math<double>::map(fabs(Utils_math<double>::deadZone(_platform_velocity[i](j),-_maxVelocity[j]/3.0,_maxVelocity[j]/3.0)),0.0,_maxVelocity[j],0.0,60.0);
+      //_vibFBGenerator[i][j]->changeParams(smoothSignals<double>::SINUSOID,_vibFreq[i][j]);
+    
+      _vibDecayRate[i][j] = Utils_math<double>::map(_velGain[i][j],0.0,1.0,10.0,20.0);
+      _vibFreq[i][j] = Utils_math<double>::map(_velGain[i][j],0.0,1.0,10.0,40.0);
+      _vibFBGenerator[i][j]->changeParams(1.0,_vibDecayRate[i][j],_vibFreq[i][j]);
       _vibFBGenerator[i][j]->run(ros::Time::now());
     }
     
     
     _legToPlatformGravityWrench[i].setZero();
     _platformToLegGravityWrench[i].setZero();
+    _platformToLegImpedanceWrench[i].setZero();
     _legToPlatformGravityEfforts[i].setZero();
     _maxPossibleGains[i].setConstant(_maxGainForAllJoints);
     legToPlatformGravJntEfforts.data.setZero();
+    impedanceEffortsPlatform.data.setZero();
     _weberRatios[i].setZero();
     _weberRatiosLeg[i].setZero();
     _weberLegCoeff[i].setZero();
@@ -502,14 +559,25 @@ void footHapticController::doHapticControl()
     _legFDSolver[i]->JntToCart(_legJoints[i],_legGravityTorques[i],_legToPlatformGravityWrench[i]);
     _legToPlatformGravityEfforts[i] = _platformFootRestJacobian[i].data.transpose() * _legToPlatformGravityWrench[i];
      legToPlatformGravJntEfforts.data = _legToPlatformGravityEfforts[i];
+    
+    
     _platformFDSolver[i]->JntToCart(_platformJoints[i], legToPlatformGravJntEfforts,
                                   _platformToLegGravityWrench[i]);
     
     _platformToLegGravityTorques[i] = _legFootBaseJacobian[i].data.transpose() * _platformToLegGravityWrench[i];
 
+    impedanceEffortsPlatform.data = _platform_effort[i];
+
+    _platformFDSolver[i]->JntToCart(_platformJoints[i], impedanceEffortsPlatform,
+                                  _platformToLegImpedanceWrench[i]);
+    
+    
+    _platformToLegImpedanceTorques[i] = _legFootBaseJacobian[i].data.transpose() * _platformToLegImpedanceWrench[i];
+
+
     _maxPossibleGains[i] = ( _inPlatformHapticEfforts[i].data.array().cwiseAbs() > __FLT_EPSILON__ ).select (
                           ((_inPlatformHapticEfforts[i].data.array() < 0.0f).select(
-                              -_outPlatformHapticEffortsMax[i],_outPlatformHapticEffortsMax[i]) -
+                              -_outPlatformHapticEffortsMax[i],_outPlatformHapticEffortsMax[i]) - _platform_effort[i] -
                                _legToPlatformGravityEfforts[i]).cwiseAbs().cwiseQuotient(_inPlatformHapticEfforts[i].data.cwiseAbs()), _maxGainForAllJoints); 
     
     //_maxPossibleGains[i] = _maxPossibleGains[i].cwiseMin(MaxGain);
@@ -521,13 +589,12 @@ void footHapticController::doHapticControl()
 
     cout<<"_legGravityWrench "<<_legToPlatformGravityWrench[i].transpose()<<endl;
  
-     cout<<"_legGravityWrenchBack "<<_platformToLegGravityWrench[i].transpose()<<endl;
+    cout<<"_legGravityWrenchBack "<<_platformToLegGravityWrench[i].transpose()<<endl;
  
      
-     
-     cout<<"_legGravityTorques "<<_legGravityTorques[i].data.transpose()<<endl;
+    cout<<"_legGravityTorques "<<_legGravityTorques[i].data.transpose()<<endl;
  
-     cout<<"_legGravityTorquesBack "<<_platformToLegGravityTorques[i].transpose()<<endl;
+    cout<<"_legGravityTorquesBack "<<_platformToLegGravityTorques[i].transpose()<<endl;
 
     cout<<"_maxPossibleGains "<<_maxPossibleGains[i].transpose()<<endl;
     
@@ -547,8 +614,8 @@ void footHapticController::doHapticControl()
 
     cout<<"normalized efforts in leg "<< _normalizedEffortCoeffsInLeg[i].transpose() << endl;
 
-
-    _jointLimitGaussianFilterCoeff[i] = ( 
+  
+    _jointLimitGaussianFilterCoeff[i] = ( 1.0f -  ( 
                                           ((0.0f-_legJointLims[L_MIN][i].data.array()).abs() > FLT_EPSILON).select(
                                            (1.0f+sin(M_PI*(_legJoints[i].data.array()-_legJointLims[L_MIN][i].data.array())/
                                           (0.0f-_legJointLims[L_MIN][i].data.array())
@@ -556,7 +623,7 @@ void footHapticController::doHapticControl()
                                           ((_legJointLims[L_MAX][i].data.array()-0.0f).abs() > FLT_EPSILON).select( 
                                             (1.0f - ( (1.0f+sin(M_PI*(_legJoints[i].data.array()-0.0f)/
                                           (_legJointLims[L_MAX][i].data.array()-0.0f)
-                                          -M_PI/2.0f))/2.0f) ) , 0.0f )) .matrix();
+                                          -M_PI/2.0f))/2.0f) ) , 0.0f )) ) .matrix();
 
     cout<<"_jointLimitGaussianFilterCoeff "<< _jointLimitGaussianFilterCoeff[i].transpose() << endl;
     // cout<<"_legJoints "<< _legJoints[i].data.transpose()<<endl;
@@ -564,9 +631,9 @@ void footHapticController::doHapticControl()
     // cout<<"_legJointsMax "<< _legJointLims[L_MAX][i].data.transpose()<<endl;
     cout<<"_minMaxPossibleGain "<< minMaxGain << endl;
 
-    _weberRatiosLeg[i] =  ( _legGravityTorques[i].data.array().abs() > FLT_EPSILON ).select
+    _weberRatiosLeg[i] =  ( (_legGravityTorques[i].data + _platformToLegImpedanceTorques[i]).array().abs() > FLT_EPSILON ).select
                                      (  _inPlatformToLegHapticEfforts[i].array().abs() /
-                                     _legGravityTorques[i].data.array().abs() , 0.0f) ;
+                                     (_legGravityTorques[i].data + _platformToLegImpedanceTorques[i]).array().abs() , 0.0f) ;
     cout<<"weber ratios leg "<< _weberRatiosLeg[i].transpose() <<endl;
 
     _weberLegCoeff[i] = (_weberRatiosLeg[i].array()  < _userDefinedJND[i].array()).select(
@@ -603,7 +670,12 @@ void footHapticController::doHapticControl()
       {
        // _outPlatformHapticEfforts[i](j) = _vibFB[i][j];
         //_outPlatformHapticEfforts[i](j) = _effortGain[i](j) * _inPlatformHapticEfforts[i].data(j) - (_effortGain[i](j) - 1.0f) * (_inPlatformHapticEfforts[i].data(j))* (Utils_math<double>::map(_vibFB[i][j],-1.0f,1.0f,0.0f, Utils_math<double>::map(fabs(_platform_velocity[i](j)),0.0f,_maxVelocity[j],0.0f,1.0f)));                                                        
-        _outPlatformHapticEfforts[i](j) = _inPlatformHapticEfforts[i].data(j) + (_effortGain[i](j) - 1.0f) * (_inPlatformHapticEfforts[i].data(j))* (Utils_math<double>::map(_vibFB[i][j],-1.0f,1.0f,0.0f, 1.0f));                                                        
+        //_outPlatformHapticEfforts[i](j) = _inPlatformHapticEfforts[i].data(j) + (_effortGain[i](j) - 1.0f) * (_inPlatformHapticEfforts[i].data(j))* (Utils_math<double>::map(_vibFB[i][j],-1.0f,1.0f,0.0f, 1.0f));                                                        
+        //float outputLFTorque = _effortGain[i](j) * _inPlatformHapticEfforts[i].data(j);
+        //float vibMagnitude = _vibFB[i][j];
+        //_outPlatformHapticEfforts[i](j) = outputLFTorque - _velGain[i][j] * Utils_math<double>::map(vibMagnitude,-1.0,1.0,Utils_math<double>::map(_velGain[i][j],0.0,1.0,0.0,outputLFTorque),0.0);
+
+        _outPlatformHapticEfforts[i](j) = (1.0 + _vibFB[i][j] * _velGain[i][j]) * _effortGain[i](j) *  _inPlatformHapticEfforts[i].data(j);      
       }
 
     }else
@@ -638,3 +710,41 @@ void footHapticController::publishHapticEfforts(int whichFoot)
 void footHapticController::computeLegGravityTorques(int whichFoot){
   _legChainDyn[whichFoot]->JntToGravity(_legJoints[whichFoot],_legGravityTorques[whichFoot]);
 }
+
+// void footHapticController::readToolTipRobotBase(int whichFoot)
+// {
+//   static int count = 0;
+//   std::string original_frame;
+//   std::string destination_frame;
+
+//   if (std::strcmp())
+//   {
+//     destination_frame = "left_platform_foot_rest";
+//     original_frame = "left_leg_hip_base_link";
+//   }
+//   else {
+//     destination_frame = "right_platform_foot_rest";
+//     original_frame = "right_leg_hip_base_link";
+//   }
+
+//   geometry_msgs::TransformStamped footPoseTransform_;
+
+//   try {
+//     footPoseTransform_ = _tfBuffer.lookupTransform(
+//         original_frame.c_str(), destination_frame.c_str(), ros::Time(0));
+
+//     _footPosFrame = tf2::transformToKDL(footPoseTransform_);
+//     _flagFootPoseConnected = true;
+    
+//   } catch (tf2::TransformException ex) {
+//     if (count>2)
+//     { ROS_ERROR("[%s leg]: %s",Leg_Names[_leg_id], ex.what());
+//       count = 0;
+//     }
+//     else
+//     {
+//       count++;
+//     }
+//     ros::Duration(1.0).sleep();
+//   }
+// }

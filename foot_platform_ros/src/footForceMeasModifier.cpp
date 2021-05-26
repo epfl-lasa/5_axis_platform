@@ -168,8 +168,13 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
 		{ 
       ROS_ERROR("[%s force sensor]: No force filter gain found",Platform_Names[_platform_id]);
     }
+    else
+    {
+      ROS_INFO("[%s force sensor]: Force filter gain  is %f",Platform_Names[_platform_id],_force_filt_alpha);
+    }
 	
   _force_filt_alphas.setConstant(_force_filt_alpha);
+  _force_filt_alphas(p_y) = 0.99f;
 
   // Subscriber definitions
   signal(SIGINT, footForceMeasModifier::stopNode);

@@ -28,11 +28,15 @@ void Platform::step()
   }
   _allEsconOk=esconCheck;
 
-  if (_allEsconOk==0 || _flagEmergencyCalled)
+  if (_platform_state != EMERGENCY)
   {
-    clearLastState();
-    _platform_state = EMERGENCY;
+    if (_allEsconOk==0 || _flagEmergencyCalled)
+    {
+      clearLastState();
+      _platform_state = EMERGENCY;
+    }
   }
+  
 
   if(!_flagRosConnected)
   {
@@ -157,6 +161,7 @@ void Platform::step()
           _enterStateOnceFlag[TELEOPERATION]=true;
           _flagOutofCompensation=true;
           _flagOutofSoftLimitsControl = true;
+          rtos::ThisThread::sleep_for(10);
           _enableMotors->write(1);
         }
 

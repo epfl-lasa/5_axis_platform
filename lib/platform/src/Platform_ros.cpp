@@ -98,7 +98,8 @@ void Platform::pubFootOutput()
   {
     _msgFootOutput.platform_position[rosAxis[k]] = _position(k)  * ConversionAxisPlatformToROS[k];
     _msgFootOutput.platform_speed[rosAxis[k]] = _speed(k) * ConversionAxisPlatformToROS[k];
-    _msgFootOutput.platform_effortRef[rosAxis[k]] = _forceSensorD(k);
+    //_msgFootOutput.platform_effortRef[rosAxis[k]] = _forceSensorD(k);
+    _msgFootOutput.platform_effortRef[rosAxis[k]] = _effortD_ADD(k,CUSTOM_IMPEDANCE) + _effortD_ADD(k,SOFT_LIMITS);
     _msgFootOutput.platform_effortD[rosAxis[k]] =_effortD(k);
     _msgFootOutput.platform_effortM[rosAxis[k]] =_effortM(k);
   }

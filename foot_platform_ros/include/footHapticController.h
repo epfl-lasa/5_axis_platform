@@ -49,7 +49,8 @@
 #include <legRobot.h>
 #include <vector>
 #include <torque2TaskSpace_wdls.h>
-#include <smoothSignals.h>
+//#include <smoothSignals.h>
+#include <vibrator.h>
 #include <Utils_math.h>
 #include "LP_Filterd.h"
 
@@ -68,19 +69,27 @@ private:
   // float _minGainLeg[NB_PLATFORMS];
   // LP_Filterd _minGainLegFilter[NB_PLATFORMS];
   bool _vibrationOn;
-  smoothSignals<double>* _vibFBGenerator[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  //smoothSignals<double>* _vibFBGenerator[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  vibrator<double>* _vibFBGenerator[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFB[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFreq[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  double _vibDecayRate[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  double _vibMagnitude[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  double _vibImpactVel[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  double _velGain[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _maxGainForAllJoints;
   double _minJND;
   double _maxVelocity[NB_PLATFORM_AXIS];
   
   Eigen::Matrix<double, NB_PLATFORM_AXIS,1> _effortGain[NB_PLATFORMS];
 
-  
+  tf2_ros::Buffer _tfBuffer;
+  tf2_ros::TransformListener* _tfListener;
+  KDL::Frame _toolTipRobotTransform;
   
   Eigen::Matrix<double, NB_AXIS_WRENCH,1> _legToPlatformGravityWrench[NB_PLATFORMS];
   Eigen::Matrix<double, NB_AXIS_WRENCH,1> _platformToLegGravityWrench[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_AXIS_WRENCH,1> _platformToLegImpedanceWrench[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS,1> _legToPlatformGravityEfforts[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _maxPossibleGains[NB_PLATFORMS]; 
 
@@ -91,6 +100,7 @@ private:
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _outPlatformHapticEffortsMax[NB_PLATFORMS];
   
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _platformToLegGravityTorques[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_LEG_AXIS, 1> _platformToLegImpedanceTorques[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_position[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_velocity[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _leg_effort[NB_PLATFORMS];
@@ -100,6 +110,9 @@ private:
 
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _inPlatformHapticWrench[NB_PLATFORMS];
   KDL::JntArray _inPlatformHapticEfforts[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _devInPlatformHapticEfforts[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _prevInPlatformHapticEfforts[NB_PLATFORMS];
+
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _inPlatformToLegHapticEfforts[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _normalizedEffortCoeffsInLeg[NB_PLATFORMS];
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _jointLimitGaussianFilterCoeff[NB_PLATFORMS];
@@ -144,7 +157,10 @@ private:
 
   // ros variables
   sensor_msgs::JointState _inMsgLegJointState[NB_PLATFORMS];
-  sensor_msgs::JointState _inMsgPlatformJointState[NB_PLATFORMS];
+  // sensor_msgs::JointState _inMsgPlatformJointState[NB_PLATFORMS];
+  
+
+  custom_msgs::FootOutputMsg _inMsgPlatformOutput[NB_PLATFORMS];   
   custom_msgs::FootInputMsg _inMsgDesiredHapticEfforts[NB_PLATFORMS];
   custom_msgs::FootInputMsg _outMsgHapticEfforts[NB_PLATFORMS];
 
@@ -162,7 +178,8 @@ private:
   // Publisher declaration
   ros::Publisher _pubHapticEfforts[NB_PLATFORMS];
 
-  ros::Subscriber _subPlatformJointState[NB_PLATFORMS];
+  // ros::Subscriber _subPlatformJointState[NB_PLATFORMS];
+  ros::Subscriber _subPlatformOutput[NB_PLATFORMS];
   ros::Subscriber _subLegJointState[NB_PLATFORMS];
   
   ros::Subscriber _subDesiredHapticEfforts[NB_PLATFORMS];
@@ -198,7 +215,8 @@ private:
   void updateLegTreeFKState(int whichFoot);
   
   void processPlatformJoints(int whichFoot);
-  void readPlatformJointState(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot);
+  // void readPlatformJointState(const sensor_msgs::JointState::ConstPtr &msg, int whichFoot);
+  void readPlatformOutput(const custom_msgs::FootOutputMsg::ConstPtr &msg, int whichFoot);
   void updatePlatformTreeFKState(int whichFoot);
 
   void computeLegGravityTorques(int whichFoot);
@@ -208,6 +226,8 @@ private:
   
   void publishHapticEfforts(int whichFoot); 
   void doHapticControl();
+
+  void readToolTipRobotBase(int whichFoot);
   
   //! OTHER METHODS
   static void stopNode(int sig);
