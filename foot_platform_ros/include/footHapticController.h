@@ -53,6 +53,7 @@
 #include <vibrator.h>
 #include <Utils_math.h>
 #include "LP_Filterd.h"
+#include "HP_Filterd.h"
 
 using namespace std;
 using namespace Eigen;
@@ -67,9 +68,13 @@ private:
   unsigned int _nFoot;
   // float _minGainFoot[NB_PLATFORMS];
   // float _minGainLeg[NB_PLATFORMS];
-  // LP_Filterd _minGainLegFilter[NB_PLATFORMS];
+  //LP_Filterd _minGainLegFilter[NB_PLATFORMS];
+  LP_Filterd _lpFilterInPlatformHapticEfforts[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  HP_Filterd<double> _hpFilterInPlatformHapticEfforts[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  double _mixingCoefficients[NB_PLATFORMS][NB_PLATFORM_AXIS];
+  double _vibDecayRateMinMax[NB_LIMS];
+  double _vibFreqMinMax[NB_LIMS];
   bool _vibrationOn;
-  //smoothSignals<double>* _vibFBGenerator[NB_PLATFORMS][NB_PLATFORM_AXIS];
   vibrator<double>* _vibFBGenerator[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFB[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFreq[NB_PLATFORMS][NB_PLATFORM_AXIS];
@@ -96,6 +101,7 @@ private:
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_position[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_velocity[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_effort[NB_PLATFORMS];
+  Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _platform_humanEffort[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _weberRatios[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _outPlatformHapticEffortsMax[NB_PLATFORMS];
   
@@ -109,7 +115,10 @@ private:
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _userDefinedJND[NB_PLATFORMS];
 
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _inPlatformHapticWrench[NB_PLATFORMS];
-  KDL::JntArray _inPlatformHapticEfforts[NB_PLATFORMS];
+  KDL::JntArray _inPlatformHapticEffLPFFull[NB_PLATFORMS];
+  KDL::JntArray _inPlatformHapticEffLPFProj[NB_PLATFORMS];
+  KDL::JntArray _inPlatformHapticEffLPF[NB_PLATFORMS];
+  KDL::JntArray _inPlatformHapticEffHPF[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _devInPlatformHapticEfforts[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS, 1> _prevInPlatformHapticEfforts[NB_PLATFORMS];
 
