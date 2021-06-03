@@ -161,6 +161,7 @@ void Platform::step()
           _enterStateOnceFlag[TELEOPERATION]=true;
           _flagOutofCompensation=true;
           _flagOutofSoftLimitsControl = true;
+          _enableMotors->write(1);
           rtos::ThisThread::sleep_for(10);
           _enableMotors->write(1);
         }
