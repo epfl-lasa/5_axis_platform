@@ -19,6 +19,9 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
       _dt(1.0f / frequency), _myModel(model_), _grav_vector(0.0, 0.0, (double)GRAVITY){
    me = this;
   _stop = false;
+  _flagError=0;
+  
+  
   _ros_platform_id = 0;
   _ros_platform_machineState = 0;
   _forcePedalBias.setZero();
@@ -52,6 +55,7 @@ footForceMeasModifier::footForceMeasModifier ( ros::NodeHandle &n_1, double freq
   _flagPlatformOutputRead = false;
   _flagLegCoGRead=false;
   _forceMeasurements.setZero();
+  _forceMeasurementsPrev.setZero();
   _myJointSpaceInertiaMatrix.resize(NB_PLATFORM_AXIS);
   
   _forceFiltered.setZero(); _forceFiltered_prev.setZero();
@@ -122,7 +126,7 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
   _pubLegCompFootInput = _n.advertise<custom_msgs::FootInputMsg>("leg_comp_platform_effort", 1);
   _pubInertiaCoriolisFootInput = _n.advertise<custom_msgs::FootInputMsg>("foot_comp_inertia_coriolis", 1);
   _subForceSensor = _n.subscribe<geometry_msgs::WrenchStamped>(
-					    	"/ft_"+std::string(Platform_Names[_platform_id])+"/rokubimini/ft_"+std::string(Platform_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
+					    	"/rokubimini/ft_"+std::string(Platform_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
   _pubForceFootRestWorld = _n.advertise<geometry_msgs::WrenchStamped>("force_foot_rest_world", 1);
   _pubManipEllipsoidRot = _n.advertise<visualization_msgs::Marker>("foot_manipulability_rot", 0);
@@ -424,6 +428,7 @@ void footForceMeasModifier::publishInertiaCoriolisFootInput()
 
 void footForceMeasModifier::processForceSensor()
 { 
+  _forceMeasurementsPrev=_forceMeasurements;
   _forceMeasurements(0) = _msgForceSensorRead.wrench.force.x;
 	_forceMeasurements(1) = _msgForceSensorRead.wrench.force.y;
 	_forceMeasurements(2) = _msgForceSensorRead.wrench.force.z;
@@ -431,6 +436,22 @@ void footForceMeasModifier::processForceSensor()
 	_forceMeasurements(4) = _msgForceSensorRead.wrench.torque.y;
 	_forceMeasurements(5) = _msgForceSensorRead.wrench.torque.z;
   _forceMeasurements = _rotationfSensor * _forceMeasurements;
+  if ((_forceMeasurements-_forceMeasurementsPrev).norm()<=FLT_EPSILON)
+  {
+    _flagError++;
+    if (_flagError>=50)
+    {
+      ROS_ERROR_ONCE("[%s force sensor]: Probably the force sensor stopped",Platform_Names[_platform_id]);
+      _stop=true;
+      publishForceModified(); publishForceFootRestWorld();publishTorquesModified();publishPedalBias(); publishLegCompFootInput(); publishInertiaCoriolisFootInput(); 
+    }
+
+  }else
+  {
+    _flagError = _flagError > 0 ? _flagError - 1 : 0;
+  }
+  
+  
 }
 void footForceMeasModifier::readForceSensor(const geometry_msgs::WrenchStamped::ConstPtr &msg) {
   if (!me->_flagForceSensorRead)

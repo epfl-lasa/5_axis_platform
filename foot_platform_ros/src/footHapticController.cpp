@@ -140,13 +140,13 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
 
     if (_platformFootRestChain[i].getNrOfJoints()!=NB_PLATFORM_AXIS)
     {
-      ROS_ERROR("[footHapticController: ] Failed to validated %s platform's number of joints",Feet_Names[_feetID[i]]);
+      ROS_ERROR("[footHapticController: ] Failed to validate %s platform's number of joints",Feet_Names[_feetID[i]]);
       _stop=true;
     }
 
     if (NB_LEG_AXIS!=NB_LEG_AXIS)
     {
-      ROS_ERROR("[footHapticController: ] Failed to validated %s leg's number of joints",Feet_Names[_feetID[i]]);
+      ROS_ERROR("[footHapticController: ] Failed to validate %s leg's number of joints",Feet_Names[_feetID[i]]);
       _stop=true;
     }
 
@@ -581,7 +581,12 @@ void footHapticController::doHapticControl()
          if (!_vibFBGenerator[i][j]->run(ros::Time::now()))
          {
            _vibImpactVel[i][j] = _platform_velocity[i](j);
-           _vibMagnitude[i][j] = _inPlatformHapticEffHPF[i].data[j];
+           if (_inPlatformHapticEffHPF[i].data[j]<0.001)
+           {
+            _vibMagnitude[i][j] = 1.0;
+           }else{
+            _vibMagnitude[i][j] = 0.0;
+           }
            //cout<<"vibMagnitude: "<<_vibMagnitude[i][j]<<endl;
          }
          _vibFBGenerator[i][j]->start();
@@ -594,7 +599,6 @@ void footHapticController::doHapticControl()
       _vibFreq[i][j] = Utils_math<double>::map(_velGain[i][j],0.0,1.0,_vibFreqMinMax[L_MIN],_vibFreqMinMax[L_MAX]);
       _vibFBGenerator[i][j]->changeParams(_vibMagnitude[i][j],_vibDecayRate[i][j],_vibFreq[i][j]);
       _vibFBGenerator[i][j]->run(ros::Time::now());
-      //cout<<"_vibFb"<< j << ": "<<_vibFB[i][j]<<endl;
     }
     
     
@@ -719,21 +723,19 @@ void footHapticController::doHapticControl()
 
     float frequency = 0.0f;
     if (_vibrationOn)
-    {
+    { 
       for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
       {
         
         //_outPlatformHapticEfforts[i](j) = (1.0 + _vibFB[i][j] * _velGain[i][j]) * _effortGain[i](j) *  _inPlatformHapticEffLPFFull[i].data(j);      
-       
-        _outPlatformHapticEfforts[i](j) =  (_vibFB[i][j] * _velGain[i][j] + _inPlatformHapticEffHPF[i].data(j)) * _effortGain[i](j) + _effortGain[i](j) * ( _inPlatformHapticEffLPFFull[i].data(j));      
+        _outPlatformHapticEfforts[i](j) =  (_inPlatformHapticEffHPF[i].data(j) + (1.0f +_vibFB[i][j] * _velGain[i][j]) * _inPlatformHapticEffLPFFull[i].data(j)) * _effortGain[i](j) ;      
         //_outPlatformHapticEfforts[i](j) =  ( _inPlatformHapticEffHPF[i].data(j) +  (1+_vibFB[i][j]* _velGain[i][j]) * _inPlatformHapticEffLPFFull[i].data(j)) * _effortGain[i](j);      
         
-        //cout<<"BOOOOOOOO"<<endl;
       }
 
     }else
     {
-      _outPlatformHapticEfforts[i] = _effortGain[i].cwiseProduct(2.0*_inPlatformHapticEffHPF[i].data +  _inPlatformHapticEffLPFFull[i].data);                                                        
+      _outPlatformHapticEfforts[i] = _effortGain[i].cwiseProduct(_inPlatformHapticEffHPF[i].data +  _inPlatformHapticEffLPFFull[i].data);                                                        
     }
       
       _outPlatformHapticEfforts[i] = _outPlatformHapticEfforts[i].cwiseMin(_outPlatformHapticEffortsMax[i]).cwiseMax(-_outPlatformHapticEffortsMax[i]);
