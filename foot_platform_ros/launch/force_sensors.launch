@@ -25,7 +25,7 @@
   </group>
 
   <group if="$(arg two_sensors)">
-    <node name="rokubimini" pkg="bota_device_driver" type="bota_device_driver_node"  output="log" launch-prefix="$(arg launch_prefix)" required="true">
+    <node name="rokubimini" pkg="bota_device_driver" type="bota_device_driver_node"  output="screen" launch-prefix="$(arg launch_prefix)" required="true">
         <param name="standalone"                                type="bool"     value="$(arg standalone)"/>
         <param name="num_spinners"                              type="int"      value="$(arg num_spinners)"/>
         <param name="time_step"                                 type="double"   value="$(arg time_step)"/>

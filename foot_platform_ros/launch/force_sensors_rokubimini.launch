@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="ft_name"              default="right" />
+  <arg name="ft_port"              default="/dev/right_force_sensor" />
+  <arg name="two_sensors"          default="false"/>
+  <arg name="standalone"                default="true" />
+  <arg name="time_step"                 default="0.01"/> 
+  <arg name="num_spinners"              default="1" />
+  <arg name="launch_prefix"             default="nice -n -10" />
+  <arg name="launch_prefix_gdb"         default="gdb -ex run --args" />
+  <arg name="sensor_config_name"        default="" />  
+
+  <group unless="$(arg two_sensors)">
+
+  <node name="bus_$(arg ft_name)" pkg="rokubimini_serial" type="rokubimini_serial_bus_manager_node"  output="screen" required="true" clear_params="true">
+    <param name="num_spinners"                              type="int"      value="1"/>
+    <param name="time_step"                                 type="double"   value="0.01"/>
+    <param name="port"  type="string"   value="/dev/$(arg ft_name)_force_sensor"/>
+    <param name="rokubiminis/ft_$(arg ft_name)/name" type="string" value="ft_$(arg ft_name)"/>
+    <param name="rokubiminis/ft_$(arg ft_name)/product_name" type="string" value="BFT-SEN-11-02-0"/>
+    <rosparam ns="rokubiminis/ft_$(arg ft_name)" command="load" file="$(find rokubimini)/config/rokubimini_sensor.yaml" />
+  </node>
+
+  </group>
+
+  <group if="$(arg two_sensors)">
+  <node name="bus_right" pkg="rokubimini_serial" type="rokubimini_serial_bus_manager_node"  output="screen" required="true" clear_params="true">
+    <param name="num_spinners"                              type="int"      value="1"/>
+    <param name="time_step"                                 type="double"   value="0.01"/>
+    <param name="port"  type="string"   value="/dev/right_force_sensor"/>
+    <param name="rokubiminis/ft_right/name" type="string" value="ft_right"/>
+    <param name="rokubiminis/ft_right/product_name" type="string" value="BFT-SEN-11-02-0"/>
+    <rosparam ns="rokubiminis/ft_right" command="load" file="$(find rokubimini)/config/rokubimini_sensor.yaml" />
+
+    <param name="port"  type="string"   value="/dev/left_force_sensor"/>
+    <param name="rokubiminis/ft_left/name" type="string" value="ft_left"/>
+    <param name="rokubiminis/ft_left/product_name" type="string" value="BFT-SEN-11-02-0"/>
+    <rosparam ns="rokubiminis/ft_left" command="load" file="$(find rokubimini)/config/rokubimini_sensor.yaml" />
+  </node>
+  </group>
+</launch>

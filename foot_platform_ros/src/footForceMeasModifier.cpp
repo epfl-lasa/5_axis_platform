@@ -128,6 +128,11 @@ bool footForceMeasModifier::init() //! Initialization of the node. Its datatype
   _subForceSensor = _n.subscribe<geometry_msgs::WrenchStamped>(
 					    	"/rokubimini/ft_"+std::string(Platform_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
 					    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+
+  // _subForceSensor = _n.subscribe<geometry_msgs::WrenchStamped>(
+	// 				    	"bus_"+std::string(Platform_Names[_platform_id])+"/ft_"+std::string(Platform_Names[_platform_id])+"/ft_sensor_readings/wrench/", 1,boost::bind(&footForceMeasModifier::readForceSensor, this, _1),
+	// 				    	ros::VoidPtr(), ros::TransportHints().reliable().tcpNoDelay());
+
   _pubForceFootRestWorld = _n.advertise<geometry_msgs::WrenchStamped>("force_foot_rest_world", 1);
   _pubManipEllipsoidRot = _n.advertise<visualization_msgs::Marker>("foot_manipulability_rot", 0);
   _pubManipEllipsoidLin = _n.advertise<visualization_msgs::Marker>("foot_manipulability_lin", 0);

@@ -10,6 +10,12 @@
         <arg name="two_sensors" value="$(arg two_platforms)"/>
       </include>    
 
+        <!-- <include file="$(find foot_platform_ros)/launch/force_sensors_rokubimini.launch">
+        <arg name="ft_name" value="$(arg id)"/>
+        <arg name="ft_port" value="/dev/$(arg id)_force_sensor"/>                        
+        <arg name="two_sensors" value="$(arg two_platforms)"/>
+      </include>     -->
+
     <group unless="$(arg two_platforms)">
         <group ns="$(arg id)_platform">
             <node pkg="foot_platform_ros" type="footForceMeasModifier" name="force_sensor_modifier" output="screen">
