@@ -782,11 +782,11 @@ void footHapticController::publishHapticData(int whichFoot)
     for (size_t j = 0; j < NB_LEG_AXIS; j++)
     {
       _outMsgHapticData[whichFoot].fh_haptEffLegIn[j] = _inPlatformToLegHapticEfforts[whichFoot](j);
-      _outMsgHapticData[whichFoot].fh_normEffortCoeffs[j] = _normalizedEffortCoeffsInLeg[whichFoot](j);
+      //_outMsgHapticData[whichFoot].fh_normEffortCoeffs[j] = _normalizedEffortCoeffsInLeg[whichFoot](j);
       _outMsgHapticData[whichFoot].fh_jointLimCoeffs[j] = _jointLimitGaussianFilterCoeff[whichFoot](j);
       _outMsgHapticData[whichFoot].fh_bckgndEffLeg[j] = (_legGravityTorques[whichFoot].data + _platformToLegImpedanceTorques[whichFoot])(j);
-      _outMsgHapticData[whichFoot].fh_weberRatios[j] = _weberRatiosLeg[whichFoot](j);
-      _outMsgHapticData[whichFoot].fh_weberCoeff[j] = _weberLegCoeff[whichFoot](j);
+      // _outMsgHapticData[whichFoot].fh_weberRatios[j] = _weberRatiosLeg[whichFoot](j);
+      // _outMsgHapticData[whichFoot].fh_weberCoeff[j] = _weberLegCoeff[whichFoot](j);
     }
     for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
     {
