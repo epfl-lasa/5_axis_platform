@@ -1,14 +1,18 @@
 <?xml version="1.0"?>
 <launch>
     <arg name= "id"         default="right"/>
+    <arg name="w_fs" default="false"/>
     <arg name="two_platforms" default="false"/>
 	<arg name="forceAlpha" default="0.97"/>
-    
+
+    <group if="$(arg w_fs)">
       <include file="$(find foot_platform_ros)/launch/force_sensors.launch">
         <arg name="ft_name" value="ft_$(arg id)"/>
         <arg name="ft_port" value="/dev/$(arg id)_force_sensor"/>                        
         <arg name="two_sensors" value="$(arg two_platforms)"/>
-      </include>    
+      </include>  
+    </group>
+        
 
         <!-- <include file="$(find foot_platform_ros)/launch/force_sensors_rokubimini.launch">
         <arg name="ft_name" value="$(arg id)"/>

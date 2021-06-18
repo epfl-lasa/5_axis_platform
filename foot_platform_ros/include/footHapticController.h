@@ -54,6 +54,7 @@
 #include <Utils_math.h>
 #include "LP_Filterd.h"
 #include "HP_Filterd.h"
+#include <custom_msgs/FootHapticDataMsg.h>
 
 using namespace std;
 using namespace Eigen;
@@ -86,6 +87,7 @@ private:
   double _minJND;
   double _maxVelocity[NB_PLATFORM_AXIS];
   
+  Eigen::Matrix<double, NB_PLATFORM_AXIS,1> _effortGainRaw[NB_PLATFORMS];
   Eigen::Matrix<double, NB_PLATFORM_AXIS,1> _effortGain[NB_PLATFORMS];
 
   tf2_ros::Buffer _tfBuffer;
@@ -172,6 +174,7 @@ private:
   custom_msgs::FootOutputMsg _inMsgPlatformOutput[NB_PLATFORMS];   
   custom_msgs::FootInputMsg _inMsgDesiredHapticEfforts[NB_PLATFORMS];
   custom_msgs::FootInputMsg _outMsgHapticEfforts[NB_PLATFORMS];
+  custom_msgs::FootHapticDataMsg _outMsgHapticData[NB_PLATFORMS];
 
   // ros variables
   urdf::Model _platformModel[NB_PLATFORMS];
@@ -186,6 +189,7 @@ private:
 
   // Publisher declaration
   ros::Publisher _pubHapticEfforts[NB_PLATFORMS];
+  ros::Publisher _pubHapticData[NB_PLATFORMS];
 
   // ros::Subscriber _subPlatformJointState[NB_PLATFORMS];
   ros::Subscriber _subPlatformOutput[NB_PLATFORMS];
@@ -234,6 +238,7 @@ private:
   
   
   void publishHapticEfforts(int whichFoot); 
+  void publishHapticData(int whichFoot); 
   void doHapticControl();
 
   void readToolTipRobotBase(int whichFoot);
