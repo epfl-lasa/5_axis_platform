@@ -2,7 +2,7 @@ hapticControl:
   platformEffortLims: [10.0,10.0,10.0,10.0,10.0] #Y,X,ROLL,PITCH,YAW
   maxVelocityJoints: [0.01,0.01,0.05,0.05,0.05]
   maxGain: 5
-  minJNDGain: 0.40 # of increase
+  minJNDGain: 0.30 # of increase
   vibrationOn: false
   lowHighPassFilter: [10.0,10.0,10.0,10.0,10.0] 
   mixingCoefficients: [1.0,1.0,1.0,1.0,1.0]
