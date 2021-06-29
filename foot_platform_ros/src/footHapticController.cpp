@@ -518,8 +518,8 @@ void footHapticController::processDesiredHapticEfforts(int whichFoot)
   //cout<<"Human Efforts: "<<_platform_humanEffort[whichFoot].transpose()<<endl;
   //cout<<"Projection Efforts: "<<_inPlatformHapticEffLPFProj[whichFoot].data.transpose()<<endl;
   //cout<<"LPF Efforts: "<<_inPlatformHapticEffLPF[whichFoot].data.transpose()<<endl;
-  cout<<"LPFFull Efforts: "<<_inPlatformHapticEffLPFFull[whichFoot].data.transpose()<<endl;
-  cout<<"HPF Efforts: "<<_inPlatformHapticEffHPF[whichFoot].data.transpose()<<endl;
+  //cout<<"LPFFull Efforts: "<<_inPlatformHapticEffLPFFull[whichFoot].data.transpose()<<endl;
+  //cout<<"HPF Efforts: "<<_inPlatformHapticEffHPF[whichFoot].data.transpose()<<endl;
   // _devInPlatformHapticEfforts[whichFoot] = (_inPlatformHapticEffLPFFull[whichFoot].data - _prevInPlatformHapticEfforts[whichFoot]) * (1.0 / _dt);
 }
 
@@ -585,7 +585,7 @@ void footHapticController::doHapticControl()
          if (!_vibFBGenerator[i][j]->run(ros::Time::now()))
          {
            _vibImpactVel[i][j] = _platform_velocity[i](j);
-           if (_inPlatformHapticEffHPF[i].data[j]<0.001)
+           if (_inPlatformHapticEffHPF[i].data[j]<0.0001)
            {
             _vibMagnitude[i][j] = 1.0;
            }else{
@@ -637,7 +637,7 @@ void footHapticController::doHapticControl()
     _platformToLegImpedanceTorques[i] = _legFootBaseJacobian[i].data.transpose() * _platformToLegImpedanceWrench[i];
 
 
-    _maxPossibleGains[i] = ( _inPlatformHapticEffLPFFull[i].data.array().cwiseAbs() > __FLT_EPSILON__ ).select (
+    _maxPossibleGains[i] = ( _inPlatformHapticEffLPFFull[i].data.array().cwiseAbs() > 0.0001 ).select (
                           ((_inPlatformHapticEffLPFFull[i].data.array() < 0.0f).select(
                               -_outPlatformHapticEffortsMax[i],_outPlatformHapticEffortsMax[i]) - _platform_effort[i] -
                                _legToPlatformGravityEfforts[i]).cwiseAbs().cwiseQuotient(_inPlatformHapticEffLPFFull[i].data.cwiseAbs()), _maxGainForAllJoints); 
@@ -668,7 +668,7 @@ void footHapticController::doHapticControl()
     
     //cout<<"projected efforts in leg "<< _inPlatformToLegHapticEfforts[i].transpose() << endl;
 
-    if ((_inPlatformToLegHapticEfforts[i].cwiseAbs()).norm()>FLT_EPSILON)
+    if ((_inPlatformToLegHapticEfforts[i].cwiseAbs()).norm()>0.0001)
     {
       _normalizedEffortCoeffsInLeg[i] = _inPlatformToLegHapticEfforts[i].cwiseAbs().normalized();
     }else
@@ -699,22 +699,22 @@ void footHapticController::doHapticControl()
   
 
 
-    _weberRatiosLeg[i] =  ( (_legGravityTorques[i].data + _platformToLegImpedanceTorques[i]).array().abs() > FLT_EPSILON ).select
+    _weberRatiosLeg[i] =  ( (_legGravityTorques[i].data + _platformToLegImpedanceTorques[i]).array().abs() > 0.0001 ).select
                                      (  _inPlatformToLegHapticEfforts[i].array().abs() /
                                      (_legGravityTorques[i].data + _platformToLegImpedanceTorques[i]).array().abs() , 0.0f) ;
-    //cout<<"weber ratios leg "<< _weberRatiosLeg[i].transpose() <<endl;
+    cout<<"weber ratios leg "<< _weberRatiosLeg[i].transpose() <<endl;
 
     _weberLegCoeff[i] = (_weberRatiosLeg[i].array()  < _userDefinedJND[i].array()).select(
                                       (_weberRatiosLeg[i].array() > FLT_EPSILON ).select(  
                                       (_userDefinedJND[i].array()) / _weberRatiosLeg[i].array(), 1.0f
                                       ), 1.0f );
-    //cout<<"weber coefficients "<< _weberLegCoeff[i].transpose() <<endl;
+    cout<<"weber coefficients "<< _weberLegCoeff[i].transpose() <<endl;
 
 
 
 
 
-    if(_normalizedEffortCoeffsInLeg[i].cwiseAbs().sum()>__FLT_EPSILON__)
+    if(_normalizedEffortCoeffsInLeg[i].cwiseAbs().sum()>0.0001)
      {
       _effortGainRaw[i].setConstant(_normalizedEffortCoeffsInLeg[i].dot(
                         (_jointLimitGaussianFilterCoeff[i].array() * (_weberLegCoeff[i].array()- 1.0f) + 1.0f).matrix())/_normalizedEffortCoeffsInLeg[i].sum() );
@@ -731,6 +731,7 @@ void footHapticController::doHapticControl()
 
      }else
      {
+       _effortGainRaw[i].setConstant(1.0f);
        _effortGain[i].setConstant(1.0f);
      }
     
@@ -782,11 +783,11 @@ void footHapticController::publishHapticData(int whichFoot)
     for (size_t j = 0; j < NB_LEG_AXIS; j++)
     {
       _outMsgHapticData[whichFoot].fh_haptEffLegIn[j] = _inPlatformToLegHapticEfforts[whichFoot](j);
-      //_outMsgHapticData[whichFoot].fh_normEffortCoeffs[j] = _normalizedEffortCoeffsInLeg[whichFoot](j);
+      _outMsgHapticData[whichFoot].fh_normEffortCoeffs[j] = _normalizedEffortCoeffsInLeg[whichFoot](j);
       _outMsgHapticData[whichFoot].fh_jointLimCoeffs[j] = _jointLimitGaussianFilterCoeff[whichFoot](j);
       _outMsgHapticData[whichFoot].fh_bckgndEffLeg[j] = (_legGravityTorques[whichFoot].data + _platformToLegImpedanceTorques[whichFoot])(j);
-      // _outMsgHapticData[whichFoot].fh_weberRatios[j] = _weberRatiosLeg[whichFoot](j);
-      // _outMsgHapticData[whichFoot].fh_weberCoeff[j] = _weberLegCoeff[whichFoot](j);
+      _outMsgHapticData[whichFoot].fh_weberRatios[j] = _weberRatiosLeg[whichFoot](j);
+      _outMsgHapticData[whichFoot].fh_weberCoeff[j] = _weberLegCoeff[whichFoot](j);
     }
     for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
     {

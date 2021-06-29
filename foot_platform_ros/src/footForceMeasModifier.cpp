@@ -260,7 +260,17 @@ void footForceMeasModifier::run() {
           }
 				}else
         {
-          _forceMeasurements.setZero();
+          // ROS_INFO("[%s force sensor]: Force sensor disconnected. Shutting down!");
+          // _stop=true;
+            _forceModified.setZero();
+            _torquesModified.setZero();
+            _forceInFootRest.setZero();
+            modifyForce();
+            publishForceModified();
+            publishForceFootRestWorld();
+            publishTorquesModified();
+            publishPedalBias();
+
         }
     }else {
 

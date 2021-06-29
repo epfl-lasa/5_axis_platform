@@ -7,7 +7,7 @@ imu_acceleration_filter: 1
 imu_angular_rate_filter: 3
 
 force_torque_filter:
-  sinc_filter_size: 512
+  sinc_filter_size: 1024
   chop_enable:      false
   fir_disable:      true
   fast_enable:      false
@@ -27,4 +27,3 @@ sensor_configuration:
   coordinate_system_active:             false
   inertia_compensation_active:          0
   orientation_estimation_active:        0
-use_custom_calibration:                 false
