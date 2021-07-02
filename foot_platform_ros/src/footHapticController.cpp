@@ -37,7 +37,7 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
   _nFoot = 0;
   _maxGainForAllJoints = MaxGain;
   _vibrationOn =true;
-
+  _hapticControlOn = true;
 
   for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
   {
@@ -161,6 +161,10 @@ footHapticController::footHapticController (const ros::NodeHandle &n_1, const fl
     _inPlatformHapticEffLPF[i].resize(NB_PLATFORM_AXIS);
     _inPlatformHapticEffLPF[i].data.setZero();
 
+    
+    _inPlatformHapticEffRaw[i].resize(NB_PLATFORM_AXIS);
+    _inPlatformHapticEffRaw[i].data.setZero();
+
 
     _inPlatformHapticEffHPF[i].resize(NB_PLATFORM_AXIS);
     _inPlatformHapticEffHPF[i].data.setZero();
@@ -262,6 +266,13 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
 {
   std::vector<double> platformEffortLims;
 
+  if(!_n.getParam("/hapticControl/hapticControlOn", _hapticControlOn))
+  {
+    ROS_INFO("[footHapticController: ] _hapticControlOn was not indicated, default to true");
+    _hapticControlOn = true;
+  }
+  
+ 
   if(!_n.getParam("/hapticControl/platformEffortLims", platformEffortLims))
   {
     ROS_INFO("[footHapticController: ] platformEffortLims was not indicated, default Y 19.0 X 19.0 PITCH 10.0 ROLL 10.0 YAW 10.0 ");
@@ -309,7 +320,8 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
     ROS_INFO("[footHapticController: ] _vibrationOn was not indicated, default to false");
     _vibrationOn = false;
   }
-  
+
+
   std::vector<double> lowHighPassFilter;
 
   if(!_n.getParam("/hapticControl/lowHighPassFilter", lowHighPassFilter))
@@ -389,6 +401,24 @@ bool footHapticController::init() //! Initialization of the node. Its datatype
     _vibFreqMinMax[k] = vibFreqMinMax[k];
   }
     
+   double constantGain = 0.0;
+  if (!_hapticControlOn)
+  {
+
+    if(!_n.getParam("/hapticControl/constantGain", constantGain))
+    {
+      ROS_INFO("[footHapticController: ] constantGain was not indicated, default to 5.0");
+      constantGain = 5.0;
+    }else
+      ROS_INFO("[footHapticController: ] constantGain set to %f",constantGain);
+
+    for (size_t i = 0; i < _nFoot; i++)
+    {
+      _effortGain[i].setConstant(constantGain);
+    }
+  }
+
+
   // Subscriber definitions
   signal(SIGINT, footHapticController::stopNode);
 
@@ -443,10 +473,16 @@ void footHapticController::run() {
           processDesiredHapticEfforts(i);          
           _flagDesiredHapticRead[i]=false;
         }
-
-        doHapticControl();
+        if (_hapticControlOn)
+        {
+        //  doHapticControl();
+        //  publishHapticData(i);
+        }else
+        {
+          //cout<<_effortGain[0].transpose()<<endl; 
+          doDirectMapping();
+        }
         publishHapticEfforts(i);
-        publishHapticData(i);
       }else
 
       {
@@ -506,6 +542,7 @@ void footHapticController::processDesiredHapticEfforts(int whichFoot)
   // _prevInPlatformHapticEfforts[whichFoot] = _inPlatformHapticEffLPFFull[whichFoot].data;
   for (size_t j = 0; j < NB_PLATFORM_AXIS; j++)
   {
+    _inPlatformHapticEffRaw[whichFoot].data(j) = _inMsgDesiredHapticEfforts[whichFoot].ros_effort[AxisRos[j]];
     _inPlatformHapticEffLPF[whichFoot].data(j) = _lpFilterInPlatformHapticEfforts[whichFoot][j].update(_inMsgDesiredHapticEfforts[whichFoot].ros_effort[AxisRos[j]]);
 
     _inPlatformHapticEffLPFProj[whichFoot].data(j) = Utils_math<double>::bound(_inPlatformHapticEffLPF[whichFoot].data(j)/(_platform_humanEffort[whichFoot](j) + FLT_EPSILON),0.0,1.0) * _platform_humanEffort[whichFoot](j); //! why not -1.0 to 1.0 ?
@@ -668,7 +705,7 @@ void footHapticController::doHapticControl()
     
     //cout<<"projected efforts in leg "<< _inPlatformToLegHapticEfforts[i].transpose() << endl;
 
-    if ((_inPlatformToLegHapticEfforts[i].cwiseAbs()).norm()>0.0001)
+    if ((_inPlatformToLegHapticEfforts[i].cwiseAbs()).norm()>0.01)
     {
       _normalizedEffortCoeffsInLeg[i] = _inPlatformToLegHapticEfforts[i].cwiseAbs().normalized();
     }else
@@ -714,7 +751,7 @@ void footHapticController::doHapticControl()
 
 
 
-    if(_normalizedEffortCoeffsInLeg[i].cwiseAbs().sum()>0.0001)
+    if(_normalizedEffortCoeffsInLeg[i].cwiseAbs().sum()>0.01)
      {
       _effortGainRaw[i].setConstant(_normalizedEffortCoeffsInLeg[i].dot(
                         (_jointLimitGaussianFilterCoeff[i].array() * (_weberLegCoeff[i].array()- 1.0f) + 1.0f).matrix())/_normalizedEffortCoeffsInLeg[i].sum() );
@@ -757,6 +794,17 @@ void footHapticController::doHapticControl()
   }
 }
 
+
+void footHapticController::doDirectMapping()
+{
+  for (size_t i = 0; i < _nFoot; i++)
+  {
+    //cout<<_effortGain[i].transpose()<<endl; 
+    _outPlatformHapticEfforts[i] = _effortGain[i].cwiseProduct(_inPlatformHapticEffRaw[i].data);
+    _outPlatformHapticEfforts[i] = _outPlatformHapticEfforts[i].cwiseMin(_outPlatformHapticEffortsMax[i]).cwiseMax(-_outPlatformHapticEffortsMax[i]);
+  }
+
+}
 
 
 

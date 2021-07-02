@@ -75,7 +75,7 @@ private:
   double _mixingCoefficients[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibDecayRateMinMax[NB_LIMS];
   double _vibFreqMinMax[NB_LIMS];
-  bool _vibrationOn;
+  bool _vibrationOn; bool _hapticControlOn;
   vibrator<double>* _vibFBGenerator[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFB[NB_PLATFORMS][NB_PLATFORM_AXIS];
   double _vibFreq[NB_PLATFORMS][NB_PLATFORM_AXIS];
@@ -117,6 +117,7 @@ private:
   Eigen::Matrix<double, NB_LEG_AXIS, 1> _userDefinedJND[NB_PLATFORMS];
 
   Eigen::Matrix<double, NB_AXIS_WRENCH, 1> _inPlatformHapticWrench[NB_PLATFORMS];
+  KDL::JntArray _inPlatformHapticEffRaw[NB_PLATFORMS];
   KDL::JntArray _inPlatformHapticEffLPFFull[NB_PLATFORMS];
   KDL::JntArray _inPlatformHapticEffLPFProj[NB_PLATFORMS];
   KDL::JntArray _inPlatformHapticEffLPF[NB_PLATFORMS];
@@ -204,7 +205,7 @@ private:
 
 
 
-  bool _stop;
+  bool _stop; 
   std::mutex _mutex;
   static footHapticController *me;
 
@@ -240,6 +241,7 @@ private:
   void publishHapticEfforts(int whichFoot); 
   void publishHapticData(int whichFoot); 
   void doHapticControl();
+  void doDirectMapping();
 
   void readToolTipRobotBase(int whichFoot);
   

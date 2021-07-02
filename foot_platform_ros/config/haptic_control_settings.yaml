@@ -1,10 +1,16 @@
 hapticControl:
+  hapticControlOn: false
+#hapticControlOn = true 
+  maxGain: 5 
   platformEffortLims: [10.0,10.0,10.0,10.0,10.0] #Y,X,ROLL,PITCH,YAW
   maxVelocityJoints: [0.01,0.01,0.05,0.05,0.05]
-  maxGain: 5
-  minJNDGain: 0.35 # of increase
-  vibrationOn: true
+  minJNDGain: 0.3 # of increase
+  vibrationOn: false
   lowHighPassFilter: [10.0,10.0,10.0,10.0,10.0] 
   mixingCoefficients: [1.0,1.0,1.0,1.0,1.0]
   vibDecayRateMinMax: [1.0,2.0]
   vibFreqMinMax: [30.0,50.0]
+#hapticControl = false
+  constantGain: 5
+
+  
